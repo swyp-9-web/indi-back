@@ -1,0 +1,13 @@
+server:
+  port: 8000
+
+spring:
+  application:
+    name: "artego"
+  jackson:
+    time-zone: Asia/Seoul
+  jpa:
+    database: mysql
+
+  profiles:
+    active: local
