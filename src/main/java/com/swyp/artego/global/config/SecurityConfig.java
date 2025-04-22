@@ -45,6 +45,10 @@ public class SecurityConfig {
                         .authenticationEntryPoint(unauthorizedAccessHandler)
                 )
 
+                .sessionManagement(session -> session
+                        .maximumSessions(3)
+                )
+
                 //  로그아웃 처리
                 .logout(logout -> logout
                         .logoutUrl("/logout")
@@ -52,6 +56,7 @@ public class SecurityConfig {
                         .invalidateHttpSession(true)
                         .deleteCookies("JSESSIONID")
                 );
+
 
         return http.build();
     }

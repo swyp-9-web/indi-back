@@ -9,19 +9,26 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Map;
 
 @Slf4j
-@RestController
+@Controller
 @RequiredArgsConstructor
 public class AuthController {
 
     // 이해 돕기 위한 테스트용! 테스트하고 지워도된다.
 
     private final UserRepository userRepository;
+
+
+    @GetMapping("/login/naver")
+    public String redirectToNaverOAuth() {
+        return "redirect:/oauth2/authorization/naver";
+    }
 
 
 
