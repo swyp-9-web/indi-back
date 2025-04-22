@@ -43,6 +43,8 @@ public enum ErrorCode {
     // com.fasterxml.jackson.core Processing Error
     JACKSON_PROCESS_ERROR(400, "G007", "com.fasterxml.jackson.core Exception"),
 
+    // 인증되지 않은 사용자 접근 (로그인 필요)
+    UNAUTHORIZED_ERROR(401, "G013", "Unauthorized Access – 인증(로그인)이 필요합니다."),
     // 권한이 없음
     FORBIDDEN_ERROR(403, "G008", "Forbidden Exception"),
 

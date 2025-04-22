@@ -9,6 +9,8 @@ import lombok.Getter;
 public enum SuccessCode {
 
     SELECT_SUCCESS(200, "200", "SELECT_SUCCESS"),
+    LOGIN_SUCCESS(200, "200", "로그인 성공"),
+    LOGOUT_SUCCESS(200, "200", "로그아웃 성공"),
     DELETE_SUCCESS(200, "200", "DELETE_SUCCESS"),
     INSERT_SUCCESS(201, "201", "INSERT_SUCCESS"),
     UPDATE_SUCCESS(204, "204", "UPDATE_SUCCESS"),
