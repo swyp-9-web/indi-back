@@ -1,6 +1,6 @@
-package com.swyp.artego.domain.user.repository;
+package com.swyp.artego.domain.itemEmoji.repository;
 
-import com.swyp.artego.domain.user.entity.ItemEmoji;
+import com.swyp.artego.domain.itemEmoji.entity.ItemEmoji;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface ItemEmojiRepository extends JpaRepository<ItemEmoji, Long> {

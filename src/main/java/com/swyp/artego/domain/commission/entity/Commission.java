@@ -1,4 +1,4 @@
-package com.swyp.artego.domain.code.commission.entity;
+package com.swyp.artego.domain.commission.entity;
 
 import com.swyp.artego.domain.user.entity.User;
 import com.swyp.artego.global.common.entity.BaseTimeEntity;

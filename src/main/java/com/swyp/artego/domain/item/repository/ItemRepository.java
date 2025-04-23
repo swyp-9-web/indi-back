@@ -1,6 +1,6 @@
-package com.swyp.artego.domain.post.repository;
+package com.swyp.artego.domain.item.repository;
 
-import com.swyp.artego.domain.post.entity.Item;
+import com.swyp.artego.domain.item.entity.Item;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface ItemRepository extends JpaRepository<Item, Long> {
