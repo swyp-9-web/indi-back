@@ -2,8 +2,11 @@ package com.swyp.artego.domain.user.entity;
 
 import com.swyp.artego.global.common.entity.BaseTimeEntity;
 import com.swyp.artego.global.converter.BooleanToYNConverter;
+import com.swyp.artego.global.converter.StringListConverter;
 import jakarta.persistence.*;
 import lombok.*;
+
+import java.util.List;
 
 @Entity
 @Getter
@@ -39,9 +42,10 @@ public class User extends BaseTimeEntity {
 //    @Column(name = "img_url", nullable = false)
 //    private String imgUrl = "default.png"; // 기본 프로필 이미지
 //
-//    @Column(name = "artist_sns_info"
+//    @Convert(converter = StringListConverter.class)
+//    @Column(name = "artist_sns_info")
 //    // '종류_링크' 형식으로 저장. 예시) insta_https://blahblah, youtube_https://blahblah
-//    private String artistSnsInfo; // Nullable
+//    private List<String> artistSnsInfo; // Nullable
 
 //    @Column(name = "artist_about_me")
 //    private String artistAboutMe; // Nullable
