@@ -1,5 +1,6 @@
-package com.swyp.artego.domain.user.entity;
+package com.swyp.artego.domain.code.commission.entity;
 
+import com.swyp.artego.domain.user.entity.User;
 import com.swyp.artego.global.common.entity.BaseTimeEntity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
