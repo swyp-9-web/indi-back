@@ -29,30 +29,34 @@ public class Item extends BaseTimeEntity {
     @Column(name = "description", nullable = false)
     private String description;
 
+    @Column(name= "img_url", nullable = false)
+    private String imgUrl;
+
     @Column(name = "price", nullable = false)
     private int price;
-
-    @Column(name = "quantity", nullable = false)
-    private int quantity;
 
     @Column(name = "size")
     private String size; // TODO: 사이즈 저장 형식 기획 아직 안됨.
 
+    @Column(name= "material")
+    private String material;
+
     @Column(name = "status", length = 4, nullable = false)
-    // status = "OPEN" or "HIDE"
+    // status = "OPEN" or "HIDE" or "TEMP"
     private String status = "OPEN";
 
     @Column(name = "category_type", nullable = false)
     private String categoryType;
 
     @Builder
-    public Item(User user, String title, String description, int price, int quantity, String size, String status, String categoryType) {
+    public Item(User user, String title, String description, String imgUrl, int price, String size, String material, String status, String categoryType) {
         this.user = user;
         this.title = title;
         this.description = description;
+        this.imgUrl = imgUrl;
         this.price = price;
-        this.quantity = quantity;
         this.size = size;
+        this.material = material;
         this.status = status;
         this.categoryType = categoryType;
     }
