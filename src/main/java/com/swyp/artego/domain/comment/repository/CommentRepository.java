@@ -1,6 +1,6 @@
-package com.swyp.artego.domain.post.repository;
+package com.swyp.artego.domain.comment.repository;
 
-import com.swyp.artego.domain.post.entity.Comment;
+import com.swyp.artego.domain.comment.entity.Comment;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface CommentRepository extends JpaRepository<Comment, Long> {
