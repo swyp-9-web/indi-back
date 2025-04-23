@@ -30,6 +30,7 @@ public class Comment extends BaseTimeEntity {
     @Column(name = "comment", nullable = false)
     private String comment;
 
+    // TODO: BooleanToYNConverter 사용하기
     @Column(name = "secret", length = 1, nullable = false)
     // isSecret = "N" or "Y"
     private String isSecret;

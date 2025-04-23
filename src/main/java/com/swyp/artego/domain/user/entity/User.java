@@ -40,7 +40,11 @@ public class User extends BaseTimeEntity {
 //
 //    @Column(name = "artist_sns_info")
 //    private String artistSnsInfo; // Nullable
+
+//    @Column(name = "artist_about_me")
+//    private String artistAboutMe; // Nullable
 //
+//    TODO: BooleanToYNConverter 사용하기
 //    @Column(name = "banned", nullable = false)
 //    private String banned = "N";
 //
