@@ -1,5 +1,6 @@
-package com.swyp.artego.domain.post.entity;
+package com.swyp.artego.domain.scrap.entity;
 
+import com.swyp.artego.domain.item.entity.Item;
 import com.swyp.artego.domain.user.entity.User;
 import com.swyp.artego.global.common.entity.BaseTimeEntity;
 import jakarta.persistence.*;
@@ -11,12 +12,12 @@ import lombok.NoArgsConstructor;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Table(name = "comment")
-public class Comment extends BaseTimeEntity {
+@Table(name = "scrap")
+public class Scrap extends BaseTimeEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "comment_id", nullable = false)
+    @Column(name = "scrap_id", nullable = false)
     private Long id;
 
     @ManyToOne
@@ -27,18 +28,9 @@ public class Comment extends BaseTimeEntity {
     @JoinColumn(name="item_id")
     private Item item;
 
-    @Column(name = "comment", nullable = false)
-    private String comment;
-
-    @Column(name = "secret", length = 1, nullable = false)
-    // isSecret = "N" or "Y"
-    private String isSecret;
-
     @Builder
-    public Comment(User user, Item item, String comment, String isSecret) {
+    public Scrap(User user, Item item) {
         this.user = user;
         this.item = item;
-        this.comment = comment;
-        this.isSecret = isSecret;
     }
 }
