@@ -2,6 +2,7 @@ package com.swyp.artego.domain.post.entity;
 
 import com.swyp.artego.domain.user.entity.User;
 import com.swyp.artego.global.common.entity.BaseTimeEntity;
+import com.swyp.artego.global.converter.BooleanToYNConverter;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -30,13 +31,12 @@ public class Comment extends BaseTimeEntity {
     @Column(name = "comment", nullable = false)
     private String comment;
 
-    // TODO: BooleanToYNConverter 사용하기
+    @Convert(converter = BooleanToYNConverter.class)
     @Column(name = "secret", length = 1, nullable = false)
-    // isSecret = "N" or "Y"
-    private String isSecret;
+    private boolean isSecret;
 
     @Builder
-    public Comment(User user, Item item, String comment, String isSecret) {
+    public Comment(User user, Item item, String comment, boolean isSecret) {
         this.user = user;
         this.item = item;
         this.comment = comment;

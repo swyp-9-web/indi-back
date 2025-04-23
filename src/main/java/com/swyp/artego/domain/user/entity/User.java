@@ -1,6 +1,7 @@
 package com.swyp.artego.domain.user.entity;
 
 import com.swyp.artego.global.common.entity.BaseTimeEntity;
+import com.swyp.artego.global.converter.BooleanToYNConverter;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -45,12 +46,13 @@ public class User extends BaseTimeEntity {
 //    @Column(name = "artist_about_me")
 //    private String artistAboutMe; // Nullable
 //
-//    TODO: BooleanToYNConverter 사용하기
-//    @Column(name = "banned", nullable = false)
-//    private String banned = "N";
+//    @Convert(converter = BooleanToYNConverter.class)
+//    @Column(name = "banned", length = 1, nullable = false)
+//    private boolean banned = false;
 //
-//    @Column(name = "deleted", nullable = false)
-//    private String deleted = "N";
+//    @Convert(converter = BooleanToYNConverter.class)
+//    @Column(name = "deleted", length = 1, nullable = false)
+//    private boolean deleted = false;
 
 
     @Builder
