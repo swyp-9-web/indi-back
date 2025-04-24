@@ -1,5 +1,6 @@
 package com.swyp.artego.domain.item.dto.request;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.swyp.artego.domain.item.entity.Item;
 import com.swyp.artego.domain.item.enums.SizeType;
 import com.swyp.artego.domain.item.enums.StatusType;
@@ -20,6 +21,7 @@ public class ItemCreateRequest {
     private List<String> imgUrl;
     private int price;
 
+    @JsonProperty(value = "isSecret")
     private boolean isSecret;
     private SizeType sizeType;
     private String sizeLength;
