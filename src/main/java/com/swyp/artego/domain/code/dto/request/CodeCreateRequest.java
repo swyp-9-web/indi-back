@@ -44,4 +44,6 @@ public class CodeCreateRequest {
                 .cdNm(this.cdNm)
                 .build();
     }
+
+
 }
