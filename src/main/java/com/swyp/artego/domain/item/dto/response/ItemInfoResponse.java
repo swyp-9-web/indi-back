@@ -22,9 +22,9 @@ public class ItemInfoResponse {
     private int price;
     private boolean isSecret;
     private SizeType sizeType;
-    private String sizeLength;
-    private String sizeWidth;
-    private String sizeHeight;
+    private int sizeLength;
+    private int sizeWidth;
+    private int sizeHeight;
     private String material;
     private StatusType statusType;
     private String categoryType;
