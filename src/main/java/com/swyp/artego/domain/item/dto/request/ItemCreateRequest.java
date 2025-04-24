@@ -23,7 +23,6 @@ public class ItemCreateRequest {
 
     @JsonProperty(value = "isSecret")
     private boolean isSecret;
-    private SizeType sizeType;
     private int sizeLength;
     private int sizeWidth;
     private int sizeHeight;
@@ -34,7 +33,7 @@ public class ItemCreateRequest {
     /**
      * Item 엔티티 변환 메서드
      */
-    public Item toEntity(User user) {
+    public Item toEntity(User user, SizeType sizeType) {
         return Item.builder()
                 .user(user)
                 .title(this.title)
@@ -42,7 +41,7 @@ public class ItemCreateRequest {
                 .imgUrl(this.imgUrl)
                 .price(this.price)
                 .isSecret(this.isSecret)
-                .sizeType(this.sizeType)
+                .sizeType(sizeType)
                 .sizeLength(this.sizeLength)
                 .sizeWidth(this.sizeWidth)
                 .sizeHeight(this.sizeHeight)
