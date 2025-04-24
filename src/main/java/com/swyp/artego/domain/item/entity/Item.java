@@ -48,24 +48,23 @@ public class Item extends BaseTimeEntity {
 
     @Column(name = "size", nullable = false)
     @Enumerated(EnumType.STRING)
-    private SizeType sizeType; // TODO: Enum으로 대/중/소/해당없음 만들고, 이를 DB에 저장하기 => 완료
+    private SizeType sizeType;
 
     @Column(name = "size_length")
-    private String sizeLength;
+    private int sizeLength;
 
     @Column(name = "size_width")
-    private String sizeWidth;
+    private int sizeWidth;
 
     @Column(name = "size_heigth")
-    private String sizeHeight;
+    private int sizeHeight;
 
     @Column(name= "material")
     private String material;
 
     @Column(name = "status",nullable = false)
     @Enumerated(EnumType.STRING)
-
-    private StatusType statusType = StatusType.OPEN; // TODO: Enum으로 "OPEN" or "HIDE" or "TEMP" 만들기 => 완료
+    private StatusType statusType = StatusType.OPEN;
 
     @Column(name = "category_type", nullable = false)
     //@Enumerated(EnumType.STRING)
@@ -74,7 +73,7 @@ public class Item extends BaseTimeEntity {
     @Builder
     public Item (
             User user, String title, String description, List<String> imgUrl, int price, boolean isSecret,
-            SizeType sizeType, String sizeLength, String sizeWidth, String sizeHeight,
+            SizeType sizeType, int sizeLength, int sizeWidth, int sizeHeight,
             String material, StatusType statusType, String categoryType
     ) {
         this.user = user;
