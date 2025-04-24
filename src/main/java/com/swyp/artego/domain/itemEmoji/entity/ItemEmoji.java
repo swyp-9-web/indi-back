@@ -1,6 +1,7 @@
 package com.swyp.artego.domain.itemEmoji.entity;
 
 import com.swyp.artego.domain.item.entity.Item;
+import com.swyp.artego.domain.itemEmoji.enums.EmojiType;
 import com.swyp.artego.domain.user.entity.User;
 import com.swyp.artego.global.common.entity.BaseTimeEntity;
 import jakarta.persistence.*;
@@ -29,10 +30,11 @@ public class ItemEmoji extends BaseTimeEntity {
     private User user;
 
     @Column(name = "emoji_type", nullable = false)
-    private String emojiType;
+    @Enumerated(EnumType.STRING)
+    private EmojiType emojiType;
 
     @Builder
-    public ItemEmoji(Item item, User user, String emojiType) {
+    public ItemEmoji(Item item, User user, EmojiType emojiType) {
         this.item = item;
         this.user = user;
         this.emojiType = emojiType;
