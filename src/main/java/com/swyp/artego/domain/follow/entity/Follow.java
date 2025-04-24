@@ -31,4 +31,6 @@ public class Follow extends BaseTimeEntity {
         this.user = user;
         this.userArtist = userArtist;
     }
+
+
 }

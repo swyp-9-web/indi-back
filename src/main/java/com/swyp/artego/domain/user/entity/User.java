@@ -37,6 +37,7 @@ public class User extends BaseTimeEntity {
     private String telNumber;
 
 //    @Column(name = "role", nullable = false)
+    //@Enumerated(EnumType.STRING)
 //    private String role; // ex: "user", "artist"
 
 //    @Column(name = "img_url", nullable = false)

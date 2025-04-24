@@ -35,9 +35,14 @@ public class SecurityConfig {
                 )
 
                 // 권한 설정 (경로 허용 유무)
+//                .authorizeHttpRequests(auth -> auth
+//                        .requestMatchers("/", "/oauth2/**", "/login/**").permitAll()
+//                        .anyRequest().authenticated()
+//                )
+
+                // 테스트 중이라 일단 다 허용
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/", "/oauth2/**", "/login/**").permitAll()
-                        .anyRequest().authenticated()
+                        .anyRequest().permitAll()
                 )
 
                 // (로그인 x)인증 실패 시 JSON 응답
