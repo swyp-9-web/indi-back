@@ -7,7 +7,6 @@ WORKDIR /workspace
 
 COPY gradle gradle
 COPY src src
-COPY .env .
 COPY build.gradle .
 COPY gradlew .
 COPY settings.gradle .
