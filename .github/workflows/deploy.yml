@@ -77,8 +77,5 @@ jobs:
             docker pull ${{ secrets.DOCKER_REPO }}  
             cd artego-server
             echo "${{ secrets.SPRING_ENV }}" > .env
-            docker run -d --name artego -p $APP_PORT_EXTERNAL:$APP_PORT_INTERNAL --env-file .env ${{ secrets.DOCKER_REPO }}
+            docker run -d --name artego -p ${{ secrets.APP_PORT_EXTERNAL_INTERNAL }} --env-file .env ${{ secrets.DOCKER_REPO }}
             docker image prune -f --filter "until=24h"
-        env:
-          APP_PORT_EXTERNAL: ${{ secrets.APP_PORT_EXTERNAL }}
-          APP_PORT_INTERNAL: ${{ secrets.APP_PORT_INTERNAL }}
