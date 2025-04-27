@@ -37,6 +37,7 @@ jobs:
           username: ${{ secrets.USERNAME }}
           password: ${{ secrets.SSH_PWD }}
           script: |
+            set -e
             docker pull ${{ secrets.DOCKER_REPO }}:$SHORT_SHA
             docker rm -f artego || true
             cd artego-server
