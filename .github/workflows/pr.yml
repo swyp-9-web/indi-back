@@ -1,12 +1,7 @@
-name: deploy
+name: Pull Request Workflow (docker build test)
 
 on:
   pull_request:
-    branches:
-      - main
-      - dev
-      - temp
-  push:
     branches:
       - main
       - dev
@@ -46,36 +41,12 @@ jobs:
           exit 1
 
 
-  docker-build-push:
+  docker-build-test:
     needs: check-profile
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
 
-      - name: Docker Hub login
+      - name: Docker Build Test Only (no login)
         run: |
-          docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
-
-      - name: Docker build & push to docker hub
-        run: |
-          docker build -t ${{ secrets.DOCKER_REPO }} .
-          docker push ${{ secrets.DOCKER_REPO }}
-  
-
-  deploy:
-    needs: docker-build-push
-    runs-on: ubuntu-22.04
-    if: github.event_name == 'push'
-    steps:
-      - name: Deploy to server
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.HOST }}
-          username: ${{ secrets.HOSTNAME }}
-          password: ${{ secrets.SSH_PWD }}
-          script: |
-            docker pull ${{ secrets.DOCKER_REPO }}  
-            cd artego-server
-            echo "${{ secrets.SPRING_ENV }}" > .env
-            docker run -d --name artego -p ${{ secrets.APP_PORT_EXTERNAL_INTERNAL }} --env-file .env ${{ secrets.DOCKER_REPO }}
-            docker image prune -f --filter "until=24h"
+          docker build -t temp-pr-check .
