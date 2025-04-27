@@ -37,8 +37,9 @@ jobs:
           username: ${{ secrets.USERNAME }}
           password: ${{ secrets.SSH_PWD }}
           script: |
-            docker pull ${{ secrets.DOCKER_REPO }}:$SHORT_SHA  
+            docker pull ${{ secrets.DOCKER_REPO }}:$SHORT_SHA
+            docker rm -f artego || true
             cd artego-server
             echo "${{ secrets.SPRING_ENV }}" > .env
             docker run -d --name artego -p ${{ secrets.APP_PORT_EXTERNAL_INTERNAL }} --env-file .env ${{ secrets.DOCKER_REPO }}:$SHORT_SHA
-            docker image prune -f --filter "until=24h"
+            docker image prune -f --filter "until=36h"
