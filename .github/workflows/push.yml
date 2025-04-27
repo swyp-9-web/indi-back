@@ -1,0 +1,40 @@
+name: Push Workflow (deploy)
+
+on:
+  push:
+    branches:
+      - main
+      - dev
+      - temp
+
+jobs:
+  docker-build:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Docker Hub login
+        run: |
+          docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Docker build & push to docker hub
+        run: |
+          docker build -t ${{ secrets.DOCKER_REPO }} .
+          docker push ${{ secrets.DOCKER_REPO }}
+
+  deploy:
+    needs: docker-build
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Deploy to server
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.HOSTNAME }}
+          password: ${{ secrets.SSH_PWD }}
+          script: |
+            docker pull ${{ secrets.DOCKER_REPO }}  
+            cd artego-server
+            echo "${{ secrets.SPRING_ENV }}" > .env
+            docker run -d --name artego -p ${{ secrets.APP_PORT_EXTERNAL_INTERNAL }} --env-file .env ${{ secrets.DOCKER_REPO }}
+            docker image prune -f --filter "until=24h"
