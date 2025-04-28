@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <title>Title</title>
+</head>
+<body>
+<h1>File Upload</h1>
+<form method="post" th:action="@{/upload}" enctype="multipart/form-data">
+    <input type="file" name="files" multiple />
+    <input type="submit" value="Submit" />
+</form>
+</body>
+</html>
+
+<!--NOTICE!! 해당 파일 삭제 시, build.gradle의 thymeleaf 의존성도 함께 제거하기-->

@@ -11,6 +11,12 @@ public enum ErrorCode {
 
     BUSINESS_EXCEPTION_ERROR(200, "B999", "Business Exception Error"),
 
+    // 올바르지 않은 파일
+    INVALID_FILE(400, "B998", "Invalid File"),
+
+    // 올바르지 않은 파일
+    AMAZON_S3_API_ERROR(500, "B997", "NCP Storage에서 사용하는 Amazon S3 API의 에러"), // 일단은 500 처리
+
     /**
      * ******************************* Global Error CodeList ***************************************
      * HTTP Status Code
@@ -45,6 +51,7 @@ public enum ErrorCode {
 
     // 인증되지 않은 사용자 접근 (로그인 필요)
     UNAUTHORIZED_ERROR(401, "G013", "Unauthorized Access – 인증(로그인)이 필요합니다."),
+
     // 권한이 없음
     FORBIDDEN_ERROR(403, "G008", "Forbidden Exception"),
 
