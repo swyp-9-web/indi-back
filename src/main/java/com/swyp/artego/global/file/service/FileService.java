@@ -43,7 +43,7 @@ public class FileService {
      * @param folderName 해당 파일을 업로드할 폴더명
      * @return List<FileResponse>
      */
-    public List<FileResponse> uploadFiles(@NotNull List<MultipartFile> multipartFiles, String folderName) {
+    public List<FileResponse> uploadFiles(List<MultipartFile> multipartFiles, String folderName) {
         validateFilesExtension(multipartFiles);
 
         List<FileResponse> s3files = new ArrayList<>();
