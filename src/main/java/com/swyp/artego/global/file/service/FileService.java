@@ -6,7 +6,6 @@ import com.amazonaws.services.s3.model.*;
 import com.swyp.artego.global.common.code.ErrorCode;
 import com.swyp.artego.global.excpetion.BusinessExceptionHandler;
 import com.swyp.artego.global.file.dto.response.FileResponse;
-import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -37,7 +36,27 @@ public class FileService {
     private String bucketName;
 
     /**
-     * 여러 파일 업로드
+     * 단일 파일 업로드
+     *
+     * @param multipartFile
+     * @param folderName 해당 파일을 업로드할 폴더명
+     * @return FileResponse
+     */
+    public FileResponse uploadFile(MultipartFile multipartFile, String folderName) {
+        validateFilesExtension(List.of(multipartFile));
+
+        String keyName = uploadSingleFile(multipartFile, folderName);
+
+        return FileResponse.builder()
+                .originalFileName(multipartFile.getOriginalFilename())
+                .uploadFileName(keyName.substring(keyName.lastIndexOf("/") + 1))
+                .uploadFilePath(folderName)
+                .uploadFileUrl(endPoint + "/" + bucketName + "/" + keyName)
+                .build();
+    }
+
+    /**
+     * 다중 파일 업로드
      *
      * @param multipartFiles
      * @param folderName 해당 파일을 업로드할 폴더명
@@ -50,40 +69,21 @@ public class FileService {
         List<String> uploadedKeys = new ArrayList<>();
         
         for (MultipartFile multipartFile : multipartFiles) {
-
-            String originalFileName = multipartFile.getOriginalFilename();
-
-            String uploadFileName = getUuidFileName(originalFileName);
-
-            String keyName = folderName + "/" + uploadFileName;
-
-            ObjectMetadata objectMetadata = new ObjectMetadata();
-            objectMetadata.setContentLength(multipartFile.getSize());
-            objectMetadata.setContentType(multipartFile.getContentType());
-
-            try (InputStream inputStream = multipartFile.getInputStream()) {
-                amazonS3.putObject(bucketName, keyName, inputStream, objectMetadata);
+            try {
+                String keyName = uploadSingleFile(multipartFile, folderName);
                 uploadedKeys.add(keyName);
-            } catch (IOException | SdkClientException e) {
-                log.error("[FileService] 파일 업로드 도중 오류 발생: {}", e.toString());
+
+                s3files.add(FileResponse.builder()
+                        .originalFileName(multipartFile.getOriginalFilename())
+                        .uploadFileName(keyName.substring(keyName.lastIndexOf("/") + 1))
+                        .uploadFilePath(folderName)
+                        .uploadFileUrl(endPoint + "/" + bucketName + "/" + keyName)
+                        .build());
+            } catch (BusinessExceptionHandler e) {
                 log.info("[FileService] #### 업로드된 파일 롤백 시작 ####");
                 rollbackUploadedFiles(uploadedKeys, folderName);
-
-                if (e instanceof IOException) {
-                    throw new BusinessExceptionHandler("파일 업로드 도중 오류가 발생했습니다.", ErrorCode.IO_ERROR);
-                } else {
-                    throw new BusinessExceptionHandler("파일 업로드 도중 오류가 발생했습니다.", ErrorCode.AMAZON_S3_API_ERROR);
-                }
+                throw e; // 단일 업로드에서도 이미 비즈니스 예외로 변환했기 때문에 그대로 던짐
             }
-
-            String uploadFileUrl = endPoint + "/" + bucketName + "/" + keyName;
-            s3files.add(
-                    FileResponse.builder()
-                            .originalFileName(originalFileName)
-                            .uploadFileName(uploadFileName)
-                            .uploadFilePath(folderName)
-                            .uploadFileUrl(uploadFileUrl)
-                            .build());
         }
         return s3files;
     }
@@ -102,6 +102,36 @@ public class FileService {
             log.error("[FileService] 파일 삭제 도중 오류 발생: {}", e.toString());
             throw new BusinessExceptionHandler("파일 삭제 도중 오류가 발생했습니다.", ErrorCode.AMAZON_S3_API_ERROR);
         }
+    }
+
+    /**
+     * 파일 하나를 업로드하는 코드
+     * uploadFile() 과 uploadFiles() 에서 사용하는 공통 로직을 추출한 것이다.
+     *
+     * @param multipartFile
+     * @param folderName 파일이 존재하는 폴더명
+     * @return String 폴더명/파일명.확장자
+     */
+    private String uploadSingleFile(MultipartFile multipartFile, String folderName) {
+        String originalFileName = multipartFile.getOriginalFilename();
+        String uploadFileName = getUuidFileName(originalFileName);
+        String keyName = folderName + "/" + uploadFileName;
+
+        ObjectMetadata objectMetadata = new ObjectMetadata();
+        objectMetadata.setContentLength(multipartFile.getSize());
+        objectMetadata.setContentType(multipartFile.getContentType());
+
+        try (InputStream inputStream = multipartFile.getInputStream()) {
+            amazonS3.putObject(bucketName, keyName, inputStream, objectMetadata);
+        } catch (IOException e) {
+            log.error("[FileService] 파일 업로드 도중 오류 발생: {}", e.toString());
+            throw new BusinessExceptionHandler("파일 업로드 도중 오류가 발생했습니다.", ErrorCode.IO_ERROR);
+        } catch (SdkClientException e) {
+            log.error("[FileService] 파일 업로드 도중 오류 발생: {}", e.toString());
+            throw new BusinessExceptionHandler("파일 업로드 도중 오류가 발생했습니다.", ErrorCode.AMAZON_S3_API_ERROR);
+        }
+
+        return keyName;
     }
 
     /**
@@ -163,6 +193,7 @@ public class FileService {
             return;
         }
 
+        // TODO: 오류 수정
         List<DeleteObjectsRequest.KeyVersion> keys = uploadedKeys.stream()
                 .map(key -> new DeleteObjectsRequest.KeyVersion(folderName + "/" + key))
                 .toList();
