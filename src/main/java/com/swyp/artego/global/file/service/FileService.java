@@ -45,13 +45,13 @@ public class FileService {
     public FileResponse uploadFile(MultipartFile multipartFile, String folderName) {
         validateFilesExtension(List.of(multipartFile));
 
-        String keyName = uploadSingleFile(multipartFile, folderName);
+        String key = uploadSingleFile(multipartFile, folderName);
 
         return FileResponse.builder()
                 .originalFileName(multipartFile.getOriginalFilename())
-                .uploadFileName(keyName.substring(keyName.lastIndexOf("/") + 1))
+                .uploadFileName(key.substring(key.lastIndexOf("/") + 1))
                 .uploadFilePath(folderName)
-                .uploadFileUrl(endPoint + "/" + bucketName + "/" + keyName)
+                .uploadFileUrl(endPoint + "/" + bucketName + "/" + key)
                 .build();
     }
 
@@ -70,18 +70,18 @@ public class FileService {
         
         for (MultipartFile multipartFile : multipartFiles) {
             try {
-                String keyName = uploadSingleFile(multipartFile, folderName);
-                uploadedKeys.add(keyName);
+                String key = uploadSingleFile(multipartFile, folderName);
+                uploadedKeys.add(key);
 
                 s3files.add(FileResponse.builder()
                         .originalFileName(multipartFile.getOriginalFilename())
-                        .uploadFileName(keyName.substring(keyName.lastIndexOf("/") + 1))
+                        .uploadFileName(key.substring(key.lastIndexOf("/") + 1))
                         .uploadFilePath(folderName)
-                        .uploadFileUrl(endPoint + "/" + bucketName + "/" + keyName)
+                        .uploadFileUrl(endPoint + "/" + bucketName + "/" + key)
                         .build());
             } catch (BusinessExceptionHandler e) {
                 log.info("[FileService] #### 업로드된 파일 롤백 시작 ####");
-                rollbackUploadedFiles(uploadedKeys, folderName);
+                rollbackUploadedFiles(uploadedKeys);
                 throw e; // 단일 업로드에서도 이미 비즈니스 예외로 변환했기 때문에 그대로 던짐
             }
         }
@@ -95,9 +95,9 @@ public class FileService {
      * @param fileName
      */
     public void deleteFile(String folderName, String fileName) {
-        String keyName = folderName + "/" + fileName;
+        String key = folderName + "/" + fileName;
         try {
-            amazonS3.deleteObject(bucketName, keyName);
+            amazonS3.deleteObject(bucketName, key);
         } catch (SdkClientException e) {
             log.error("[FileService] 파일 삭제 도중 오류 발생: {}", e.toString());
             throw new BusinessExceptionHandler("파일 삭제 도중 오류가 발생했습니다.", ErrorCode.AMAZON_S3_API_ERROR);
@@ -110,19 +110,19 @@ public class FileService {
      *
      * @param multipartFile
      * @param folderName 파일이 존재하는 폴더명
-     * @return String 폴더명/파일명.확장자
+     * @return String S3 key(폴더명/파일명.확장자)
      */
     private String uploadSingleFile(MultipartFile multipartFile, String folderName) {
         String originalFileName = multipartFile.getOriginalFilename();
         String uploadFileName = getUuidFileName(originalFileName);
-        String keyName = folderName + "/" + uploadFileName;
+        String key = folderName + "/" + uploadFileName;
 
         ObjectMetadata objectMetadata = new ObjectMetadata();
         objectMetadata.setContentLength(multipartFile.getSize());
         objectMetadata.setContentType(multipartFile.getContentType());
 
         try (InputStream inputStream = multipartFile.getInputStream()) {
-            amazonS3.putObject(bucketName, keyName, inputStream, objectMetadata);
+            amazonS3.putObject(bucketName, key, inputStream, objectMetadata);
         } catch (IOException e) {
             log.error("[FileService] 파일 업로드 도중 오류 발생: {}", e.toString());
             throw new BusinessExceptionHandler("파일 업로드 도중 오류가 발생했습니다.", ErrorCode.IO_ERROR);
@@ -131,7 +131,7 @@ public class FileService {
             throw new BusinessExceptionHandler("파일 업로드 도중 오류가 발생했습니다.", ErrorCode.AMAZON_S3_API_ERROR);
         }
 
-        return keyName;
+        return key;
     }
 
     /**
@@ -174,7 +174,7 @@ public class FileService {
      * 파일명이 동일한 경우 스토리지에 저장할 수 없는 상황을 방지한다.
      *
      * @param fileName
-     * @return String(UUID)
+     * @return String UUID
      */
     public String getUuidFileName(String fileName) {
         String ext = fileName.substring(fileName.lastIndexOf('.') + 1).toLowerCase();
@@ -185,17 +185,15 @@ public class FileService {
      * 스토리지에 여러 파일을 올리는 도중 에러가 발생하는 경우, 이전까지 저장했던 파일을 삭제(=롤백)한다.
      *
      * @param uploadedKeys 업로드 완료한 파일명이 담긴 리스트
-     * @param folderName
      */
-    void rollbackUploadedFiles(List<String> uploadedKeys, String folderName) {
+    void rollbackUploadedFiles(List<String> uploadedKeys) {
         if (uploadedKeys.isEmpty()) {
             log.info("[FileService] 롤백 완료 - 업로드된 파일이 없습니다.");
             return;
         }
 
-        // TODO: 오류 수정
         List<DeleteObjectsRequest.KeyVersion> keys = uploadedKeys.stream()
-                .map(key -> new DeleteObjectsRequest.KeyVersion(folderName + "/" + key))
+                .map(DeleteObjectsRequest.KeyVersion::new)
                 .toList();
 
         DeleteObjectsRequest deleteObjectsRequest = new DeleteObjectsRequest(bucketName).withKeys(keys);
