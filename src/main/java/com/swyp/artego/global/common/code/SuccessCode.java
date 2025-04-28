@@ -18,7 +18,8 @@ public enum SuccessCode {
     LOGIN_SUCCESS(200, "200", "로그인 성공"),
     LOGOUT_SUCCESS(200, "200", "로그아웃 성공"),
 
-    FILE_UPLOAD_SUCCESS(200, "200", "파일 업로드 성공")
+    FILE_UPLOAD_SUCCESS(200, "200", "파일 업로드 성공"),
+    FILE_DELETE_SUCCESS(200, "200", "파일 삭제 성공")
 
     ;
 

@@ -14,7 +14,7 @@ public enum ErrorCode {
     // 올바르지 않은 파일
     INVALID_FILE(400, "B998", "Invalid File"),
 
-    // 올바르지 않은 파일
+    // Amazon S3 에러 -> 백엔드 로그 확인 필요
     AMAZON_S3_API_ERROR(500, "B997", "NCP Storage에서 사용하는 Amazon S3 API의 에러"), // 일단은 500 처리
 
     /**

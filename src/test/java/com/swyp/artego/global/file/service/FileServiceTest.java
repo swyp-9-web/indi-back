@@ -5,13 +5,15 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.DeleteObjectsRequest;
 import com.amazonaws.services.s3.model.DeleteObjectsResult;
 import com.amazonaws.services.s3.model.ObjectMetadata;
+import com.amazonaws.services.s3.model.PutObjectResult;
 import com.swyp.artego.global.common.code.ErrorCode;
 import com.swyp.artego.global.excpetion.BusinessExceptionHandler;
-import com.swyp.artego.global.file.dto.response.FileResponse;
+import com.swyp.artego.global.file.dto.response.FileUploadResponse;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.TestPropertySource;
@@ -43,7 +45,7 @@ class FileServiceTest {
     private final String bucketName = "testBucket";
     private final String folderName = "testFolder";
     private List<MultipartFile> mockMultipartFiles;
-    private List<FileResponse> uploadedFileResponses;
+    private List<FileUploadResponse> fileUploadResponse;
 
     /**
      * [테스트 실행 전] 올바른 형식의 mock MultipartFile 리스트를 초기화합니다.
@@ -64,6 +66,13 @@ class FileServiceTest {
                 anyString(),
                 anyString())
         ).thenReturn(true);
+
+        when(amazonS3.putObject(
+                anyString(),
+                anyString(),
+                any(InputStream.class),
+                any(ObjectMetadata.class))
+        ).thenReturn(new PutObjectResult());
     }
 
     /**
@@ -71,13 +80,13 @@ class FileServiceTest {
      */
     @AfterEach
     void tearDown() {
-        if (uploadedFileResponses == null) {
+        if (fileUploadResponse == null) {
             System.out.println("[TEARDOWN] 남은 파일이 없습니다. tearDown() 자동 종료.");
             return;
         }
 
-        for (FileResponse fileResponse : uploadedFileResponses) {
-            String key = folderName + "/" + fileResponse.getUploadFileName();
+        for (FileUploadResponse fileUploadResponse : fileUploadResponse) {
+            String key = folderName + "/" + fileUploadResponse.getUploadFileName();
             if (amazonS3.doesObjectExist(bucketName, key)) {
                 amazonS3.deleteObject(bucketName, key);
                 System.out.println("[TEARDOWN] 남은 파일 삭제: " + key);
@@ -86,23 +95,31 @@ class FileServiceTest {
     }
 
     /**
-     * [테스트] uploadFile 메서드 - 정상적인 파일이 주어질 때 파일 업로드 성공 검증
+     * [테스트] uploadFile 메서드 후 deleteFile 메서드 - 정상적인 단일 파일 업로드와 삭제 성공 검증
      *
-     * 유효한 이미지 파일을 업로드하는 경우, S3 putObject가 1회 호출되고
-     * FileResponse가 정상적으로 반환되어야 한다.
+     * 유효한 이미지 파일을 업로드 후 반환된 URL로 삭제 요청 시,
+     * S3 putObject와 deleteObject가 각각 1회 호출되어야 한다.
      */
     @Test
-    void uploadFile_shouldUploadSuccessfully_whenValidFileProvided() {
-        // when
+    void uploadAndDeleteFile_shouldWorkSuccessfully_whenValidFileProvided() {
+        // given
         MockMultipartFile mockMultipartFile =
-                new MockMultipartFile("files", "test-image1.jpg", "image/jpeg", "Dummy Image Content 1".getBytes());
-        uploadedFileResponses = List.of(fileService.uploadFile(mockMultipartFile, folderName));
+                new MockMultipartFile("files", "test-image1.jpg", "image/jpeg", "Dummy Image Content".getBytes());
+
+        // when
+        FileUploadResponse response = fileService.uploadFile(mockMultipartFile, folderName);
+        String imgUrl = response.getUploadFileUrl();
+
+        fileService.deleteFile(imgUrl);
 
         // then
-        assertEquals(1, uploadedFileResponses.size(), "업로드된 파일 개수가 예상과 다릅니다.");
+        String key = response.getUploadFilePath() + "/" + response.getUploadFileName();
 
         verify(amazonS3, times(1))
-                .putObject(anyString(), anyString(), any(InputStream.class), any(ObjectMetadata.class));
+                .putObject(anyString(), eq(key), any(InputStream.class), any(ObjectMetadata.class));
+
+        verify(amazonS3, times(1))
+                .deleteObject(anyString(), eq(key));
     }
 
     /**
@@ -114,10 +131,10 @@ class FileServiceTest {
     @Test
     void uploadFiles_shouldUploadAllFilesSuccessfully_whenValidFilesProvided() {
         // when
-        uploadedFileResponses = fileService.uploadFiles(mockMultipartFiles, folderName);
+        fileUploadResponse = fileService.uploadFiles(mockMultipartFiles, folderName);
 
         // then
-        assertEquals(2, uploadedFileResponses.size(), "업로드된 파일 개수가 예상과 다릅니다.");
+        assertEquals(2, fileUploadResponse.size(), "업로드된 파일 개수가 예상과 다릅니다.");
 
         verify(amazonS3, times(2))
                 .putObject(anyString(), anyString(), any(InputStream.class), any(ObjectMetadata.class));
