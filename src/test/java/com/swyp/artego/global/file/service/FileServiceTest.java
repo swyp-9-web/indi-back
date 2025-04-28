@@ -58,7 +58,7 @@ class FileServiceTest {
 
         when(amazonS3.deleteObjects(
                 any(DeleteObjectsRequest.class))
-        ).thenReturn(createMockDeleteObjectsResult("test-image1.jpg", "test-image2.png"));
+        ).thenReturn(createMockDeleteObjectsResult(folderName + "/test-image1.jpg", folderName + "/test-image2.png"));
 
         when(amazonS3.doesObjectExist(
                 anyString(),
@@ -77,10 +77,10 @@ class FileServiceTest {
         }
 
         for (FileResponse fileResponse : uploadedFileResponses) {
-            String keyName = folderName + "/" + fileResponse.getUploadFileName();
-            if (amazonS3.doesObjectExist(bucketName, keyName)) {
-                amazonS3.deleteObject(bucketName, keyName);
-                System.out.println("[TEARDOWN] 남은 파일 삭제: " + keyName);
+            String key = folderName + "/" + fileResponse.getUploadFileName();
+            if (amazonS3.doesObjectExist(bucketName, key)) {
+                amazonS3.deleteObject(bucketName, key);
+                System.out.println("[TEARDOWN] 남은 파일 삭제: " + key);
             }
         }
     }
