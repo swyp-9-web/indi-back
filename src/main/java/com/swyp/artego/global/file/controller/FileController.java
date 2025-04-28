@@ -1,5 +1,8 @@
 package com.swyp.artego.global.file.controller;
 
+import com.swyp.artego.global.common.code.SuccessCode;
+import com.swyp.artego.global.common.response.ApiResponse;
+import com.swyp.artego.global.file.dto.response.FileResponse;
 import com.swyp.artego.global.file.service.FileService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -23,10 +26,17 @@ public class FileController {
     }
 
     @PostMapping("/upload")
-    public ResponseEntity<Object> uploadFilesSample(
+    public ResponseEntity<Object> uploadFiles(
             @RequestPart(value = "files") List<MultipartFile> multipartFiles) {
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(fileService.uploadFiles(multipartFiles, "itemPost"));
+
+        List<FileResponse> res = fileService.uploadFiles(multipartFiles, "file_domain");
+
+        ApiResponse ar = ApiResponse.builder()
+                .result(res)
+                .resultCode(SuccessCode.FILE_UPLOAD_SUCCESS.getStatus())
+                .resultMessage(SuccessCode.FILE_UPLOAD_SUCCESS.getMessage())
+                .build();
+
+        return new ResponseEntity<>(ar, HttpStatus.OK);
     }
 }

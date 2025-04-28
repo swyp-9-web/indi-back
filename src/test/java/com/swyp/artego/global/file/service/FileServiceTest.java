@@ -41,10 +41,8 @@ class FileServiceTest {
     private AmazonS3 amazonS3;
 
     private final String bucketName = "testBucket";
-
     private final String folderName = "testFolder";
     private List<MultipartFile> mockMultipartFiles;
-
     private List<FileResponse> uploadedFileResponses;
 
     /**
@@ -88,10 +86,33 @@ class FileServiceTest {
     }
 
     /**
-     * [테스트] 파일 업로드 - 아무 이상 없는 경우
+     * [테스트] uploadFile 메서드 - 정상적인 파일이 주어질 때 파일 업로드 성공 검증
+     *
+     * 유효한 이미지 파일을 업로드하는 경우, S3 putObject가 1회 호출되고
+     * FileResponse가 정상적으로 반환되어야 한다.
      */
     @Test
-    void uploadFiles() {
+    void uploadFile_shouldUploadSuccessfully_whenValidFileProvided() {
+        // when
+        MockMultipartFile mockMultipartFile =
+                new MockMultipartFile("files", "test-image1.jpg", "image/jpeg", "Dummy Image Content 1".getBytes());
+        uploadedFileResponses = List.of(fileService.uploadFile(mockMultipartFile, folderName));
+
+        // then
+        assertEquals(1, uploadedFileResponses.size(), "업로드된 파일 개수가 예상과 다릅니다.");
+
+        verify(amazonS3, times(1))
+                .putObject(anyString(), anyString(), any(InputStream.class), any(ObjectMetadata.class));
+    }
+
+    /**
+     * [테스트] uploadFiles 메서드 - 정상적인 파일 리스트가 주어질 때 전체 파일 업로드 성공 검증
+     *
+     * 유효한 이미지 파일 리스트를 업로드하는 경우, S3 putObject가 파일 수만큼 호출되고
+     * 각 파일에 대해 FileResponse가 정상적으로 반환되어야 한다.
+     */
+    @Test
+    void uploadFiles_shouldUploadAllFilesSuccessfully_whenValidFilesProvided() {
         // when
         uploadedFileResponses = fileService.uploadFiles(mockMultipartFiles, folderName);
 
@@ -103,10 +124,13 @@ class FileServiceTest {
     }
 
     /**
-     * [테스트] 파일 업로드 - 정확한 이미지 파일이 아닌 파일이 존재하는 경우
+     * [테스트] uploadFiles 메서드 - 유효하지 않은 파일 확장자가 포함된 경우 예외 발생 검증
+     *
+     * 주어진 파일 리스트에 하나라도 유효하지 않은 확장자(.doc, 확장자 없음 등)가 존재하면
+     * BusinessExceptionHandler가 발생하고, ErrorCode.INVALID_FILE을 반환해야 한다.
      */
     @Test
-    void uploadFiles_validateFilesExtension_INVALID_FILE() {
+    void uploadFiles_shouldThrowBusinessException_whenInvalidFileExtensionExists() {
         // given
         List<MockMultipartFile> invalidFiles = List.of(
                 new MockMultipartFile("files", "test-doc1.doc", "application/msword", "Dummy MS Doc Content 1".getBytes()),
@@ -125,13 +149,13 @@ class FileServiceTest {
     }
 
     /**
-     * [테스트] 파일 업로드 도중 발생하는 IOException 을 검증합니다.
-     * IOException 강제 발생
+     * [테스트] uploadFiles 메서드 - 파일 업로드 도중 IOException 발생 시 롤백 및 예외 처리 검증
      *
-     * 이 과정에서 업로드된 사진을 삭제(롤백)하는 테스트를 포함합니다.
+     * 파일 업로드 과정에서 IOException이 발생하는 경우,
+     * 업로드된 파일들을 롤백(delete)한 후 BusinessExceptionHandler(IO_ERROR)를 발생시켜야 한다.
      */
     @Test
-    void uploadFiles_IOException() {
+    void uploadFiles_shouldRollbackAndThrowIOException_whenFileUploadFails() {
         // given
         mockMultipartFiles.add(new IOExceptionMultipartFile(
                 "files", "test-IOFail-image.jpg", "image/jpeg", "Fail Content".getBytes()));
@@ -158,11 +182,13 @@ class FileServiceTest {
     }
 
     /**
-     * [테스트] 파일 업로드 도중 발생하는 SdkClientException 을 검증합니다.
-     * SdkClientException 강제 발생
+     * [테스트] uploadFiles 메서드 - S3 업로드 도중 SdkClientException 발생 시 롤백 및 예외 처리 검증
+     *
+     * S3에 파일 업로드 중 SdkClientException이 발생하는 경우,
+     * 업로드된 파일들을 롤백(delete)한 후 BusinessExceptionHandler(AMAZON_S3_API_ERROR)를 발생시켜야 한다.
      */
     @Test
-    void uploadFiles_SdkClientException() {
+    void uploadFiles_shouldRollbackAndThrowSdkClientException_whenS3UploadFails() {
         // given
         mockMultipartFiles.add(new MockMultipartFile(
                 "files", "test-image-fail.jpg", "image/jpeg", "Dummy Content".getBytes()));
@@ -183,14 +209,15 @@ class FileServiceTest {
         assertEquals(ErrorCode.AMAZON_S3_API_ERROR, exception.getErrorCode());
     }
 
-    @Test
-    void deleteFile() {
-    }
-
-    @Test
-    void getUuidFileName() {
-    }
-
+    /**
+     * [테스트 유틸] S3 DeleteObjectsResult Mock 객체 생성
+     *
+     * 주어진 key 목록으로 S3 삭제 응답(DeleteObjectsResult)을 생성합니다.
+     * 테스트 시 S3 삭제 성공 응답을 시뮬레이션할 때 사용합니다.
+     *
+     * @param keys 삭제된 객체의 key 리스트
+     * @return DeleteObjectsResult - 삭제된 객체 정보가 포함된 응답 객체
+     */
     private DeleteObjectsResult createMockDeleteObjectsResult(String... keys) {
         List<DeleteObjectsResult.DeletedObject> deletedObjects = Arrays.stream(keys)
                 .map(key -> {
