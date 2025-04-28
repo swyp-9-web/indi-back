@@ -5,7 +5,7 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.*;
 import com.swyp.artego.global.common.code.ErrorCode;
 import com.swyp.artego.global.excpetion.BusinessExceptionHandler;
-import com.swyp.artego.global.file.dto.response.FileResponse;
+import com.swyp.artego.global.file.dto.response.FileUploadResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -42,12 +42,12 @@ public class FileService {
      * @param folderName 해당 파일을 업로드할 폴더명
      * @return FileResponse
      */
-    public FileResponse uploadFile(MultipartFile multipartFile, String folderName) {
+    public FileUploadResponse uploadFile(MultipartFile multipartFile, String folderName) {
         validateFilesExtension(List.of(multipartFile));
 
         String key = uploadSingleFile(multipartFile, folderName);
 
-        return FileResponse.builder()
+        return FileUploadResponse.builder()
                 .originalFileName(multipartFile.getOriginalFilename())
                 .uploadFileName(key.substring(key.lastIndexOf("/") + 1))
                 .uploadFilePath(folderName)
@@ -62,10 +62,10 @@ public class FileService {
      * @param folderName 해당 파일을 업로드할 폴더명
      * @return List<FileResponse>
      */
-    public List<FileResponse> uploadFiles(List<MultipartFile> multipartFiles, String folderName) {
+    public List<FileUploadResponse> uploadFiles(List<MultipartFile> multipartFiles, String folderName) {
         validateFilesExtension(multipartFiles);
 
-        List<FileResponse> s3files = new ArrayList<>();
+        List<FileUploadResponse> s3files = new ArrayList<>();
         List<String> uploadedKeys = new ArrayList<>();
         
         for (MultipartFile multipartFile : multipartFiles) {
@@ -73,7 +73,7 @@ public class FileService {
                 String key = uploadSingleFile(multipartFile, folderName);
                 uploadedKeys.add(key);
 
-                s3files.add(FileResponse.builder()
+                s3files.add(FileUploadResponse.builder()
                         .originalFileName(multipartFile.getOriginalFilename())
                         .uploadFileName(key.substring(key.lastIndexOf("/") + 1))
                         .uploadFilePath(folderName)
@@ -89,13 +89,18 @@ public class FileService {
     }
 
     /**
-     * 한 파일 삭제
+     * 단일 파일 삭제
      *
-     * @param folderName 파일이 존재하는 폴더명
-     * @param fileName
+     * @param imgUrl 이미지의 전체 url
      */
-    public void deleteFile(String folderName, String fileName) {
-        String key = folderName + "/" + fileName;
+    public void deleteFile(String imgUrl) {
+        String marker = "/" + bucketName + "/";
+        int idx = imgUrl.indexOf(marker);
+        if (idx == -1) {
+            throw new BusinessExceptionHandler("해당 Bucket 이름을 찾을 수 없습니다.", ErrorCode.NOT_FOUND_ERROR);
+        }
+       String key = imgUrl.substring(idx + marker.length());
+
         try {
             amazonS3.deleteObject(bucketName, key);
         } catch (SdkClientException e) {
