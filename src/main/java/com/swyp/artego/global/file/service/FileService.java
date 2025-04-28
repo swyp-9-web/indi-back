@@ -36,6 +36,13 @@ public class FileService {
     @Value("${ncp.storage.bucket.name}")
     private String bucketName;
 
+    /**
+     * 여러 파일 업로드
+     *
+     * @param multipartFiles
+     * @param folderName 해당 파일을 업로드할 폴더명
+     * @return List<FileResponse>
+     */
     public List<FileResponse> uploadFiles(@NotNull List<MultipartFile> multipartFiles, String folderName) {
         validateFilesExtension(multipartFiles);
 
@@ -81,6 +88,12 @@ public class FileService {
         return s3files;
     }
 
+    /**
+     * 한 파일 삭제
+     *
+     * @param folderName 파일이 존재하는 폴더명
+     * @param fileName
+     */
     public void deleteFile(String folderName, String fileName) {
         String keyName = folderName + "/" + fileName;
         try {
@@ -91,7 +104,14 @@ public class FileService {
         }
     }
 
-    // TODO: DEVELOP: 파일 내용(Magic Number) 검사?
+    /**
+     * 파일이 올바른 형식인지 확인한다.
+     * 현재 허용하는 이미지 형식(Content-Type: image/png, image/jpeg)이 아닌 경우, 상황 별 예외를 던진다.
+     *
+     * TODO: DEVELOP: 파일 내용(Magic Number) 검사?
+     *
+     * @param multipartFiles
+     */
     private static void validateFilesExtension(List<MultipartFile> multipartFiles) {
         List<MultipartFile> validFiles = multipartFiles.stream()
                 .filter(file -> !file.isEmpty())
@@ -119,11 +139,24 @@ public class FileService {
         }
     }
 
+    /**
+     * 스토리지에 이미지를 저장할 때 기존 파일명을 UUID로 변환한다.
+     * 파일명이 동일한 경우 스토리지에 저장할 수 없는 상황을 방지한다.
+     *
+     * @param fileName
+     * @return String(UUID)
+     */
     public String getUuidFileName(String fileName) {
         String ext = fileName.substring(fileName.lastIndexOf('.') + 1).toLowerCase();
         return UUID.randomUUID().toString() + "." + ext;
     }
 
+    /**
+     * 스토리지에 여러 파일을 올리는 도중 에러가 발생하는 경우, 이전까지 저장했던 파일을 삭제(=롤백)한다.
+     *
+     * @param uploadedKeys 업로드 완료한 파일명이 담긴 리스트
+     * @param folderName
+     */
     void rollbackUploadedFiles(List<String> uploadedKeys, String folderName) {
         if (uploadedKeys.isEmpty()) {
             log.info("[FileService] 롤백 완료 - 업로드된 파일이 없습니다.");
