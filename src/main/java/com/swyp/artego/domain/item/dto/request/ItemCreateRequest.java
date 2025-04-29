@@ -42,8 +42,6 @@ public class ItemCreateRequest {
     private boolean secret;
     private StatusType statusType;
 
-    
-
     @Getter
     @NoArgsConstructor
     @Schema(description = "작품의 사이즈 정보 (가로, 세로, 폭) - 04/30 피그마 기준 용어")

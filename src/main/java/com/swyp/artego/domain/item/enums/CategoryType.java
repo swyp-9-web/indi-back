@@ -10,4 +10,3 @@ public enum CategoryType {
     NATURE_LIFE_CRAFT, // 자연 & 생활 공예
     FASHION_CLOTHING // 패션 & 의류
 }
-

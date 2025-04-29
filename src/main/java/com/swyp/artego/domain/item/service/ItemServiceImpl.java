@@ -1,12 +1,9 @@
 package com.swyp.artego.domain.item.service;
 
 import com.swyp.artego.domain.item.dto.request.ItemCreateRequest;
-
-
 import com.swyp.artego.domain.item.dto.request.ItemSearchRequest;
 import com.swyp.artego.domain.item.dto.response.ItemCreateResponse;
 import com.swyp.artego.domain.item.dto.response.ItemInfoResponse;
-import com.swyp.artego.domain.item.dto.response.ItemSearchResponse;
 import com.swyp.artego.domain.item.dto.response.ItemSearchResultResponse;
 import com.swyp.artego.domain.item.enums.SizeType;
 import com.swyp.artego.domain.item.repository.ItemRepository;

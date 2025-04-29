@@ -67,8 +67,6 @@ tasks.named('test') {
 	useJUnitPlatform()
 }
 
-
-
 def generated = layout.buildDirectory.dir("generated/querydsl")
 
 sourceSets {
@@ -78,7 +76,6 @@ sourceSets {
 		}
 	}
 }
-
 
 tasks.withType(JavaCompile).configureEach {
 	doFirst {
