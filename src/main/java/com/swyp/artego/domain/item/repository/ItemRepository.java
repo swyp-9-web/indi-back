@@ -5,7 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
 
-public interface ItemRepository extends JpaRepository<Item, Long> {
+public interface ItemRepository extends JpaRepository<Item, Long> , ItemSearchRepository {
 
     /**
      * 모든 게시글을 생성일 기준으로 최신순 조회
@@ -14,3 +14,5 @@ public interface ItemRepository extends JpaRepository<Item, Long> {
      */
     List<Item> findAllByOrderByCreatedAtDesc();
 }
+
+

@@ -24,7 +24,7 @@ public class AuthService extends DefaultOAuth2UserService {
 
 
     //  loadUser() 메서드는 Spring Security 내부에서 자동으로 호출되는 메서드입니다.
-    @Transactional
+
     @Override
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
 
@@ -58,9 +58,6 @@ public class AuthService extends DefaultOAuth2UserService {
         Optional<User> userOptional = userRepository.findByOauthId(oauthId);
 
         if (userOptional.isPresent()) {
-            // 로그인 처리 (기존 유저 사용)
-            User loginUser = userOptional.get();
-            // SecurityContext 설정 등 로그인 로직 넣으면 돼요
 
             System.out.println("이미 존재하는 회원입니다.");
 
@@ -69,21 +66,23 @@ public class AuthService extends DefaultOAuth2UserService {
 
         else {
             // 회원가입 처리
-
-            User newUser = User.builder()
-                    .oauthId(oauthId)
-                    .name(oAuth2Response.getName())
-                    .email(oAuth2Response.getEmail())
-                    .telNumber(oAuth2Response.getPhoneNumber()) // 소셜 로그인 시 기본값 또는 별도 입력받기
-                    .build();
-
-            userRepository.save(newUser);
-
+            createUser(oAuth2Response, oauthId);
         }
-
-
 
         return new AuthUser(oAuth2Response, role);
 
     }
+
+    @Transactional
+    protected void createUser(OAuth2Response oAuth2Response, String oauthId) {
+        User newUser = User.builder()
+                .oauthId(oauthId)
+                .name(oAuth2Response.getName())
+                .email(oAuth2Response.getEmail())
+                .telNumber(oAuth2Response.getPhoneNumber())
+                .build();
+
+        userRepository.save(newUser);
+    }
+
 }

@@ -2,7 +2,10 @@ package com.swyp.artego.domain.item.service;
 
 import com.swyp.artego.domain.item.dto.request.ItemCreateRequest;
 
+import com.swyp.artego.domain.item.dto.request.ItemSearchRequest;
 import com.swyp.artego.domain.item.dto.response.ItemInfoResponse;
+import com.swyp.artego.domain.item.dto.response.ItemSearchResponse;
+import com.swyp.artego.domain.item.dto.response.ItemSearchResultResponse;
 import com.swyp.artego.domain.item.enums.SizeType;
 import com.swyp.artego.domain.item.repository.ItemRepository;
 import com.swyp.artego.domain.user.entity.User;
@@ -25,6 +28,8 @@ public class ItemServiceImpl implements ItemService {
     private final ItemRepository itemRepository;
     private final UserRepository userRepository;
 
+
+
     @Override
     @Transactional
     public void createItem(AuthUser authUser, ItemCreateRequest request) {
@@ -34,6 +39,7 @@ public class ItemServiceImpl implements ItemService {
         SizeType sizeType = calculateSizeType(request.getSizeWidth(), request.getSizeLength(), request.getSizeHeight());
 
         itemRepository.save(request.toEntity(user, sizeType));
+
     }
 
     @Override
@@ -58,4 +64,13 @@ public class ItemServiceImpl implements ItemService {
 
         return SizeType.M;
     }
+
+
+    @Override
+    @Transactional(readOnly = true)
+    public ItemSearchResultResponse searchItems(AuthUser authUser, ItemSearchRequest request) {
+        return itemRepository.searchItems(authUser, request);
+    }
+
+
 }

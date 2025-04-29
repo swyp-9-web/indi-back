@@ -2,6 +2,7 @@ package com.swyp.artego.domain.item.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.swyp.artego.domain.item.entity.Item;
+import com.swyp.artego.domain.item.enums.CategoryType;
 import com.swyp.artego.domain.item.enums.SizeType;
 import com.swyp.artego.domain.item.enums.StatusType;
 import lombok.Builder;
@@ -27,7 +28,7 @@ public class ItemInfoResponse {
     private int sizeHeight;
     private String material;
     private StatusType statusType;
-    private String categoryType;
+    private CategoryType categoryType;
 
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createdAt;
