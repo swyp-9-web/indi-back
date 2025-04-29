@@ -5,7 +5,7 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.*;
 import com.swyp.artego.global.common.code.ErrorCode;
 import com.swyp.artego.global.excpetion.BusinessExceptionHandler;
-import com.swyp.artego.global.file.dto.response.FileUploadResponse;
+import com.swyp.artego.global.file.dto.response.FileUploadResponseExample;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -42,12 +42,12 @@ public class FileService {
      * @param folderName 해당 파일을 업로드할 폴더명
      * @return FileResponse
      */
-    public FileUploadResponse uploadFile(MultipartFile multipartFile, String folderName) {
+    public FileUploadResponseExample uploadFile(MultipartFile multipartFile, String folderName) {
         validateFilesExtension(List.of(multipartFile));
 
         String key = uploadSingleFile(multipartFile, folderName);
 
-        return FileUploadResponse.builder()
+        return FileUploadResponseExample.builder()
                 .originalFileName(multipartFile.getOriginalFilename())
                 .uploadFileName(key.substring(key.lastIndexOf("/") + 1))
                 .uploadFilePath(folderName)
@@ -60,12 +60,12 @@ public class FileService {
      *
      * @param multipartFiles
      * @param folderName 해당 파일을 업로드할 폴더명
-     * @return List<FileResponse>
+     * @return List<String> 업로드되어 접근할 수 있는 파일의 url
      */
-    public List<FileUploadResponse> uploadFiles(List<MultipartFile> multipartFiles, String folderName) {
+    public List<String> uploadFiles(List<MultipartFile> multipartFiles, String folderName) {
         validateFilesExtension(multipartFiles);
 
-        List<FileUploadResponse> s3files = new ArrayList<>();
+        List<String> fileUrls = new ArrayList<>();
         List<String> uploadedKeys = new ArrayList<>();
         
         for (MultipartFile multipartFile : multipartFiles) {
@@ -73,19 +73,14 @@ public class FileService {
                 String key = uploadSingleFile(multipartFile, folderName);
                 uploadedKeys.add(key);
 
-                s3files.add(FileUploadResponse.builder()
-                        .originalFileName(multipartFile.getOriginalFilename())
-                        .uploadFileName(key.substring(key.lastIndexOf("/") + 1))
-                        .uploadFilePath(folderName)
-                        .uploadFileUrl(endPoint + "/" + bucketName + "/" + key)
-                        .build());
+                fileUrls.add(endPoint + "/" + bucketName + "/" + key);
             } catch (BusinessExceptionHandler e) {
                 log.info("[FileService] #### 업로드된 파일 롤백 시작 ####");
                 rollbackUploadedFiles(uploadedKeys);
                 throw e; // 단일 업로드에서도 이미 비즈니스 예외로 변환했기 때문에 그대로 던짐
             }
         }
-        return s3files;
+        return fileUrls;
     }
 
     /**
@@ -94,12 +89,7 @@ public class FileService {
      * @param imgUrl 이미지의 전체 url
      */
     public void deleteFile(String imgUrl) {
-        String marker = "/" + bucketName + "/";
-        int idx = imgUrl.indexOf(marker);
-        if (idx == -1) {
-            throw new BusinessExceptionHandler("해당 Bucket 이름을 찾을 수 없습니다.", ErrorCode.NOT_FOUND_ERROR);
-        }
-       String key = imgUrl.substring(idx + marker.length());
+       String key = extractKeyFromImgUrl(imgUrl);
 
         try {
             amazonS3.deleteObject(bucketName, key);
@@ -219,5 +209,21 @@ public class FileService {
             log.error("[FileService] 롤백 전체 실패 - 네트워크 오류로 전체 삭제 실패", e);
             throw new BusinessExceptionHandler("파일 삭제(롤백) 도중 오류가 발생했습니다.", ErrorCode.AMAZON_S3_API_ERROR);
         }
+    }
+
+    /**
+     * 이미지 전체url에서 key값을 추출한다.
+     * {endpoint}/{bucketName}/{folderName}/{fileName.ext} -> {folderName}/{fileName.ext}
+     *
+     * @param imgUrl
+     * @return
+     */
+    String extractKeyFromImgUrl(String imgUrl) {
+        String marker = "/" + bucketName + "/";
+        int idx = imgUrl.indexOf(marker);
+        if (idx == -1) {
+            throw new BusinessExceptionHandler("해당 Bucket 이름을 찾을 수 없습니다.", ErrorCode.NOT_FOUND_ERROR);
+        }
+        return imgUrl.substring(idx + marker.length());
     }
 }

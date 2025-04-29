@@ -1,11 +1,15 @@
 package com.swyp.artego.domain.item.dto.request;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.swyp.artego.domain.item.entity.Item;
+import com.swyp.artego.domain.item.enums.CategoryType;
 import com.swyp.artego.domain.item.enums.SizeType;
 import com.swyp.artego.domain.item.enums.StatusType;
 import com.swyp.artego.domain.user.entity.User;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.PositiveOrZero;
+import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -13,38 +17,61 @@ import java.util.List;
 
 @Getter
 @NoArgsConstructor
-@Schema(description = "아이템 생성 요청 DTO")
+@Schema(description = "이미지를 제외한 작품 정보")
 public class ItemCreateRequest {
 
+    @NotBlank
+    @Size(max = 40)
     private String title;
+
+    private CategoryType categoryType;
+
+    @Valid
+    private ItemSize size;
+
+    @Size(max = 40)
+    private String material;
+
+    @NotBlank
+    @Size(max = 400)
     private String description;
-    private List<String> imgUrl;
+
+    @PositiveOrZero
     private int price;
 
-    @JsonProperty(value = "isSecret")
-    private boolean isSecret;
-    private int sizeLength;
-    private int sizeWidth;
-    private int sizeHeight;
-    private String material;
+    private boolean secret;
     private StatusType statusType;
-    private String categoryType;
+
+    @Getter
+    @NoArgsConstructor
+    @Schema(description = "작품의 사이즈 정보 (가로, 세로, 폭) - 04/30 피그마 기준 용어")
+    public static class ItemSize {
+        @Schema(description = "가로 (cm)", example = "10")
+        @PositiveOrZero
+        private int width;
+        @Schema(description = "세로 (cm)", example = "50")
+        @PositiveOrZero
+        private int height;
+        @Schema(description = "폭 (cm)", example = "30")
+        @PositiveOrZero
+        private int depth;
+    }
 
     /**
-     * Item 엔티티 변환 메서드
+     * Item 엔티티로 변환하는 메서드
      */
-    public Item toEntity(User user, SizeType sizeType) {
+    public Item toEntity(User user, List<String> imgUrls, SizeType sizeType) {
         return Item.builder()
                 .user(user)
                 .title(this.title)
                 .description(this.description)
-                .imgUrl(this.imgUrl)
+                .imgUrls(imgUrls)
                 .price(this.price)
-                .isSecret(this.isSecret)
+                .secret(this.secret)
                 .sizeType(sizeType)
-                .sizeLength(this.sizeLength)
-                .sizeWidth(this.sizeWidth)
-                .sizeHeight(this.sizeHeight)
+                .sizeWidth(this.size.getWidth())
+                .sizeHeight(this.size.getHeight())
+                .sizeDepth(this.size.getDepth())
                 .material(this.material)
                 .statusType(statusType != null ? statusType : StatusType.OPEN)
                 .categoryType(this.categoryType)
