@@ -23,7 +23,11 @@ public class FileController {
     public ResponseEntity<Object> uploadFiles(
             @RequestPart(value = "files") List<MultipartFile> multipartFiles) {
 
-        List<FileUploadResponse> res = fileService.uploadFiles(multipartFiles, "file_domain");
+        List<String> imgUrls = fileService.uploadFiles(multipartFiles, "file_domain");
+
+        FileUploadResponse res = FileUploadResponse.builder()
+                .imgUrls(imgUrls)
+                .build();
 
         ApiResponse ar = ApiResponse.builder()
                 .result(res)

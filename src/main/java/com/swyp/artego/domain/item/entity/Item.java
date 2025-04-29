@@ -1,5 +1,6 @@
 package com.swyp.artego.domain.item.entity;
 
+import com.swyp.artego.domain.item.enums.CategoryType;
 import com.swyp.artego.domain.item.enums.SizeType;
 import com.swyp.artego.domain.item.enums.StatusType;
 import com.swyp.artego.domain.user.entity.User;
@@ -36,28 +37,28 @@ public class Item extends BaseTimeEntity {
     private String description;
 
     @Convert(converter = StringListConverter.class)
-    @Column(name= "img_url", nullable = false)
-    private List<String> imgUrl;
+    @Column(name= "img_urls", nullable = false)
+    private List<String> imgUrls;
 
     @Column(name = "price")
     private int price;
 
     @Convert(converter = BooleanToYNConverter.class)
     @Column(name = "secret", length = 1, nullable = false)
-    private boolean isSecret; // ** 추가
+    private boolean secret; // ** 추가
 
     @Column(name = "size", nullable = false)
     @Enumerated(EnumType.STRING)
     private SizeType sizeType;
 
-    @Column(name = "size_length")
-    private int sizeLength;
-
-    @Column(name = "size_width")
+    @Column(name = "size_width") // 가로
     private int sizeWidth;
 
-    @Column(name = "size_heigth")
+    @Column(name = "size_heigth") // 세로
     private int sizeHeight;
+
+    @Column(name = "size_depth") // 폭
+    private int sizeDepth;
 
     @Column(name= "material")
     private String material;
@@ -67,23 +68,23 @@ public class Item extends BaseTimeEntity {
     private StatusType statusType = StatusType.OPEN;
 
     @Column(name = "category_type", nullable = false)
-    //@Enumerated(EnumType.STRING)
-    private String categoryType;
+    @Enumerated(EnumType.STRING)
+    private CategoryType categoryType;
 
     @Builder
     public Item (
-            User user, String title, String description, List<String> imgUrl, int price, boolean isSecret,
-            SizeType sizeType, int sizeLength, int sizeWidth, int sizeHeight,
-            String material, StatusType statusType, String categoryType
+            User user, String title, String description, List<String> imgUrls, int price, boolean secret,
+            SizeType sizeType, int sizeWidth, int sizeHeight, int sizeDepth,
+            String material, StatusType statusType, CategoryType categoryType
     ) {
         this.user = user;
         this.title = title;
         this.description = description;
-        this.imgUrl = imgUrl;
+        this.imgUrls = imgUrls;
         this.price = price;
-        this.isSecret = isSecret;
+        this.secret = secret;
         this.sizeType = sizeType;
-        this.sizeLength = sizeLength;
+        this.sizeDepth = sizeDepth;
         this.sizeWidth = sizeWidth;
         this.sizeHeight = sizeHeight;
         this.material = material;

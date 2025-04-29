@@ -3,12 +3,10 @@ package com.swyp.artego.global.file.dto.response;
 import lombok.Builder;
 import lombok.Getter;
 
+import java.util.List;
+
 @Getter
 @Builder
 public class FileUploadResponse {
-
-    private String originalFileName;
-    private String uploadFileName;
-    private String uploadFilePath;
-    private String uploadFileUrl;
+    List<String> imgUrls;
 }

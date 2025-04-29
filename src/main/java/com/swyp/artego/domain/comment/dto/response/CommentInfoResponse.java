@@ -13,7 +13,7 @@ public class CommentInfoResponse {
 
     private String userName;
     private String comment;
-    private boolean isSecret;
+    private boolean secret;
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createdAt;
 
@@ -21,7 +21,7 @@ public class CommentInfoResponse {
         return CommentInfoResponse.builder()
                 .userName(comment.getUser().getName())
                 .comment(comment.getComment())
-                .isSecret(comment.isSecret())
+                .secret(comment.isSecret())
                 .createdAt(comment.getCreatedAt())
                 .build();
     }

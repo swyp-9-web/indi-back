@@ -8,12 +8,11 @@ import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectResult;
 import com.swyp.artego.global.common.code.ErrorCode;
 import com.swyp.artego.global.excpetion.BusinessExceptionHandler;
-import com.swyp.artego.global.file.dto.response.FileUploadResponse;
+import com.swyp.artego.global.file.dto.response.FileUploadResponseExample;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.TestPropertySource;
@@ -45,7 +44,7 @@ class FileServiceTest {
     private final String bucketName = "testBucket";
     private final String folderName = "testFolder";
     private List<MultipartFile> mockMultipartFiles;
-    private List<FileUploadResponse> fileUploadResponse;
+    private List<String> fileUrls;
 
     /**
      * [테스트 실행 전] 올바른 형식의 mock MultipartFile 리스트를 초기화합니다.
@@ -80,13 +79,13 @@ class FileServiceTest {
      */
     @AfterEach
     void tearDown() {
-        if (fileUploadResponse == null) {
+        if (fileUrls == null) {
             System.out.println("[TEARDOWN] 남은 파일이 없습니다. tearDown() 자동 종료.");
             return;
         }
 
-        for (FileUploadResponse fileUploadResponse : fileUploadResponse) {
-            String key = folderName + "/" + fileUploadResponse.getUploadFileName();
+        for (String fileUrl : fileUrls) {
+            String key = fileService.extractKeyFromImgUrl(fileUrl);
             if (amazonS3.doesObjectExist(bucketName, key)) {
                 amazonS3.deleteObject(bucketName, key);
                 System.out.println("[TEARDOWN] 남은 파일 삭제: " + key);
@@ -107,7 +106,7 @@ class FileServiceTest {
                 new MockMultipartFile("files", "test-image1.jpg", "image/jpeg", "Dummy Image Content".getBytes());
 
         // when
-        FileUploadResponse response = fileService.uploadFile(mockMultipartFile, folderName);
+        FileUploadResponseExample response = fileService.uploadFile(mockMultipartFile, folderName);
         String imgUrl = response.getUploadFileUrl();
 
         fileService.deleteFile(imgUrl);
@@ -131,10 +130,10 @@ class FileServiceTest {
     @Test
     void uploadFiles_shouldUploadAllFilesSuccessfully_whenValidFilesProvided() {
         // when
-        fileUploadResponse = fileService.uploadFiles(mockMultipartFiles, folderName);
+        fileUrls = fileService.uploadFiles(mockMultipartFiles, folderName);
 
         // then
-        assertEquals(2, fileUploadResponse.size(), "업로드된 파일 개수가 예상과 다릅니다.");
+        assertEquals(2, fileUrls.size(), "업로드된 파일 개수가 예상과 다릅니다.");
 
         verify(amazonS3, times(2))
                 .putObject(anyString(), anyString(), any(InputStream.class), any(ObjectMetadata.class));
