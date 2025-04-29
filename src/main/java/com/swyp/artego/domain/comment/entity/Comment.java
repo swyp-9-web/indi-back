@@ -34,13 +34,13 @@ public class Comment extends BaseTimeEntity {
 
     @Convert(converter = BooleanToYNConverter.class)
     @Column(name = "secret", length = 1, nullable = false)
-    private boolean isSecret;
+    private boolean secret;
 
     @Builder
-    public Comment(User user, Item item, String comment, boolean isSecret) {
+    public Comment(User user, Item item, String comment, boolean secret) {
         this.user = user;
         this.item = item;
         this.comment = comment;
-        this.isSecret = isSecret;
+        this.secret = secret;
     }
 }
