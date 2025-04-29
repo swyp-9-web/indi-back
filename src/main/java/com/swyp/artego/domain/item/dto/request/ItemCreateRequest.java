@@ -2,6 +2,7 @@ package com.swyp.artego.domain.item.dto.request;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.swyp.artego.domain.item.entity.Item;
+import com.swyp.artego.domain.item.enums.CategoryType;
 import com.swyp.artego.domain.item.enums.SizeType;
 import com.swyp.artego.domain.item.enums.StatusType;
 import com.swyp.artego.domain.user.entity.User;
@@ -28,7 +29,10 @@ public class ItemCreateRequest {
     private int sizeHeight;
     private String material;
     private StatusType statusType;
-    private String categoryType;
+    private CategoryType categoryType;
+
+
+
 
     /**
      * Item 엔티티 변환 메서드

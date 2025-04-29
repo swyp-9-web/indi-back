@@ -34,7 +34,7 @@ public class AuthController {
 
     @GetMapping("/")
     public String home() {
-    return "홈입니다. 로그인 없이 접근 가능합니다.";
+    return "home";
     }
 
 
