@@ -44,7 +44,7 @@ public class ItemSearchRepositoryImpl implements ItemSearchRepository {
         var queryBuilder = queryFactory
                 .select(new QItemSearchResponse(
                         item.id,
-                        item.imgUrl,
+                        item.imgUrls,
                         item.title,
                         item.price,
                         item.categoryType,

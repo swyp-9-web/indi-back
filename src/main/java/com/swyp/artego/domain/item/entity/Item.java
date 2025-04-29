@@ -71,7 +71,6 @@ public class Item extends BaseTimeEntity {
     @Enumerated(EnumType.STRING)
     private CategoryType categoryType;
 
-    
     @Column(name = "scrap_count", nullable = false)
     private int scrapCount = 0;
 
@@ -91,15 +90,12 @@ public class Item extends BaseTimeEntity {
     @Column(name = "total_reaction_score", nullable = false)
     private int totalReactionCount = 0;
 
-   
-
 
     @Builder
     public Item (
             User user, String title, String description, List<String> imgUrls, int price, boolean secret,
             SizeType sizeType, int sizeWidth, int sizeHeight, int sizeDepth,
             String material, StatusType statusType, CategoryType categoryType
-
     ) {
         this.user = user;
         this.title = title;
