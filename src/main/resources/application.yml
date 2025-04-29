@@ -1,6 +1,20 @@
 server:
   port: 8000
 
+ncp:
+  storage:
+    region: kr-standard
+    endpoint: https://kr.object.ncloudstorage.com
+    credentials:
+      access-key: ${NCP_STORAGE_ACCESS_KEY}
+      secret-key: ${NCP_STORAGE_SECRET_KEY}
+    bucket:
+      name: ${NCP_STORAGE_BUCKET_NAME}
+      folder:
+        item-post: ${NCP_STORAGE_FOLDER_ITEM_POST}
+        user-profile: ${NCP_STORAGE_FOLDER_USER_PROFILE}
+
+
 spring:
   application:
     name: "artego"
@@ -14,6 +28,12 @@ spring:
 
   jpa:
     database: mysql
+
+  servlet:
+    multipart: # 기획에 따라 변경 가능
+      enabled: true
+      max-file-size: 10MB
+      max-request-size: 50MB
 
   security:
     oauth2:

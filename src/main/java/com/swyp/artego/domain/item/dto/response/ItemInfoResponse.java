@@ -2,10 +2,10 @@ package com.swyp.artego.domain.item.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.swyp.artego.domain.item.entity.Item;
+import com.swyp.artego.domain.item.enums.CategoryType;
 import com.swyp.artego.domain.item.enums.SizeType;
 import com.swyp.artego.domain.item.enums.StatusType;
-import lombok.Builder;
-import lombok.Getter;
+import lombok.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -15,19 +15,32 @@ import java.util.List;
 public class ItemInfoResponse {
 
     private Long itemId;
+    private Artist artist;
     private String title;
-    private String artist_name;
     private String description;
-    private List<String> imgUrl;
+    private List<String> imgUrls;
     private int price;
-    private boolean isSecret;
-    private SizeType sizeType;
-    private int sizeLength;
-    private int sizeWidth;
-    private int sizeHeight;
+    private boolean secret;
+    private ItemSize size;
     private String material;
     private StatusType statusType;
-    private String categoryType;
+    private CategoryType categoryType;
+
+    @Getter
+    @AllArgsConstructor
+    public static class Artist {
+        private String name;
+    }
+
+    @Getter
+    @AllArgsConstructor
+    public static class ItemSize {
+        private SizeType sizeType;
+        private int width;
+        private int height;
+        private int depth;
+    }
+
 
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createdAt;
@@ -39,15 +52,12 @@ public class ItemInfoResponse {
         return ItemInfoResponse.builder()
                 .itemId(item.getId())
                 .title(item.getTitle())
-                .artist_name(item.getUser().getName())
+                .artist(new Artist(item.getUser().getName()))
                 .description(item.getDescription())
-                .imgUrl(item.getImgUrl())
+                .imgUrls(item.getImgUrls())
                 .price(item.getPrice())
-                .isSecret(item.isSecret())
-                .sizeType(item.getSizeType())
-                .sizeLength(item.getSizeLength())
-                .sizeWidth(item.getSizeWidth())
-                .sizeHeight(item.getSizeHeight())
+                .secret(item.isSecret())
+                .size(new ItemSize(item.getSizeType(), item.getSizeWidth(), item.getSizeHeight(), item.getSizeDepth()))
                 .material(item.getMaterial())
                 .statusType(item.getStatusType())
                 .categoryType(item.getCategoryType())
