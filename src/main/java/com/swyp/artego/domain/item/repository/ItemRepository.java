@@ -1,6 +1,7 @@
 package com.swyp.artego.domain.item.repository;
 
 import com.swyp.artego.domain.item.entity.Item;
+import com.swyp.artego.domain.item.enums.StatusType;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
@@ -13,6 +14,8 @@ public interface ItemRepository extends JpaRepository<Item, Long> , ItemSearchRe
      * @return 최신순 정렬된 Item 리스트
      */
     List<Item> findAllByOrderByCreatedAtDesc();
+
+    List<Item> findByStatusType(StatusType statusType);
 }
 
 
