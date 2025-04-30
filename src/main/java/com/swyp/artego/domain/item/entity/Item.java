@@ -43,10 +43,6 @@ public class Item extends BaseTimeEntity {
     @Column(name = "price")
     private int price;
 
-    @Convert(converter = BooleanToYNConverter.class)
-    @Column(name = "secret", length = 1, nullable = false)
-    private boolean secret; // ** 추가
-
     @Column(name = "size", nullable = false)
     @Enumerated(EnumType.STRING)
     private SizeType sizeType;
@@ -71,9 +67,29 @@ public class Item extends BaseTimeEntity {
     @Enumerated(EnumType.STRING)
     private CategoryType categoryType;
 
+    @Column(name = "scrap_count", nullable = false)
+    private int scrapCount = 0;
+
+    
+    @Column(name = "like_count", nullable = false)
+    private int likeCount = 0;
+
+    
+    @Column(name = "want_count", nullable = false)
+    private int wantCount = 0;
+
+    
+    @Column(name = "revisit_count", nullable = false)
+    private int revisitCount = 0;
+
+    
+    @Column(name = "total_reaction_score", nullable = false)
+    private int totalReactionCount = 0;
+
+
     @Builder
     public Item (
-            User user, String title, String description, List<String> imgUrls, int price, boolean secret,
+            User user, String title, String description, List<String> imgUrls, int price,
             SizeType sizeType, int sizeWidth, int sizeHeight, int sizeDepth,
             String material, StatusType statusType, CategoryType categoryType
     ) {
@@ -82,15 +98,24 @@ public class Item extends BaseTimeEntity {
         this.description = description;
         this.imgUrls = imgUrls;
         this.price = price;
-        this.secret = secret;
         this.sizeType = sizeType;
         this.sizeDepth = sizeDepth;
         this.sizeWidth = sizeWidth;
         this.sizeHeight = sizeHeight;
         this.material = material;
-        this.statusType = statusType;
+        this.statusType = (statusType != null) ? statusType : StatusType.OPEN;
         this.categoryType = categoryType;
     }
+
+
+    public void updateCounts(int scrap, int like, int want, int revisit, int totalReaction) {
+        this.scrapCount = scrap;
+        this.likeCount = like;
+        this.wantCount = want;
+        this.revisitCount = revisit;
+        this.totalReactionCount = totalReaction;
+    }
+
 
 
 }

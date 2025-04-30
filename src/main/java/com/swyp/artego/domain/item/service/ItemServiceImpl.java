@@ -1,15 +1,15 @@
 package com.swyp.artego.domain.item.service;
 
 import com.swyp.artego.domain.item.dto.request.ItemCreateRequest;
-
+import com.swyp.artego.domain.item.dto.request.ItemSearchRequest;
 import com.swyp.artego.domain.item.dto.response.ItemCreateResponse;
 import com.swyp.artego.domain.item.dto.response.ItemInfoResponse;
+import com.swyp.artego.domain.item.dto.response.ItemSearchResultResponse;
 import com.swyp.artego.domain.item.enums.SizeType;
 import com.swyp.artego.domain.item.repository.ItemRepository;
 import com.swyp.artego.domain.user.entity.User;
 import com.swyp.artego.domain.user.repository.UserRepository;
 import com.swyp.artego.global.auth.oauth.model.AuthUser;
-
 import com.swyp.artego.global.common.code.ErrorCode;
 import com.swyp.artego.global.excpetion.BusinessExceptionHandler;
 import com.swyp.artego.global.file.service.FileService;
@@ -28,7 +28,11 @@ public class ItemServiceImpl implements ItemService {
     private final ItemRepository itemRepository;
     private final UserRepository userRepository;
 
+
+
+
     private final FileService fileService;
+
 
     @Override
     @Transactional
@@ -44,6 +48,7 @@ public class ItemServiceImpl implements ItemService {
         return ItemCreateResponse.fromEntity(
                 itemRepository.save(request.toEntity(user, imgUrls, sizeType))
         );
+
     }
 
     @Override
@@ -71,4 +76,13 @@ public class ItemServiceImpl implements ItemService {
         else if (sum <= 160)    return SizeType.M;
         else return SizeType.L;
     }
+
+
+    @Override
+    @Transactional(readOnly = true)
+    public ItemSearchResultResponse searchItems(AuthUser authUser, ItemSearchRequest request) {
+        return itemRepository.searchItems(authUser, request);
+    }
+
+
 }
