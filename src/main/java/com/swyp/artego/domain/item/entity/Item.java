@@ -43,10 +43,6 @@ public class Item extends BaseTimeEntity {
     @Column(name = "price")
     private int price;
 
-    @Convert(converter = BooleanToYNConverter.class)
-    @Column(name = "secret", length = 1, nullable = false)
-    private boolean secret; // ** 추가
-
     @Column(name = "size", nullable = false)
     @Enumerated(EnumType.STRING)
     private SizeType sizeType;
@@ -93,7 +89,7 @@ public class Item extends BaseTimeEntity {
 
     @Builder
     public Item (
-            User user, String title, String description, List<String> imgUrls, int price, boolean secret,
+            User user, String title, String description, List<String> imgUrls, int price,
             SizeType sizeType, int sizeWidth, int sizeHeight, int sizeDepth,
             String material, StatusType statusType, CategoryType categoryType
     ) {
@@ -102,7 +98,6 @@ public class Item extends BaseTimeEntity {
         this.description = description;
         this.imgUrls = imgUrls;
         this.price = price;
-        this.secret = secret;
         this.sizeType = sizeType;
         this.sizeDepth = sizeDepth;
         this.sizeWidth = sizeWidth;

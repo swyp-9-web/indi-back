@@ -39,7 +39,6 @@ public class ItemCreateRequest {
     @PositiveOrZero
     private int price;
 
-    private boolean secret;
     private StatusType statusType;
 
     @Getter
@@ -68,7 +67,6 @@ public class ItemCreateRequest {
                 .description(this.description)
                 .imgUrls(imgUrls)
                 .price(this.price)
-                .secret(this.secret)
                 .sizeType(sizeType)
                 .sizeWidth(this.size.getWidth())
                 .sizeHeight(this.size.getHeight())
