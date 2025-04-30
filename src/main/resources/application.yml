@@ -7,7 +7,7 @@ spring:
   config:
     import: optional:file:.env[.properties]
   profiles:
-    active: local  # TODO : 올릴 때 여기 prod 로 바꿔라~
+    active: prod  # TODO : 올릴 때 여기 prod 로 바꿔라
 
   jackson:
     time-zone: Asia/Seoul # 대한민국 표준시 (KST)

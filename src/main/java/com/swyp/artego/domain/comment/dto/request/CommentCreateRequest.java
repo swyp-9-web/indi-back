@@ -12,6 +12,6 @@ public class CommentCreateRequest {
     private String comment;
 
     @JsonProperty(value = "isSecret")
-    private boolean isSecret;
+    private boolean secret;
 
 }
