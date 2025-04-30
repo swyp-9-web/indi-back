@@ -17,6 +17,7 @@ import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.Validator;
 import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -99,7 +100,7 @@ public class ItemController {
     @GetMapping("/search")
     public ResponseEntity<ApiResponse<ItemSearchResultResponse>> searchItems(
             @AuthenticationPrincipal AuthUser user,
-            @ModelAttribute ItemSearchRequest request) {
+            @ParameterObject @ModelAttribute ItemSearchRequest request) {
 
         ItemSearchResultResponse result = itemService.searchItems(user, request);
 
