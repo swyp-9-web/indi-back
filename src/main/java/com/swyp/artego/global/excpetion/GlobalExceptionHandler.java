@@ -1,21 +1,28 @@
 package com.swyp.artego.global.excpetion;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.exc.InvalidFormatException;
+import com.fasterxml.jackson.databind.exc.MismatchedInputException;
 import com.swyp.artego.global.common.code.ErrorCode;
 import com.swyp.artego.global.common.response.ErrorResponse;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.json.JsonParseException;
+import org.springframework.context.MessageSourceResolvable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
+import org.springframework.validation.method.ParameterValidationResult;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.method.annotation.HandlerMethodValidationException;
 import org.springframework.web.servlet.NoHandlerFoundException;
 
 import java.io.IOException;
@@ -42,7 +49,8 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(BusinessExceptionHandler.class)
     public ResponseEntity<ErrorResponse> handleCustomException(BusinessExceptionHandler ex){
         final ErrorResponse response = ErrorResponse.of(ex.getErrorCode(), ex.getMessage());
-        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST); // TODO: (프런트와 상의) 모든 에러는 400 처리 후, 필드에서 에러 종류 상세 확인 OR 처음부터 모두 분류
+        HttpStatus status = HttpStatus.resolve(ex.getErrorCode().getStatus());
+        return new ResponseEntity<>(response, status);
     }
 
     /**
@@ -50,14 +58,66 @@ public class GlobalExceptionHandler {
      */
 
     /**
+     * [Exception] API 호출 시 Validator를 수동 호출하거나, @Validated가 붙은 메서드 파라미터(@RequestParam, @PathVariable 등)에서 유효성 검증 실패 시 발생
+     * 발생 조건: 수동 Validator.validate() 사용, @Validated + @RequestParam, @PathVariable 등
+     *
+     * @param ex ConstraintViolationException
+     * @return ResponseEntity<ErrorResponse>
+     */
+    @ExceptionHandler(ConstraintViolationException.class)
+    protected ResponseEntity<ErrorResponse> handleConstraintViolationException(ConstraintViolationException ex) {
+        log.error("handleConstraintViolationException 발생", ex);
+        StringBuilder stringBuilder = new StringBuilder();
+
+        for (ConstraintViolation<?> violation : ex.getConstraintViolations()) {
+            stringBuilder.append(violation.getPropertyPath())
+                    .append(": ")
+                    .append(violation.getMessage())
+                    .append(", ");
+        }
+
+        final ErrorResponse response = ErrorResponse.of(ErrorCode.NOT_VALID_ERROR, stringBuilder.toString());
+        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+    }
+
+    /**
      * [Exception] API 호출 시 '객체' 혹은 '파라미터' 데이터 값이 유효하지 않은 경우
+     * 발생 조건: @RequestParam, @RequestPart, @PathVariable 등 메서드 파라미터 직접 유효성 검증 시
+     *
+     * @param ex HandlerMethodValidationException
+     * @return ResponseEntity<ErrorResponse>
+     */
+    @ExceptionHandler(HandlerMethodValidationException.class)
+    protected ResponseEntity<ErrorResponse> handleHandlerMethodValidationException(HandlerMethodValidationException ex) {
+        log.error("HandlerMethodValidationException 발생", ex);
+
+        StringBuilder stringBuilder = new StringBuilder();
+
+        for (ParameterValidationResult result : ex.getParameterValidationResults()) {
+            for (MessageSourceResolvable error : result.getResolvableErrors()) {
+                stringBuilder.append(error.getDefaultMessage()).append(", ");
+            }
+        }
+
+        // 교차 파라미터 검사 결과도 포함 (optional)
+        for (MessageSourceResolvable error : ex.getCrossParameterValidationResults()) {
+            stringBuilder.append(error.getDefaultMessage()).append(", ");
+        }
+
+        final ErrorResponse response = ErrorResponse.of(ErrorCode.BAD_REQUEST_ERROR, stringBuilder.toString());
+        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+    }
+
+    /**
+     * [Exception] API 호출 시 '객체' 혹은 '파라미터' 데이터 값이 유효하지 않은 경우
+     * 발생 조건: @RequestBody, @ModelAttribute
      *
      * @param ex MethodArgumentNotValidException
      * @return ResponseEntity<ErrorResponse>
      */
     @ExceptionHandler(MethodArgumentNotValidException.class)
     protected ResponseEntity<ErrorResponse> handleMethodArgumentNotValidException(MethodArgumentNotValidException ex){
-        log.error("handleMethodArgumentNotValidException", ex);
+        log.error("handleMethodArgumentNotValidException 발생", ex);
         BindingResult bindingResult = ex.getBindingResult();
         StringBuilder stringBuilder = new StringBuilder();
         for (FieldError fieldError : bindingResult.getFieldErrors()){
@@ -66,7 +126,7 @@ public class GlobalExceptionHandler {
             stringBuilder.append(", ");
         }
         final ErrorResponse response = ErrorResponse.of(ErrorCode.NOT_VALID_ERROR, String.valueOf(stringBuilder));
-        return new ResponseEntity<>(response, HTTP_STATUS_OK);
+        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
 
     /**
@@ -77,13 +137,13 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(MissingRequestHeaderException.class)
     protected ResponseEntity<ErrorResponse> handleMissingRequestHeaderException(MissingRequestHeaderException ex){
-        log.error("MissingRequestHeaderException", ex);
+        log.error("MissingRequestHeaderException 발생", ex);
         final ErrorResponse response = ErrorResponse.of(ErrorCode.REQUEST_BODY_MISSING_ERROR, ex.getMessage());
-        return new ResponseEntity<>(response, HTTP_STATUS_OK);
+        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
 
     /**
-     * [Exception] 클라이언트에서 Body로 '객체' 데이터가 넘어오지 않았을 경우
+     * [Exception] 요청 본문(JSON)이 누락되었거나 파싱에 실패한 경우
      *
      * @param ex HttpMessageNotReadableException
      * @return ResponseEntity<ErrorResponse>
@@ -91,8 +151,21 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(HttpMessageNotReadableException.class)
     protected ResponseEntity<ErrorResponse> handleHttpMessageNotReadableException(
             HttpMessageNotReadableException ex) {
-        log.error("HttpMessageNotReadableException", ex);
-        final ErrorResponse response = ErrorResponse.of(ErrorCode.REQUEST_BODY_MISSING_ERROR, ex.getMessage());
+        log.error("HttpMessageNotReadableException 발생", ex);
+        Throwable cause = ex.getCause();
+        ErrorResponse response;
+        if (cause instanceof InvalidFormatException formatEx) {
+            Class<?> targetType = formatEx.getTargetType();
+            if (targetType.isEnum()) {
+                response = ErrorResponse.of(ErrorCode.JSON_PARSE_ERROR, ex.getMessage());
+            } else {
+                response = ErrorResponse.of(ErrorCode.INVALID_TYPE_VALUE, ex.getMessage());
+            }
+        } else if (cause instanceof MismatchedInputException) {
+            response = ErrorResponse.of(ErrorCode.INVALID_TYPE_VALUE, ex.getMessage());
+        } else {
+            response = ErrorResponse.of(ErrorCode.REQUEST_BODY_MISSING_ERROR, ex.getMessage());
+        }
         return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
 
@@ -105,7 +178,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MissingServletRequestParameterException.class)
     protected ResponseEntity<ErrorResponse> handleMissingRequestHeaderExceptionException(
             MissingServletRequestParameterException ex) {
-        log.error("handleMissingServletRequestParameterException", ex);
+        log.error("handleMissingServletRequestParameterException 발생", ex);
         final ErrorResponse response = ErrorResponse.of(ErrorCode.MISSING_REQUEST_PARAMETER_ERROR, ex.getMessage());
         return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
@@ -121,7 +194,7 @@ public class GlobalExceptionHandler {
     protected ResponseEntity<ErrorResponse> handleBadRequestException(HttpClientErrorException e) {
         log.error("HttpClientErrorException.BadRequest", e);
         final ErrorResponse response = ErrorResponse.of(ErrorCode.BAD_REQUEST_ERROR, e.getMessage());
-        return new ResponseEntity<>(response, HTTP_STATUS_OK);
+        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
 
 
@@ -133,9 +206,9 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(NoHandlerFoundException.class)
     protected ResponseEntity<ErrorResponse> handleNoHandlerFoundExceptionException(NoHandlerFoundException e) {
-        log.error("handleNoHandlerFoundExceptionException", e);
+        log.error("handleNoHandlerFoundExceptionException 발생", e);
         final ErrorResponse response = ErrorResponse.of(ErrorCode.NOT_FOUND_ERROR, e.getMessage());
-        return new ResponseEntity<>(response, HTTP_STATUS_OK);
+        return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
     }
 
 
@@ -147,9 +220,9 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(NullPointerException.class)
     protected ResponseEntity<ErrorResponse> handleNullPointerException(NullPointerException e) {
-        log.error("handleNullPointerException", e);
+        log.error("handleNullPointerException 발생", e);
         final ErrorResponse response = ErrorResponse.of(ErrorCode.NULL_POINT_ERROR, e.getMessage());
-        return new ResponseEntity<>(response, HTTP_STATUS_OK);
+        return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     /**
@@ -160,9 +233,9 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(IOException.class)
     protected ResponseEntity<ErrorResponse> handleIOException(IOException ex) {
-        log.error("handleIOException", ex);
+        log.error("handleIOException 발생", ex);
         final ErrorResponse response = ErrorResponse.of(ErrorCode.IO_ERROR, ex.getMessage());
-        return new ResponseEntity<>(response, HTTP_STATUS_OK);
+        return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
 
@@ -174,9 +247,9 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(JsonParseException.class)
     protected ResponseEntity<ErrorResponse> handleJsonParseExceptionException(JsonParseException ex) {
-        log.error("handleJsonParseExceptionException", ex);
+        log.error("handleJsonParseExceptionException 발생", ex);
         final ErrorResponse response = ErrorResponse.of(ErrorCode.JSON_PARSE_ERROR, ex.getMessage());
-        return new ResponseEntity<>(response, HTTP_STATUS_OK);
+        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
 
     /**
@@ -187,9 +260,9 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(JsonProcessingException.class)
     protected ResponseEntity<ErrorResponse> handleJsonProcessingException(JsonProcessingException ex) {
-        log.error("handleJsonProcessingException", ex);
+        log.error("handleJsonProcessingException 발생", ex);
         final ErrorResponse response = ErrorResponse.of(ErrorCode.REQUEST_BODY_MISSING_ERROR, ex.getMessage());
-        return new ResponseEntity<>(response, HTTP_STATUS_OK);
+        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
 
 
@@ -203,8 +276,8 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(Exception.class)
     protected final ResponseEntity<ErrorResponse> handleAllExceptions(Exception ex) {
-        log.error("Exception", ex);
+        log.error("Exception 발생", ex);
         final ErrorResponse response = ErrorResponse.of(ErrorCode.INTERNAL_SERVER_ERROR, ex.getMessage());
-        return new ResponseEntity<>(response, HTTP_STATUS_OK);
+        return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }
