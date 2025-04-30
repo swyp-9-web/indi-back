@@ -34,6 +34,12 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'org.springframework.boot:spring-boot-starter-security'
 	implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
+  
+  // NCP Object Storage
+	implementation 'org.springframework.cloud:spring-cloud-starter-aws:2.2.6.RELEASE'
+
+	// 사진 첨부 기능 테스트화면(resources/templates/upload.html) 용도
+	implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
 
 	// Lombok
 	compileOnly 'org.projectlombok:lombok'
@@ -56,9 +62,11 @@ dependencies {
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
+
 tasks.named('test') {
 	useJUnitPlatform()
 }
+
 
 
 def generated = layout.buildDirectory.dir("generated/querydsl")
@@ -70,6 +78,7 @@ sourceSets {
 		}
 	}
 }
+
 
 tasks.withType(JavaCompile).configureEach {
 	doFirst {

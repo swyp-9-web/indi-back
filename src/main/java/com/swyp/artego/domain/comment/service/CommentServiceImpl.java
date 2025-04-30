@@ -39,7 +39,7 @@ public class CommentServiceImpl implements CommentService {
                 .user(user)
                 .item(item)
                 .comment(request.getComment())
-                .isSecret(request.isSecret())
+                .secret(request.isSecret())
                 .build();
 
         commentRepository.save(comment);

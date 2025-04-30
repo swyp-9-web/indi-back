@@ -37,28 +37,28 @@ public class Item extends BaseTimeEntity {
     private String description;
 
     @Convert(converter = StringListConverter.class)
-    @Column(name= "img_url", nullable = false)
-    private List<String> imgUrl;
+    @Column(name= "img_urls", nullable = false)
+    private List<String> imgUrls;
 
     @Column(name = "price")
     private int price;
 
     @Convert(converter = BooleanToYNConverter.class)
     @Column(name = "secret", length = 1, nullable = false)
-    private boolean isSecret; // ** 추가
+    private boolean secret; // ** 추가
 
     @Column(name = "size", nullable = false)
     @Enumerated(EnumType.STRING)
     private SizeType sizeType;
 
-    @Column(name = "size_length")
-    private int sizeLength;
-
-    @Column(name = "size_width")
+    @Column(name = "size_width") // 가로
     private int sizeWidth;
 
-    @Column(name = "size_heigth")
+    @Column(name = "size_heigth") // 세로
     private int sizeHeight;
+
+    @Column(name = "size_depth") // 폭
+    private int sizeDepth;
 
     @Column(name= "material")
     private String material;
@@ -71,55 +71,44 @@ public class Item extends BaseTimeEntity {
     @Enumerated(EnumType.STRING)
     private CategoryType categoryType;
 
-
-    // ⭐️ 스크랩 총 수
+    
     @Column(name = "scrap_count", nullable = false)
     private int scrapCount = 0;
 
-    //  좋아요 수 (좋아요 리액션)
+    
     @Column(name = "like_count", nullable = false)
     private int likeCount = 0;
 
-    // ️ 소장하고 싶어요 수 (원트 리액션)
+    
     @Column(name = "want_count", nullable = false)
     private int wantCount = 0;
 
-    //  다시 보고 싶어요 수 (리비짓 리액션)
+    
     @Column(name = "revisit_count", nullable = false)
     private int revisitCount = 0;
 
-    // 총 리액션 점수 (좋아요 + 원트 + 리비짓 합)
+    
     @Column(name = "total_reaction_score", nullable = false)
     private int totalReactionCount = 0;
 
-
-
-
+   
 
 
     @Builder
-    public Item(User user,
-            String title,
-            String description,
-            List<String> imgUrl,
-            int price,
-            boolean isSecret,
-            SizeType sizeType,
-            int sizeLength,
-            int sizeWidth,
-            int sizeHeight,
-            String material,
-            StatusType statusType,
-            CategoryType categoryType
+    public Item (
+            User user, String title, String description, List<String> imgUrls, int price, boolean secret,
+            SizeType sizeType, int sizeWidth, int sizeHeight, int sizeDepth,
+            String material, StatusType statusType, CategoryType categoryType
+
     ) {
         this.user = user;
         this.title = title;
         this.description = description;
-        this.imgUrl = imgUrl;
+        this.imgUrls = imgUrls;
         this.price = price;
-        this.isSecret = isSecret;
+        this.secret = secret;
         this.sizeType = sizeType;
-        this.sizeLength = sizeLength;
+        this.sizeDepth = sizeDepth;
         this.sizeWidth = sizeWidth;
         this.sizeHeight = sizeHeight;
         this.material = material;
