@@ -20,7 +20,6 @@ public class ItemInfoResponse {
     private String description;
     private List<String> imgUrls;
     private int price;
-    private boolean secret;
     private ItemSize size;
     private String material;
     private StatusType statusType;
@@ -56,7 +55,6 @@ public class ItemInfoResponse {
                 .description(item.getDescription())
                 .imgUrls(item.getImgUrls())
                 .price(item.getPrice())
-                .secret(item.isSecret())
                 .size(new ItemSize(item.getSizeType(), item.getSizeWidth(), item.getSizeHeight(), item.getSizeDepth()))
                 .material(item.getMaterial())
                 .statusType(item.getStatusType())
