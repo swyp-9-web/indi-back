@@ -10,13 +10,17 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
 
 @Getter
+@AllArgsConstructor
 @NoArgsConstructor
+@Builder
 @Schema(description = "이미지를 제외한 작품 정보")
 public class ItemCreateRequest {
 
@@ -43,6 +47,7 @@ public class ItemCreateRequest {
     private StatusType statusType;
 
     @Getter
+    @AllArgsConstructor
     @NoArgsConstructor
     @Schema(description = "작품의 사이즈 정보 (가로, 세로, 폭) - 04/30 피그마 기준 용어")
     public static class ItemSize {
