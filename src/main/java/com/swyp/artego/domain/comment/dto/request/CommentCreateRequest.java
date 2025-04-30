@@ -10,6 +10,7 @@ public class CommentCreateRequest {
 
     private Long itemId;
     private String comment;
+  
 
     @JsonProperty(value = "secret")
     private boolean secret;

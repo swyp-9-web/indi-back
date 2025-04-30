@@ -26,6 +26,7 @@ public class ItemInfoResponse {
     private StatusType statusType;
     private CategoryType categoryType;
 
+
     @Getter
     @AllArgsConstructor
     public static class Artist {
@@ -40,7 +41,6 @@ public class ItemInfoResponse {
         private int height;
         private int depth;
     }
-
 
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createdAt;
