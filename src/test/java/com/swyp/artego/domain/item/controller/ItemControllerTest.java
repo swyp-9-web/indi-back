@@ -15,6 +15,8 @@ import jakarta.validation.Validation;
 import jakarta.validation.Validator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -34,6 +36,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
@@ -68,7 +71,7 @@ class ItemControllerTest {
 
     private AuthUser testUser;
 
-    private final String URL_PREFIX = "/api/v1/items";
+    private final String URL_PREFIX = "/api/v1/items/";
 
     /**
      * 테스트 환경에서 javax.validation.Validator를 수동으로 빈 등록하기 위한 설정 클래스
@@ -112,11 +115,10 @@ class ItemControllerTest {
         ItemCreateRequest request = ItemCreateRequest.builder()
                 .title("title")
                 .categoryType(CategoryType.TEXTILE_ART)
-                .size(new ItemCreateRequest.ItemSize(10,20,30))
+                .size(new ItemCreateRequest.ItemSize(10,20,0))
                 .material("material")
                 .description("description")
                 .price(10000)
-                .secret(false)
                 .statusType(StatusType.OPEN)
                 .build();
 
@@ -153,7 +155,9 @@ class ItemControllerTest {
     @Test
     void createItem_shouldReturnBadRequest_whenTooManyImagesProvided() throws Exception {
         // given
-        ItemCreateRequest request = new ItemCreateRequest();
+        ItemCreateRequest request = ItemCreateRequest.builder()
+                .size(new ItemCreateRequest.ItemSize(0,20,30))
+                .build();
 
         MockMultipartFile requestPart = new MockMultipartFile(
                 "request", "", "application/json",
@@ -189,7 +193,9 @@ class ItemControllerTest {
     @Test
     void createItem_shouldReturnBadRequest_whenImagePartMissing() throws Exception {
         // given
-        ItemCreateRequest request = new ItemCreateRequest();
+        ItemCreateRequest request = ItemCreateRequest.builder()
+                .size(new ItemCreateRequest.ItemSize(0,20,30))
+                .build();
 
         MockMultipartFile requestPart = new MockMultipartFile(
                 "request", "", "application/json",
@@ -203,5 +209,58 @@ class ItemControllerTest {
                         .contentType(MediaType.MULTIPART_FORM_DATA))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.status").value(ErrorCode.BAD_REQUEST_ERROR.getStatus()));
+    }
+
+    /**
+     * [예외 테스트] createItem - 유효하지 않은 사이즈(ItemSize)가 주어진 경우 400 Bad Request 반환 여부 검증
+     *
+     * 잘못된 사이즈 조합 예:
+     *  - (0, 0, 30)
+     *  - (10, 0, 30)
+     *  - (10, -1, 30)
+     *  - (10, 0, 0)
+     *
+     * @throws Exception
+     */
+    @ParameterizedTest
+    @MethodSource("invalidSizeProvider")
+    void createItem_shouldReturnNotValidError_whenSizeIsWrong(ItemCreateRequest.ItemSize invalidSize) throws Exception {
+        // given
+        ItemCreateRequest request = ItemCreateRequest.builder()
+                .title("title")
+                .categoryType(CategoryType.TEXTILE_ART)
+                .size(invalidSize)
+                .material("material")
+                .description("description")
+                .price(10000)
+                .build();
+
+        MockMultipartFile requestPart = new MockMultipartFile(
+                "request", "", "application/json",
+                objectMapper.writeValueAsBytes(request)
+        );
+
+        MockMultipartFile imagePart = new MockMultipartFile(
+                "images", "image1.jpg", "image/jpeg", "dummy image".getBytes()
+        );
+
+        // when + then
+        mockMvc.perform(multipart(URL_PREFIX)
+                        .file(requestPart)
+                        .file(imagePart)
+                        .with(user(testUser))
+                        .with(csrf())
+                        .contentType(MediaType.MULTIPART_FORM_DATA))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.divisionCode").value(ErrorCode.NOT_VALID_ERROR.getDivisionCode()));
+    }
+
+    private static Stream<ItemCreateRequest.ItemSize> invalidSizeProvider() {
+        return Stream.of(
+                new ItemCreateRequest.ItemSize(0, 0, 30),
+                new ItemCreateRequest.ItemSize(10, 0, 30),
+                new ItemCreateRequest.ItemSize(10, -1, 30),
+                new ItemCreateRequest.ItemSize(10, 0, 0)
+        );
     }
 }
