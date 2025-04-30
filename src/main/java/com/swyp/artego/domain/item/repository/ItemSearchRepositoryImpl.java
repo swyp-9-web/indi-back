@@ -70,6 +70,7 @@ public class ItemSearchRepositoryImpl implements ItemSearchRepository {
         }
 
         queryBuilder.where(
+                        eqStatusTypeOpen(),
                         eqKeyword(request.getKeyword()),
                         eqCategoryTypes(request.getCategoryTypes()),
                         eqSizeTypes(request.getSizeTypes()),
@@ -86,6 +87,7 @@ public class ItemSearchRepositoryImpl implements ItemSearchRepository {
                 .select(item.count())
                 .from(item)
                 .where(
+                        eqStatusTypeOpen(),
                         eqKeyword(request.getKeyword()),
                         eqCategoryTypes(request.getCategoryTypes()),
                         eqSizeTypes(request.getSizeTypes()),
@@ -145,6 +147,10 @@ public class ItemSearchRepositoryImpl implements ItemSearchRepository {
             return QScrap.scrap.id.isNotNull();
         }
         return null;
+    }
+
+    private BooleanExpression eqStatusTypeOpen() {
+        return QItem.item.statusType.eq(com.swyp.artego.domain.item.enums.StatusType.OPEN);
     }
 
     private OrderSpecifier<?> orderBySortType(SortType sortType, boolean withLogin) {

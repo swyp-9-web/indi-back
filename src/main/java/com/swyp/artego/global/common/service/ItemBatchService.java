@@ -3,6 +3,7 @@ package com.swyp.artego.global.common.service;
 import com.querydsl.core.Tuple;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.swyp.artego.domain.item.entity.Item;
+import com.swyp.artego.domain.item.enums.StatusType;
 import com.swyp.artego.domain.item.repository.ItemRepository;
 import com.swyp.artego.domain.itemEmoji.entity.QItemEmoji;
 import com.swyp.artego.domain.itemEmoji.enums.EmojiType;
@@ -30,7 +31,7 @@ public class ItemBatchService {
     @Scheduled(initialDelay = 10000, fixedRate = 1000 * 60 * 120) // 앱 시작 후 10초 뒤, 2시간마다 실행
     //@Scheduled(initialDelay = 5000, fixedRate = 5000) // 앱 시작 후 10초 뒤, 5초마다 실행 => 테스트용
     public void updateItemStatistics() {
-        List<Item> items = itemRepository.findAll();
+        List<Item> items = itemRepository.findByStatusType(StatusType.OPEN);
 
         // 1. 스크랩 수 Map<itemId, count>
         List<Tuple> scrapTuples = queryFactory
