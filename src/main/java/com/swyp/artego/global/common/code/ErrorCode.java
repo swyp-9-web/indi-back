@@ -8,15 +8,6 @@ import lombok.Getter;
  */
 @Getter
 public enum ErrorCode {
-
-    BUSINESS_EXCEPTION_ERROR(200, "B999", "Business Exception Error"),
-
-    // 올바르지 않은 파일
-    INVALID_FILE(400, "B998", "Invalid File"),
-
-    // Amazon S3 에러 -> 백엔드 로그 확인 필요
-    AMAZON_S3_API_ERROR(500, "B997", "NCP Storage에서 사용하는 Amazon S3 API의 에러"), // 일단은 500 처리
-
     /**
      * ******************************* Global Error CodeList ***************************************
      * HTTP Status Code
@@ -33,6 +24,8 @@ public enum ErrorCode {
      */
     BAD_REQUEST_ERROR(400, "G001", "잘못된 서버 요청"),
 
+    INVALID_FILE(400, "B998", "올바르지 않은 파일"),
+
     INVALID_TYPE_VALUE(400, "G003", "유효하지 않은 타입"),
 
     JSON_PARSE_ERROR(400, "G006", "JsonParseException - com.google.gson JSON 파싱 실패"),
@@ -40,6 +33,8 @@ public enum ErrorCode {
     JACKSON_PROCESS_ERROR(400, "G007", "com.fasterxml.jackson.core Processing Error"),
 
     MISSING_REQUEST_PARAMETER_ERROR(400, "G004", "Request Parameter 로 데이터가 전달되지 않을 경우"),
+
+    MISSING_REQUEST_PART_ERROR(400, "G014", "요청에 필수 part가 누락되었습니다."),
 
     NOT_VALID_ERROR(400, "G011", "파라미터나 객체의 값이 유효하지 않은 경우"),
 
@@ -69,6 +64,9 @@ public enum ErrorCode {
     NULL_POINT_ERROR(500, "G010", "NULL Point Exception 발생"),
 
     IO_ERROR(500, "G005", "I/O Exception. 입력/출력 값이 유효하지 않음"),
+
+    // Amazon S3 에러 -> 백엔드 로그 확인 필요
+    AMAZON_S3_API_ERROR(500, "B997", "NCP Storage에서 사용하는 Amazon S3 API의 에러"), // 일단은 500 처리
 
     // 서버가 처리 할 방법을 모르는 경우 발생
     INTERNAL_SERVER_ERROR(500, "G999", "Internal Server Error Exception"),
