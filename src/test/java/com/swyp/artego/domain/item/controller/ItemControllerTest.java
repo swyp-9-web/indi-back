@@ -68,6 +68,15 @@ class ItemControllerTest {
 
     private AuthUser testUser;
 
+    private final String URL_PREFIX = "/api/v1/items";
+
+    /**
+     * 테스트 환경에서 javax.validation.Validator를 수동으로 빈 등록하기 위한 설정 클래스
+     *
+     * Multipart/form-data와 JSON을 함께 사용하는 경우,
+     * @RequestPart로 전달된 DTO에 @Valid가 자동 적용되지 않는 이슈가 발생할 수 있으므로,
+     * Validator를 직접 주입 받아 수동 검증을 수행하기 위해 사용한다.
+     */
     @TestConfiguration
     static class ValidatorConfig {
         @Bean
@@ -76,6 +85,9 @@ class ItemControllerTest {
         }
     }
 
+    /**
+     * [테스트 실행 전] 테스트용 AuthUser를 생성합니다.
+     */
     @BeforeEach
     void setup() {
         Map<String, Object> userInfo = new HashMap<>();
@@ -91,8 +103,11 @@ class ItemControllerTest {
         testUser = new AuthUser(naverResponse, "ROLE_USER");
     }
 
+    /**
+     * [단위 테스트] createItem 메서드 - 유효한 요청 DTO로 아이템 생성 시 성공 응답을 검증한다.
+     */
     @Test
-    void createItem() throws Exception {
+    void createItem_shouldWorkSuccessfully_whenValidRequestDtoProvided() throws Exception {
         // given
         ItemCreateRequest request = ItemCreateRequest.builder()
                 .title("title")
@@ -124,13 +139,17 @@ class ItemControllerTest {
         mockMvc.perform(multipart("/api/v1/items/")
                         .file(requestPart)
                         .file(imagePart)
-                        .with(user(testUser)) // 시큐리티 설정 (AuthUser는 UserDetails 구현체여야 함)
+                        .with(user(testUser))
                         .with(csrf())
                         .contentType(MediaType.MULTIPART_FORM_DATA))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.resultCode").value(SuccessCode.INSERT_SUCCESS.getStatus()));
     }
 
+    /**
+     * [예외 테스트] createItem - 이미지 파일이 최대 개수 초과 시 400 Bad Request를 반환하는지 검증
+     * @throws Exception
+     */
     @Test
     void createItem_shouldReturnBadRequest_whenTooManyImagesProvided() throws Exception {
         // given
@@ -141,7 +160,7 @@ class ItemControllerTest {
                 objectMapper.writeValueAsBytes(request)
         );
 
-        MockMultipartHttpServletRequestBuilder multipartRequest = (MockMultipartHttpServletRequestBuilder) multipart("/api/v1/items/")
+        MockMultipartHttpServletRequestBuilder multipartRequest = (MockMultipartHttpServletRequestBuilder) multipart(URL_PREFIX)
                 .file(requestPart)
                 .with(user(testUser))
                 .with(csrf())
@@ -163,6 +182,10 @@ class ItemControllerTest {
                 .andExpect(jsonPath("$.status").value(ErrorCode.BAD_REQUEST_ERROR.getStatus()));
     }
 
+    /**
+     * [예외 테스트] createItem - 이미지 파트가 누락되었을 때 400 Bad Request 반환 여부 검증
+     * @throws Exception
+     */
     @Test
     void createItem_shouldReturnBadRequest_whenImagePartMissing() throws Exception {
         // given
@@ -173,12 +196,12 @@ class ItemControllerTest {
                 objectMapper.writeValueAsBytes(request)
         );
 
-        mockMvc.perform(multipart("/api/v1/items/")
+        mockMvc.perform(multipart(URL_PREFIX)
                         .file(requestPart)
-                        .with(user(testUser)) // 시큐리티 설정 (AuthUser는 UserDetails 구현체여야 함)
+                        .with(user(testUser))
                         .with(csrf())
                         .contentType(MediaType.MULTIPART_FORM_DATA))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value(ErrorCode.BAD_REQUEST_ERROR.getStatus())); // TODO: 핸들러 추가
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value(ErrorCode.BAD_REQUEST_ERROR.getStatus()));
     }
 }
