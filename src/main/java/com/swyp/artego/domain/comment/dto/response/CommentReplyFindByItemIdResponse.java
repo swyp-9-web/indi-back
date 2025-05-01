@@ -12,11 +12,12 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ChildCommentDto {
+public class CommentReplyFindByItemIdResponse {
 
-    private String comment;
     private String writer;
+    private String comment;
+    private boolean secret;
+
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createdAt;
-    private boolean secret;
 }

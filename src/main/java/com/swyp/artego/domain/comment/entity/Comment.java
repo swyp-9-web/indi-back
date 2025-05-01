@@ -10,6 +10,9 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -39,6 +42,9 @@ public class Comment extends BaseTimeEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parent_id")
     private Comment parent;  // 이 필드가 null이면 일반 댓글, 아니면 대댓글
+
+    @Transient // 계층형 댓글 구조를 만들기 위한 필드. DB 칼럼으로 매핑되지 않음.
+    private List<Comment> reply = new ArrayList<>();
 
     @Builder
     public Comment(User user, Item item, String comment, boolean secret, Comment parent) {
