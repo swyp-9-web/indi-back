@@ -1,6 +1,7 @@
 package com.swyp.artego.domain.comment.controller;
 
 import com.swyp.artego.domain.comment.dto.request.CommentCreateRequest;
+import com.swyp.artego.domain.comment.dto.response.CommentCreateResponse;
 import com.swyp.artego.domain.comment.dto.response.CommentInfoResponse;
 import com.swyp.artego.domain.comment.service.CommentService;
 import com.swyp.artego.global.auth.oauth.model.AuthUser;
@@ -20,26 +21,23 @@ public class CommentController {
 
     private final CommentService commentService;
 
-
     /**
      * 댓글 생성 API
      */
     @PostMapping
-    public ResponseEntity<ApiResponse<Void>> createComment(
+    public ResponseEntity<ApiResponse<CommentCreateResponse>> createComment(
             @AuthenticationPrincipal AuthUser user,
             @RequestBody CommentCreateRequest request) {
 
-        commentService.createComment(user, request);
+        CommentCreateResponse res = commentService.createComment(user, request);
 
         return ResponseEntity.status(SuccessCode.INSERT_SUCCESS.getStatus())
-                .body(ApiResponse.<Void>builder()
-                        .result(null)
+                .body(ApiResponse.<CommentCreateResponse>builder()
+                        .result(res)
                         .resultCode(Integer.parseInt(SuccessCode.INSERT_SUCCESS.getCode()))
                         .resultMessage(SuccessCode.INSERT_SUCCESS.getMessage())
                         .build());
     }
-
-
 
     /**
      * 댓글 전체 조회 API (최신순)

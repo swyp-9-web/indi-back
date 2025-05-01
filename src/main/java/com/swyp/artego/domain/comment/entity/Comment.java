@@ -21,11 +21,11 @@ public class Comment extends BaseTimeEntity {
     @Column(name = "comment_id", nullable = false)
     private Long id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name="user_id")
     private User user;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name="item_id")
     private Item item;
 
@@ -36,11 +36,16 @@ public class Comment extends BaseTimeEntity {
     @Column(name = "secret", length = 1, nullable = false)
     private boolean secret;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "parent_id")
+    private Comment parent;  // 이 필드가 null이면 일반 댓글, 아니면 대댓글
+
     @Builder
-    public Comment(User user, Item item, String comment, boolean secret) {
+    public Comment(User user, Item item, String comment, boolean secret, Comment parent) {
         this.user = user;
         this.item = item;
         this.comment = comment;
         this.secret = secret;
+        this.parent = parent;
     }
 }

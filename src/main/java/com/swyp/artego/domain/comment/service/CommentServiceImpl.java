@@ -1,6 +1,7 @@
 package com.swyp.artego.domain.comment.service;
 
 import com.swyp.artego.domain.comment.dto.request.CommentCreateRequest;
+import com.swyp.artego.domain.comment.dto.response.CommentCreateResponse;
 import com.swyp.artego.domain.comment.dto.response.CommentInfoResponse;
 import com.swyp.artego.domain.comment.entity.Comment;
 import com.swyp.artego.domain.comment.repository.CommentRepository;
@@ -16,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -28,21 +30,22 @@ public class CommentServiceImpl implements CommentService {
 
     @Override
     @Transactional
-    public void createComment(AuthUser authUser, CommentCreateRequest request) {
+    public CommentCreateResponse createComment(AuthUser authUser, CommentCreateRequest request) {
         User user = userRepository.findByOauthId(authUser.getOauthId())
                 .orElseThrow(() -> new BusinessExceptionHandler("유저가 존재하지 않습니다.", ErrorCode.NOT_FOUND_ERROR));
 
         Item item = itemRepository.findById(request.getItemId())
-                .orElseThrow(() -> new BusinessExceptionHandler("아이템이 존재하지 않습니다.", ErrorCode.NOT_FOUND_ERROR));
+                .orElseThrow(() -> new BusinessExceptionHandler("작품이 존재하지 않습니다.", ErrorCode.NOT_FOUND_ERROR));
 
-        Comment comment = Comment.builder()
-                .user(user)
-                .item(item)
-                .comment(request.getComment())
-                .secret(request.isSecret())
-                .build();
+        // parentComment 가 존재하면 대댓글 작성 요청임
+        Comment parentComment = commentRepository.findById(request.getParentCommentId()).orElse(null);
+        if (parentComment != null) {
+            validateReplyCommentPermission(user, parentComment, item);
+        }
 
-        commentRepository.save(comment);
+        return CommentCreateResponse.fromEntity(
+            commentRepository.save(request.toEntity(user, item, parentComment))
+        );
     }
 
     @Override
@@ -52,5 +55,23 @@ public class CommentServiceImpl implements CommentService {
                 .stream()
                 .map(CommentInfoResponse::fromEntity)
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * 대댓글 생성의 경우, 최초 댓글의 작성자와 작가 본인만 대댓글을 작성할 수 있다.
+     * 두 경우가 아닌 사용자가 대댓글을 작성할 때 에러를 던진다.
+     *
+     * @param user 대댓글을 작성하는 유저
+     * @param parentComment 대댓글이 작성되는 원댓글
+     * @param item 대댓글이 작성되는 작품
+     */
+    private static void validateReplyCommentPermission(User user, Comment parentComment, Item item) {
+        Long replyAuthorId = user.getId();
+        Long parentCommentAuthorId = parentComment.getUser().getId();
+        Long itemCreatorId = item.getUser().getId();
+
+        if (!Objects.equals(parentCommentAuthorId, replyAuthorId) && !Objects.equals(itemCreatorId, replyAuthorId)) {
+            throw new BusinessExceptionHandler("대댓글 작성 권한이 없습니다.", ErrorCode.FORBIDDEN_ERROR);
+        }
     }
 }
