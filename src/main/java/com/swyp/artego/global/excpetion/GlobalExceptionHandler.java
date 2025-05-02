@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.method.annotation.HandlerMethodValidationException;
+import org.springframework.web.multipart.support.MissingServletRequestPartException;
 import org.springframework.web.servlet.NoHandlerFoundException;
 
 import java.io.IOException;
@@ -126,6 +127,20 @@ public class GlobalExceptionHandler {
             stringBuilder.append(", ");
         }
         final ErrorResponse response = ErrorResponse.of(ErrorCode.NOT_VALID_ERROR, String.valueOf(stringBuilder));
+        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+    }
+
+    /**
+     * [Exception] multipart/form-data 요청에서 필수 RequestPart 누락 시 발생
+     * TODO: multipart/form-data 요청 외에 MissingServletRequestPartException 발생 시, 주석 변경
+     *
+     * @param ex MissingServletRequestPartException
+     * @return ResponseEntity<ErrorResponse>
+     */
+    @ExceptionHandler(MissingServletRequestPartException.class)
+    protected ResponseEntity<ErrorResponse> handleMissingServletRequestPartException(MissingServletRequestPartException ex) {
+        log.error("MissingServletRequestPartException 발생 - 누락된 part: {}", ex.getRequestPartName(), ex);
+        final ErrorResponse response = ErrorResponse.of(ErrorCode.MISSING_REQUEST_PART_ERROR, ex.getMessage());
         return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
 

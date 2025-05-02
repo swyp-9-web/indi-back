@@ -5,10 +5,11 @@
       password: ${PROD_DB_PASSWORD}
       driver-class-name: com.mysql.cj.jdbc.Driver
 
-    jpa:
-      hibernate:
-        ddl-auto: create
-      show-sql: true
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+
 
     security:
       oauth2:

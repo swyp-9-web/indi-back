@@ -10,11 +10,7 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
-                .allowedOriginPatterns(
-                    "https://indi-front.vercel.app",
-                    "https://indi-front-*-leehj322s-projects.vercel.app",
-                    "http://localhost:3000"
-                )
+                .allowedOriginPatterns("*")
                 .allowedMethods("*")        // 모든 HTTP 메서드 허용
                 .allowedHeaders("*")        // 모든 헤더 허용
                 .allowCredentials(true)

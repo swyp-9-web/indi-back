@@ -74,7 +74,7 @@ public class DummyItemService {
 
             String imageUrlJson = "[\"" + DUMMY_IMG_URLS.get(random.nextInt(DUMMY_IMG_URLS.size())) + "\"]";
             String category = CategoryType.values()[random.nextInt(CategoryType.values().length)].name();
-            String status = StatusType.values()[random.nextInt(StatusType.values().length)].name();
+            String status = StatusType.OPEN.name();
             String title = ITEM_TITLES.get(random.nextInt(ITEM_TITLES.size())) + " #" + i;
 
             int scrapCount = random.nextInt(userIds.size());
