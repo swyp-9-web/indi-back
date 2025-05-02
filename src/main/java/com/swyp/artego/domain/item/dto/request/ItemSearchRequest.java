@@ -32,8 +32,8 @@ public class ItemSearchRequest {
     private Long artistId;
 
     @Schema(description = "페이지 번호 (0부터 시작)", defaultValue = "0", example = "0")
-    private Integer page = 0;
+    private Integer page;
 
     @Schema(description = "페이지당 아이템 수", defaultValue = "10", example = "10")
-    private Integer limit = 10;
+    private Integer limit;
 }
