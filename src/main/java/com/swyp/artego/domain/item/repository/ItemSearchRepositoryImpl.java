@@ -37,9 +37,11 @@ public class ItemSearchRepositoryImpl implements ItemSearchRepository {
         QUser user = QUser.user;
         QScrap scrap = QScrap.scrap;
 
-        int page = request.getPage() != null ? request.getPage() : 0;
+        int pageInput = request.getPage() != null ? request.getPage() : 1; //  프론트는 1부터 전달
+        int page = Math.max(pageInput - 1, 0); //  내부적으로는 0-based
         int limit = request.getLimit() != null ? request.getLimit() : 10;
         Pageable pageable = PageRequest.of(page, limit);
+
 
         var queryBuilder = queryFactory
                 .select(new QItemSearchResponse(
@@ -99,7 +101,7 @@ public class ItemSearchRepositoryImpl implements ItemSearchRepository {
         totalCount = totalCount == null ? 0L : totalCount;
 
         MetaResponse meta = MetaResponse.builder()
-                .currentPage(page)
+                .currentPage(page + 1) //  프론트 기준으로 응답 보정
                 .pageSize(limit)
                 .totalItems(totalCount)
                 .hasNextPage((page + 1) * limit < totalCount)
