@@ -11,12 +11,12 @@ spring:
     show-sql: true
 
 
-    security:
-      oauth2:
-        client:
-          registration:
-            naver:
-              redirect-uri: http://${PROD_HOST}:${PROD_PORT}/login/oauth2/code/naver
+  security:
+    oauth2:
+      client:
+        registration:
+          naver:
+            redirect-uri: http://${PROD_HOST}:${PROD_PORT}/login/oauth2/code/naver
 
   server:
     servlet:
