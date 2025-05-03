@@ -1,5 +1,6 @@
 package com.swyp.artego.domain.user.entity;
 
+import com.swyp.artego.domain.user.enums.Role;
 import com.swyp.artego.global.common.entity.BaseTimeEntity;
 import com.swyp.artego.global.converter.BooleanToYNConverter;
 import com.swyp.artego.global.converter.StringListConverter;
@@ -36,12 +37,12 @@ public class User extends BaseTimeEntity {
     @Column(name = "tel_number", nullable = false)
     private String telNumber;
 
-//    @Column(name = "role", nullable = false)
-    //@Enumerated(EnumType.STRING)
-//    private String role; // ex: "user", "artist"
+    @Column(name = "role", nullable = false)
+    @Enumerated(EnumType.STRING)
+    private Role role = Role.USER; // ex: "user", "artist"
 
-//    @Column(name = "img_url", nullable = false)
-//    private String imgUrl = "default.png"; // 기본 프로필 이미지
+    @Column(name = "img_url", nullable = false)
+    private String imgUrl = "https://kr.object.ncloudstorage.com/artego-bucket/file_domain/b3db25fe-5e0e-485e-b342-91ee1239950d.jpg"; // 기본 프로필 이미지
 //
 //    @Convert(converter = StringListConverter.class)
 //    @Column(name = "artist_sns_info")
@@ -70,3 +71,5 @@ public class User extends BaseTimeEntity {
 
     // 아래에 세터 메서드
 }
+
+
