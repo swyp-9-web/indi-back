@@ -42,10 +42,10 @@ public class CommentController {
     }
 
     /**
-     * 게시글 별 전체 댓글 조회 API
+     * 작품 별 전체 댓글 조회 API
      * TODO: 프런트 연동 이후 @AuthenticationPrincipal AuthUser user 를 추가, 볼 수 있는/없는 댓글을 응답에 적용한다.
      */
-    @GetMapping("/{itemId}")
+    @GetMapping("/item/{itemId}")
     public ResponseEntity<ApiResponse<CommentFindByItemIdWrapperResponse>> getCommentsByItemId(
             @PathVariable Long itemId) {
 
@@ -63,7 +63,7 @@ public class CommentController {
      * 댓글/대댓글 수정 API
      * TODO: 기획- 답글이 달린 경우, 수정 불가능하게?
      */
-    @PatchMapping("/update/{commentId}")
+    @PatchMapping("/{commentId}")
     public ResponseEntity<ApiResponse<CommentUpdateResponse>> updateComment(
             @AuthenticationPrincipal AuthUser user,
             @PathVariable Long commentId,
@@ -82,7 +82,7 @@ public class CommentController {
     /**
      * 댓글/대댓글 삭제 API
      */
-    @DeleteMapping("/delete/{commentId}")
+    @DeleteMapping("/{commentId}")
     public ResponseEntity<ApiResponse<CommentDeleteResponse>> deleteComment(
             @AuthenticationPrincipal AuthUser user,
             @PathVariable Long commentId) {
