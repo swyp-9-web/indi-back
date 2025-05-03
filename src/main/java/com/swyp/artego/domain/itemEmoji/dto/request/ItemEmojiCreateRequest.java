@@ -13,7 +13,7 @@ public class ItemEmojiCreateRequest {
     @Schema(description = "이모지를 남길 아이템 ID", example = "1")
     private Long itemId;
 
-    @Schema(description = "이모지 타입", example = "SMILE")
+    @Schema(description = "이모지 타입", example = "LIKES")
     private EmojiType emojiType;
 
 

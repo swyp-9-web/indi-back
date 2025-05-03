@@ -59,6 +59,11 @@ public enum ErrorCode {
     NOT_FOUND_ERROR(404, "G009", "서버로 요청한 리소스가 존재하지 않음"),
 
     /*
+     409 Conflict (중복 자원 에러)
+     */
+    DUPLICATE_RESOURCE(409, "G015", "이미 존재하는 리소스입니다."),
+
+    /*
      500 Internal Server Error
      */
     NULL_POINT_ERROR(500, "G010", "NULL Point Exception 발생"),
