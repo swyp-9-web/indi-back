@@ -41,6 +41,11 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
                 .append("; HttpOnly")
                 .append("; SameSite=None");
 
+        // localhost 도메인에 Domain 설정하면 쿠키 저장 안됨 → 생략
+        if (!"localhost".equals(domain)) {
+            cookieBuilder.append("; Domain=").append(domain);
+        }
+
         //  HTTPS 환경에서만 Secure 설정 (지금은 HTTP니까 생략됨)
         if (isHttps) {
             cookieBuilder.append("; Secure");
