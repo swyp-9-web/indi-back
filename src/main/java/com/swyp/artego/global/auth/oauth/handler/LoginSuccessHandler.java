@@ -37,7 +37,6 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
         StringBuilder cookieBuilder = new StringBuilder();
         cookieBuilder.append("JSESSIONID=").append(sessionId)
                 .append("; Path=/")
-                .append("; Domain=").append(domain)
                 .append("; HttpOnly")
                 .append("; SameSite=None");
 
