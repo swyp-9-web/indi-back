@@ -10,9 +10,6 @@ ncp:
       secret-key: ${NCP_STORAGE_SECRET_KEY}
     bucket:
       name: ${NCP_STORAGE_BUCKET_NAME}
-      folder:
-        item-post: ${NCP_STORAGE_FOLDER_ITEM_POST}
-        user-profile: ${NCP_STORAGE_FOLDER_USER_PROFILE}
 
 
 spring:
@@ -41,8 +38,6 @@ spring:
         registration:
           naver:
             client-name: naver
-            client-id: ${NAVER_CLIENT_ID}
-            client-secret: ${NAVER_CLIENT_SECRET}
             authorization-grant-type: authorization_code
             scope:
               - name
