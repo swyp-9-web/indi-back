@@ -1,6 +1,7 @@
 package com.swyp.artego.domain.follow.service;
 
 import com.swyp.artego.domain.follow.dto.response.FollowInfoResponse;
+import com.swyp.artego.domain.follow.dto.response.FollowPreviewListResponse;
 import com.swyp.artego.global.auth.oauth.model.AuthUser;
 
 import java.util.List;
@@ -15,10 +16,28 @@ public interface FollowService {
      */
     void createFollow(AuthUser user, Long artistId);
 
+
+    /**
+     * 팔로우 프리뷰
+     *
+     * @param user 로그인한 유저
+     * return FollowPreviewListResponse 팔로우 프리뷰
+     */
+
+    FollowPreviewListResponse getFollowPreview(AuthUser user);
+
     /**
      * 팔로우 전체 조회 (최신순)
      *
      * @return 팔로우 목록
      */
     List<FollowInfoResponse> getAllFollows();
+
+    /**
+     * 팔로우 삭제
+     *
+     */
+    void deleteFollow(AuthUser authUser, Long artistId);
+
+
 }

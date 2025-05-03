@@ -15,7 +15,7 @@ public interface ItemEmojiService {
      * @param user    현재 로그인한 유저 정보
      * @param request 이모지 생성 요청 DTO
      */
-    void createItemEmoji(AuthUser user, ItemEmojiCreateRequest request);
+    Long createItemEmoji(AuthUser user, ItemEmojiCreateRequest request);
 
     /**
      * 전체 아이템 이모지 조회 (최신순)
@@ -23,4 +23,13 @@ public interface ItemEmojiService {
      * @return 이모지 목록
      */
     List<ItemEmojiInfoResponse> getAllItemEmojis();
+
+
+
+    /**
+     * 이모지 삭제
+     *
+     */
+
+    void deleteItemEmojiById(Long itemEmojiId);
 }
