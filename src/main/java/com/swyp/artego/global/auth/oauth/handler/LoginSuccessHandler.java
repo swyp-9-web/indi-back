@@ -30,7 +30,7 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
         // 2. 도메인 및 환경 판단
         URI uri = URI.create(redirectUri);
         String domain = uri.getHost(); // ex: localhost, fe.site.com
-        boolean isLocalhost = "localhost".equalsIgnoreCase(domain);
+        boolean isLocalhost = domain.contains("localhost");
         boolean isHttps = redirectUri.startsWith("https");
 
         // 3. 세션ID 발급 → 쿠키 구성
@@ -60,4 +60,6 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
         // 5. 리다이렉트
         response.sendRedirect(redirectUri);
     }
+
+
 }
