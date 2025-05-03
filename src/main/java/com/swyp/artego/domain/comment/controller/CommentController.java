@@ -1,14 +1,14 @@
 package com.swyp.artego.domain.comment.controller;
 
 import com.swyp.artego.domain.comment.dto.request.CommentCreateRequest;
-import com.swyp.artego.domain.comment.dto.response.CommentCreateResponse;
-import com.swyp.artego.domain.comment.dto.response.CommentDeleteResponse;
-import com.swyp.artego.domain.comment.dto.response.CommentFindByItemIdWrapperResponse;
-import com.swyp.artego.domain.comment.dto.response.CommentInfoResponse;
+import com.swyp.artego.domain.comment.dto.request.CommentUpdateRequest;
+import com.swyp.artego.domain.comment.dto.response.CommentUpdateResponse;
+import com.swyp.artego.domain.comment.dto.response.*;
 import com.swyp.artego.domain.comment.service.CommentService;
 import com.swyp.artego.global.auth.oauth.model.AuthUser;
 import com.swyp.artego.global.common.code.SuccessCode;
 import com.swyp.artego.global.common.response.ApiResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -56,6 +56,26 @@ public class CommentController {
                         .result(res)
                         .resultCode(Integer.parseInt(SuccessCode.SELECT_SUCCESS.getCode()))
                         .resultMessage(SuccessCode.SELECT_SUCCESS.getMessage())
+                        .build());
+    }
+
+    /**
+     * 댓글/대댓글 수정 API
+     * TODO: 기획- 답글이 달린 경우, 수정 불가능하게?
+     */
+    @PatchMapping("/update/{commentId}")
+    public ResponseEntity<ApiResponse<CommentUpdateResponse>> updateComment(
+            @AuthenticationPrincipal AuthUser user,
+            @PathVariable Long commentId,
+            @RequestBody @Valid CommentUpdateRequest request) {
+
+        CommentUpdateResponse res = commentService.updateComment(user, commentId, request);
+
+        return ResponseEntity.status(SuccessCode.UPDATE_SUCCESS.getStatus())
+                .body(ApiResponse.<CommentUpdateResponse>builder()
+                        .result(res)
+                        .resultCode(Integer.parseInt(SuccessCode.UPDATE_SUCCESS.getCode()))
+                        .resultMessage(SuccessCode.UPDATE_SUCCESS.getMessage())
                         .build());
     }
 

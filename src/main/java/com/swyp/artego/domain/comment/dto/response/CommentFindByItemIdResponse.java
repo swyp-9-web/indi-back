@@ -2,12 +2,10 @@ package com.swyp.artego.domain.comment.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.swyp.artego.domain.comment.entity.Comment;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -17,11 +15,11 @@ import java.util.*;
 public class CommentFindByItemIdResponse {
 
     private UserInfo user;
-    private ParentComment comment;
+    private CommentInfo comment;
     // TODO: private boolean canSee;
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
-    private List<CommentReply> replies;
+    private List<CommentInfo> replies;
 
 
     @Getter
@@ -35,35 +33,15 @@ public class CommentFindByItemIdResponse {
 
     @Getter
     @AllArgsConstructor
-    @NoArgsConstructor
-    public static class BaseComment {
+    @Builder
+    public static class CommentInfo {
+        private Long id;
         private Long writerId;
         private String comment;
         private boolean secret;
 
         @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
         private LocalDateTime createdAt;
-    }
-
-    @JsonPropertyOrder({"id", "writerId", "comment", "secret", "createdAt"})
-    @Getter
-    @NoArgsConstructor
-    public static class ParentComment extends BaseComment {
-        private Long id;
-
-        @Builder(builderMethodName = "parentCommentBuilder")
-        public ParentComment(Long id, Long writerId, String comment, boolean secret, LocalDateTime createdAt) {
-            super(writerId, comment, secret, createdAt);
-            this.id = id;
-        }
-    }
-
-    @Getter
-    public static class CommentReply extends BaseComment {
-        @Builder(builderMethodName = "replyBuilder")
-        public CommentReply(Long writerId, String comment, boolean secret, LocalDateTime createdAt) {
-            super(writerId, comment, secret, createdAt);
-        }
     }
 
     /**
@@ -73,7 +51,7 @@ public class CommentFindByItemIdResponse {
      * 해당 댓글을 기준으로 직접적인 자식(대댓글)들을 묶어 replies 필드에 포함한다.
      * 대댓글은 루트 댓글 하나에만 속하며, 추가 중첩은 지원하지 않는다.
      *
-     * @param flatList  계층 구조 없이 정렬된 Comment 엔티티 리스트
+     * @param flatList 계층 구조 없이 정렬된 Comment 엔티티 리스트
      * @return List<CommentFindByItemIdResponse> 루트 댓글과 그에 속한 대댓글을 포함하는 응답 DTO 리스트
      */
     public static List<CommentFindByItemIdResponse> convertFlatToDepth1Tree(List<Comment> flatList) {
@@ -96,8 +74,9 @@ public class CommentFindByItemIdResponse {
         for (Comment parent : parents) {
             List<Comment> replies = repliesGroupedByParentId.getOrDefault(parent.getId(), Collections.emptyList());
 
-            List<CommentReply> replyResponses = replies.stream()
-                    .map(reply -> CommentReply.replyBuilder()
+            List<CommentInfo> replyResponses = replies.stream()
+                    .map(reply -> CommentInfo.builder()
+                            .id(reply.getId())
                             .writerId(reply.getUser().getId())
                             .comment(reply.getComment())
                             .secret(reply.isSecret())
@@ -111,7 +90,7 @@ public class CommentFindByItemIdResponse {
                             .name(parent.getUser().getName())
                             .imgUrl("user's imgUrl") // TODO: 프로필 사진 연동하기
                             .build())
-                    .comment(ParentComment.parentCommentBuilder()
+                    .comment(CommentInfo.builder()
                             .id(parent.getId())
                             .writerId(parent.getUser().getId())
                             .comment(parent.getComment())

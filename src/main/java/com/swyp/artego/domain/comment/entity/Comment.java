@@ -5,10 +5,7 @@ import com.swyp.artego.domain.user.entity.User;
 import com.swyp.artego.global.common.entity.BaseTimeEntity;
 import com.swyp.artego.global.converter.BooleanToYNConverter;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,9 +29,11 @@ public class Comment extends BaseTimeEntity {
     @JoinColumn(name="item_id")
     private Item item;
 
+    @Setter
     @Column(name = "comment", nullable = false)
     private String comment;
 
+    @Setter
     @Convert(converter = BooleanToYNConverter.class)
     @Column(name = "secret", length = 1, nullable = false)
     private boolean secret;
@@ -44,7 +43,7 @@ public class Comment extends BaseTimeEntity {
     private Comment parent;  // 이 필드가 null이면 일반 댓글, 아니면 대댓글
 
     @Transient // 계층형 댓글 구조를 만들기 위한 필드. DB 칼럼으로 매핑되지 않음.
-    private List<Comment> reply = new ArrayList<>();
+    private List<Comment> replies = new ArrayList<>();
 
     @Builder
     public Comment(User user, Item item, String comment, boolean secret, Comment parent) {

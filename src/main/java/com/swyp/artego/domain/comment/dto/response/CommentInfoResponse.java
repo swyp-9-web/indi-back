@@ -11,6 +11,7 @@ import java.time.LocalDateTime;
 @Builder
 public class CommentInfoResponse {
 
+    private Long commentId;
     private String userName;
     private String comment;
     private boolean secret;
@@ -19,6 +20,7 @@ public class CommentInfoResponse {
 
     public static CommentInfoResponse fromEntity(Comment comment) {
         return CommentInfoResponse.builder()
+                .commentId(comment.getId())
                 .userName(comment.getUser().getName())
                 .comment(comment.getComment())
                 .secret(comment.isSecret())

@@ -122,7 +122,7 @@ public class GlobalExceptionHandler {
         BindingResult bindingResult = ex.getBindingResult();
         StringBuilder stringBuilder = new StringBuilder();
         for (FieldError fieldError : bindingResult.getFieldErrors()){
-            stringBuilder.append(fieldError.getField()).append(":");
+            stringBuilder.append(fieldError.getField()).append(": ");
             stringBuilder.append(fieldError.getDefaultMessage());
             stringBuilder.append(", ");
         }

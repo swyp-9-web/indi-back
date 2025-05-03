@@ -1,6 +1,7 @@
 package com.swyp.artego.domain.comment.service;
 
 import com.swyp.artego.domain.comment.dto.request.CommentCreateRequest;
+import com.swyp.artego.domain.comment.dto.request.CommentUpdateRequest;
 import com.swyp.artego.domain.comment.dto.response.*;
 import com.swyp.artego.domain.comment.entity.Comment;
 import com.swyp.artego.domain.comment.repository.CommentRepository;
@@ -73,6 +74,30 @@ public class CommentServiceImpl implements CommentService {
         commentRepository.delete(comment);
 
         return CommentDeleteResponse.from(commentId);
+    }
+
+    @Override
+    @Transactional
+    public CommentUpdateResponse updateComment(AuthUser authUser, Long commentId, CommentUpdateRequest request) {
+        User user = userRepository.findByOauthId(authUser.getOauthId())
+                .orElseThrow(() -> new BusinessExceptionHandler("유저가 존재하지 않습니다.", ErrorCode.NOT_FOUND_ERROR));
+
+        Comment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new BusinessExceptionHandler("존재하지 않는 댓글입니다.", ErrorCode.NOT_FOUND_ERROR));
+
+        if (!comment.getUser().getId().equals(user.getId())){
+            throw new BusinessExceptionHandler("댓글을 수정할 권한이 없습니다.", ErrorCode.FORBIDDEN_ERROR);
+        }
+
+        if (request.getComment() != null) {
+            comment.setComment(request.getComment());
+        }
+
+        if (request.getSecret() != null) {
+            comment.setSecret(request.getSecret());
+        }
+
+        return CommentUpdateResponse.fromEntity(comment);
     }
 
     @Override
