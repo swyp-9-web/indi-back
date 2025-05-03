@@ -5,12 +5,14 @@ import com.swyp.artego.domain.user.entity.User;
 import com.swyp.artego.domain.user.repository.UserRepository;
 import com.swyp.artego.global.auth.oauth.model.AuthUser;
 
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Map;
@@ -26,7 +28,9 @@ public class AuthController {
 
 
     @GetMapping("/login/naver")
-    public String redirectToNaverOAuth() {
+    public String redirectToNaverOAuth(HttpServletRequest request,
+                                       @RequestParam("redirect_uri") String redirectUri) {
+        request.getSession().setAttribute("redirect_uri", redirectUri);
         return "redirect:/oauth2/authorization/naver";
     }
 
@@ -36,25 +40,6 @@ public class AuthController {
     public String home() {
     return "home";
     }
-
-
-    @GetMapping("/me")
-    public ResponseEntity<?> getMyInfo(@AuthenticationPrincipal AuthUser user) {
-        String oauthId = user.getOauthId(); // ex: "naver 123456"
-        String name = user.getName();         // ex: 홍길동
-
-        User longin_user = userRepository.findByOauthId(oauthId).get();
-
-
-        System.out.println("로그인 제대로 됐다! " + "  "+ longin_user.getName());
-
-        return ResponseEntity.ok(Map.of(
-                "username", oauthId,
-                "name", name
-        ));
-    }
-
-
 
 
 
