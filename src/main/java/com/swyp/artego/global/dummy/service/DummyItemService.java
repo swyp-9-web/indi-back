@@ -47,6 +47,8 @@ public class DummyItemService {
             "붓 끝의 향기", "빛과 그림자", "시선의 자리", "일상의 조각", "그날의 무늬"
     );
 
+    private static final String DEFAULT_PROFILE_IMG_URL = "https://kr.object.ncloudstorage.com/artego-bucket/file_domain/b3db25fe-5e0e-485e-b342-91ee1239950d.jpg";
+
     @Transactional
     public void createDummyData(int count) {
         Random random = new Random();
@@ -148,7 +150,7 @@ public class DummyItemService {
     }
 
     private Long insertDummyUser() {
-        String sql = "INSERT INTO `user` (oauth_id, name, email, tel_number, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO `user` (oauth_id, name, email, tel_number, img_url, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)";
         Random random = new Random();
         LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
 
@@ -158,8 +160,13 @@ public class DummyItemService {
         String telNumber = "010-" + (1000 + random.nextInt(9000)) + "-" + (1000 + random.nextInt(9000));
         String nickname = ARTIST_NAMES.get(random.nextInt(ARTIST_NAMES.size()));
 
-        jdbcTemplate.update(sql, oauthId, nickname, email, telNumber, now, now);
-        return jdbcTemplate.queryForObject("SELECT user_id FROM `user` WHERE oauth_id = ?", Long.class, oauthId);
+        jdbcTemplate.update(sql, oauthId, nickname, email, telNumber, DEFAULT_PROFILE_IMG_URL, now, now);
+
+        return jdbcTemplate.queryForObject(
+                "SELECT user_id FROM `user` WHERE oauth_id = ?",
+                Long.class,
+                oauthId
+        );
     }
 
     private List<SizeType> generateBalancedSizeTypes(int total) {
