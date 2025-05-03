@@ -19,42 +19,45 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
     public void onAuthenticationSuccess(HttpServletRequest request,
                                         HttpServletResponse response,
                                         Authentication authentication) throws IOException {
+
         // 1. 프론트에서 받은 redirect_uri
         HttpSession session = request.getSession();
         String redirectUri = (String) session.getAttribute("redirect_uri");
         session.removeAttribute("redirect_uri");
 
-        // 2. 도메인 추출
-        URI uri = URI.create(redirectUri);
-        String domain = uri.getHost(); // ex: fe.site.com
 
-        // 3. 환경 판단: HTTP인지 HTTPS인지 (localhost면 HTTP로 간주)
+
+        // 2. 도메인 및 환경 판단
+        URI uri = URI.create(redirectUri);
+        String domain = uri.getHost(); // ex: localhost, fe.site.com
+        boolean isLocalhost = "localhost".equalsIgnoreCase(domain);
         boolean isHttps = redirectUri.startsWith("https");
 
-        // 4. 세션ID 발급 → 쿠키 구성
+        // 3. 세션ID 발급 → 쿠키 구성
         String sessionId = session.getId();
 
         StringBuilder cookieBuilder = new StringBuilder();
         cookieBuilder.append("JSESSIONID=").append(sessionId)
                 .append("; Path=/")
-                .append("; HttpOnly")
-                .append("; SameSite=None");
+                .append("; HttpOnly");
 
-        // localhost 도메인에 Domain 설정하면 쿠키 저장 안됨 → 생략
-        if (!"localhost".equals(domain)) {
+        //  로컬이면 SameSite=Lax
+        if (isLocalhost) {
+            cookieBuilder.append("; SameSite=Lax");
+        } else {
+            //  운영 환경: SameSite=None + Secure + Domain 설정
+            cookieBuilder.append("; SameSite=None");
             cookieBuilder.append("; Domain=").append(domain);
+
+            if (isHttps) {
+                cookieBuilder.append("; Secure");
+            }
         }
 
-        //  HTTPS 환경에서만 Secure 설정 (지금은 HTTP니까 생략됨)
-        if (isHttps) {
-            cookieBuilder.append("; Secure");
-        }
-
-        // 5. 쿠키 설정
+        // 4. 쿠키 설정
         response.setHeader("Set-Cookie", cookieBuilder.toString());
 
-        // 6. 프론트로 리다이렉트
+        // 5. 리다이렉트
         response.sendRedirect(redirectUri);
     }
-
 }
