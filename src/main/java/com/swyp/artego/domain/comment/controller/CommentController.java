@@ -8,6 +8,8 @@ import com.swyp.artego.domain.comment.service.CommentService;
 import com.swyp.artego.global.auth.oauth.model.AuthUser;
 import com.swyp.artego.global.common.code.SuccessCode;
 import com.swyp.artego.global.common.response.ApiResponse;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -16,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@Tag(name = "comments", description = "댓글/대댓글 API")
 @RestController
 @RequestMapping("/api/v1/comments")
 @RequiredArgsConstructor
@@ -26,7 +29,8 @@ public class CommentController {
     /**
      * 댓글/대댓글 생성 API
      */
-    @PostMapping
+    @PostMapping("")
+    @Operation(summary = "댓글/대댓글 등록")
     public ResponseEntity<ApiResponse<CommentCreateResponse>> createComment(
             @AuthenticationPrincipal AuthUser user,
             @RequestBody @Valid CommentCreateRequest request) {
@@ -46,6 +50,7 @@ public class CommentController {
      * TODO: 프런트 연동 이후 @AuthenticationPrincipal AuthUser user 를 추가, 볼 수 있는/없는 댓글을 응답에 적용한다.
      */
     @GetMapping("/item/{itemId}")
+    @Operation(summary = "작품 별 댓글/대댓글 전체 조회")
     public ResponseEntity<ApiResponse<CommentFindByItemIdWrapperResponse>> getCommentsByItemId(
             @PathVariable Long itemId) {
 
@@ -64,6 +69,7 @@ public class CommentController {
      * TODO: 기획- 답글이 달린 경우, 수정 불가능하게?
      */
     @PatchMapping("/{commentId}")
+    @Operation(summary = "댓글/대댓글 수정")
     public ResponseEntity<ApiResponse<CommentUpdateResponse>> updateComment(
             @AuthenticationPrincipal AuthUser user,
             @PathVariable Long commentId,
@@ -83,6 +89,7 @@ public class CommentController {
      * 댓글/대댓글 삭제 API
      */
     @DeleteMapping("/{commentId}")
+    @Operation(summary = "댓글/대댓글 삭제")
     public ResponseEntity<ApiResponse<CommentDeleteResponse>> deleteComment(
             @AuthenticationPrincipal AuthUser user,
             @PathVariable Long commentId) {
@@ -100,7 +107,8 @@ public class CommentController {
     /**
      * 댓글 전체 조회 API (최신순)
      */
-    @GetMapping
+    @GetMapping("")
+    @Operation(summary = "❌ (사용X) 댓글 전체 조회")
     public ResponseEntity<ApiResponse<List<CommentInfoResponse>>> getAllComments() {
         List<CommentInfoResponse> comments = commentService.getAllComments();
 
