@@ -2,7 +2,7 @@ package com.swyp.artego.domain.comment.controller;
 
 import com.swyp.artego.domain.comment.dto.request.CommentCreateRequest;
 import com.swyp.artego.domain.comment.dto.response.CommentCreateResponse;
-import com.swyp.artego.domain.comment.dto.response.CommentFindByItemIdResponse;
+import com.swyp.artego.domain.comment.dto.response.CommentFindByItemIdWrapperResponse;
 import com.swyp.artego.domain.comment.dto.response.CommentInfoResponse;
 import com.swyp.artego.domain.comment.service.CommentService;
 import com.swyp.artego.global.auth.oauth.model.AuthUser;
@@ -42,15 +42,16 @@ public class CommentController {
 
     /**
      * 게시글 별 전체 댓글 조회 API
+     * TODO: 프런트 연동 이후 @AuthenticationPrincipal AuthUser user 를 추가, 볼 수 있는/없는 댓글을 응답에 적용한다.
      */
     @GetMapping("/{itemId}")
-    public ResponseEntity<ApiResponse<List<CommentFindByItemIdResponse>>> getCommentsByItemId(
+    public ResponseEntity<ApiResponse<CommentFindByItemIdWrapperResponse>> getCommentsByItemId(
             @PathVariable Long itemId) {
 
-        List<CommentFindByItemIdResponse> res = commentService.getCommentsByItemId(itemId);
+        CommentFindByItemIdWrapperResponse res = commentService.getCommentsByItemId(itemId);
 
         return ResponseEntity.status(SuccessCode.SELECT_SUCCESS.getStatus())
-                .body(ApiResponse.<List<CommentFindByItemIdResponse>>builder()
+                .body(ApiResponse.<CommentFindByItemIdWrapperResponse>builder()
                         .result(res)
                         .resultCode(Integer.parseInt(SuccessCode.SELECT_SUCCESS.getCode()))
                         .resultMessage(SuccessCode.SELECT_SUCCESS.getMessage())
