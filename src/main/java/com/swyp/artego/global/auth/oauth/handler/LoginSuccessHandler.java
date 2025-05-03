@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.Collection;
 
 @Component
 @RequiredArgsConstructor
@@ -20,46 +21,33 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
                                         HttpServletResponse response,
                                         Authentication authentication) throws IOException {
 
-        // 1. 프론트에서 받은 redirect_uri
-        HttpSession session = request.getSession();
+        // 1. 세션 생성 및 redirect URI 꺼냄
+        HttpSession session = request.getSession(true);
         String redirectUri = (String) session.getAttribute("redirect_uri");
         session.removeAttribute("redirect_uri");
 
-
-
-        // 2. 도메인 및 환경 판단
         URI uri = URI.create(redirectUri);
-        String domain = uri.getHost(); // ex: localhost, fe.site.com
-        boolean isLocalhost = domain.contains("localhost");
-        boolean isHttps = redirectUri.startsWith("https");
+        boolean isLocalhost = uri.getHost().contains("localhost");
 
-        // 3. 세션ID 발급 → 쿠키 구성
-        String sessionId = session.getId();
+        // 2. Spring이 자동 생성한 Set-Cookie 헤더 보정
+        Collection<String> setCookieHeaders = response.getHeaders("Set-Cookie");
 
-        StringBuilder cookieBuilder = new StringBuilder();
-        cookieBuilder.append("JSESSIONID=").append(sessionId)
-                .append("; Path=/")
-                .append("; HttpOnly");
+        for (String header : setCookieHeaders) {
+            if (header.startsWith("JSESSIONID")) {
+                String updatedHeader;
 
-        //  로컬이면 SameSite=Lax
-        if (isLocalhost) {
-            cookieBuilder.append("; SameSite=Lax");
-        } else {
-            //  운영 환경: SameSite=None + Secure + Domain 설정
-            cookieBuilder.append("; SameSite=None");
-            cookieBuilder.append("; Domain=").append(domain);
+                if (isLocalhost) {
+                    updatedHeader = header + "; SameSite=Lax";
+                } else {
+                    updatedHeader = header + "; SameSite=None; Secure";
+                }
 
-            if (isHttps) {
-                cookieBuilder.append("; Secure");
+                response.setHeader("Set-Cookie", updatedHeader);
+                break;
             }
         }
 
-        // 4. 쿠키 설정
-        response.setHeader("Set-Cookie", cookieBuilder.toString());
-
-        // 5. 리다이렉트
+        // 3. 최종 리디렉션
         response.sendRedirect(redirectUri);
     }
-
-
 }
