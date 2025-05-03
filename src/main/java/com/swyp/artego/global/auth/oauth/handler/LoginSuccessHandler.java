@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
 import java.net.URI;
@@ -47,7 +48,15 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
             }
         }
 
+        String sessionId = session.getId();
+
+        String updatedRedirectUri = UriComponentsBuilder
+                .fromUriString(redirectUri)
+                .queryParam("sessionId", sessionId)
+                .build()
+                .toUriString();
+
         // 3. 최종 리디렉션
-        response.sendRedirect(redirectUri);
+        response.sendRedirect(updatedRedirectUri);
     }
 }
