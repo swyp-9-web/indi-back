@@ -29,7 +29,7 @@ public class CommentController {
     @PostMapping
     public ResponseEntity<ApiResponse<CommentCreateResponse>> createComment(
             @AuthenticationPrincipal AuthUser user,
-            @RequestBody CommentCreateRequest request) {
+            @RequestBody @Valid CommentCreateRequest request) {
 
         CommentCreateResponse res = commentService.createComment(user, request);
 
