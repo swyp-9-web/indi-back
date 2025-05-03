@@ -58,6 +58,24 @@ public class CommentServiceImpl implements CommentService {
     }
 
     @Override
+    @Transactional
+    public CommentDeleteResponse deleteComment(AuthUser authUser, Long commentId) {
+        User user = userRepository.findByOauthId(authUser.getOauthId())
+                .orElseThrow(() -> new BusinessExceptionHandler("유저가 존재하지 않습니다.", ErrorCode.NOT_FOUND_ERROR));
+
+        Comment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new BusinessExceptionHandler("존재하지 않는 댓글입니다.", ErrorCode.NOT_FOUND_ERROR));
+
+        if (!comment.getUser().getId().equals(user.getId())){
+            throw new BusinessExceptionHandler("댓글을 삭제할 권한이 없습니다.", ErrorCode.FORBIDDEN_ERROR);
+        }
+
+        commentRepository.delete(comment);
+
+        return CommentDeleteResponse.from(commentId);
+    }
+
+    @Override
     @Transactional(readOnly = true)
     public List<CommentInfoResponse> getAllComments() {
         return commentRepository.findAllByOrderByCreatedAtDesc()

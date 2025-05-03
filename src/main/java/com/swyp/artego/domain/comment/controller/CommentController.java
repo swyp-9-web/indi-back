@@ -2,6 +2,7 @@ package com.swyp.artego.domain.comment.controller;
 
 import com.swyp.artego.domain.comment.dto.request.CommentCreateRequest;
 import com.swyp.artego.domain.comment.dto.response.CommentCreateResponse;
+import com.swyp.artego.domain.comment.dto.response.CommentDeleteResponse;
 import com.swyp.artego.domain.comment.dto.response.CommentFindByItemIdWrapperResponse;
 import com.swyp.artego.domain.comment.dto.response.CommentInfoResponse;
 import com.swyp.artego.domain.comment.service.CommentService;
@@ -55,6 +56,24 @@ public class CommentController {
                         .result(res)
                         .resultCode(Integer.parseInt(SuccessCode.SELECT_SUCCESS.getCode()))
                         .resultMessage(SuccessCode.SELECT_SUCCESS.getMessage())
+                        .build());
+    }
+
+    /**
+     * 댓글/대댓글 삭제 API
+     */
+    @DeleteMapping("/delete/{commentId}")
+    public ResponseEntity<ApiResponse<CommentDeleteResponse>> deleteComment(
+            @AuthenticationPrincipal AuthUser user,
+            @PathVariable Long commentId) {
+
+        CommentDeleteResponse res = commentService.deleteComment(user, commentId);
+
+        return ResponseEntity.status(SuccessCode.DELETE_SUCCESS.getStatus())
+                .body(ApiResponse.<CommentDeleteResponse>builder()
+                        .result(res)
+                        .resultCode(Integer.parseInt(SuccessCode.DELETE_SUCCESS.getCode()))
+                        .resultMessage(SuccessCode.DELETE_SUCCESS.getMessage())
                         .build());
     }
 

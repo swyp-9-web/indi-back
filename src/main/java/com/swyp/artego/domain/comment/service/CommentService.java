@@ -2,6 +2,7 @@ package com.swyp.artego.domain.comment.service;
 
 import com.swyp.artego.domain.comment.dto.request.CommentCreateRequest;
 import com.swyp.artego.domain.comment.dto.response.CommentCreateResponse;
+import com.swyp.artego.domain.comment.dto.response.CommentDeleteResponse;
 import com.swyp.artego.domain.comment.dto.response.CommentFindByItemIdWrapperResponse;
 import com.swyp.artego.domain.comment.dto.response.CommentInfoResponse;
 import com.swyp.artego.global.auth.oauth.model.AuthUser;
@@ -21,10 +22,20 @@ public interface CommentService {
 
     /**
      * 작품 별 댓글 전체 조회 (최신순)
+     *
      * @param itemId 댓글을 조회할 작품 Id
      * @return CommentFindByItemIdWrapperResponse
      */
     CommentFindByItemIdWrapperResponse getCommentsByItemId(Long itemId);
+
+    /**
+     * 댓글 삭제
+     *
+     * @param user 댓글 삭제를 시도하는 유저
+     * @param commentId 삭제 하려는 댓글의 id
+     * @return CommentDeleteResponse
+     */
+    CommentDeleteResponse deleteComment(AuthUser user, Long commentId);
 
     /**
      * 댓글 전체 조회 (최신순)
