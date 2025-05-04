@@ -2,10 +2,12 @@ package com.swyp.artego.global.file.service;
 
 import com.amazonaws.SdkClientException;
 import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.model.*;
+import com.amazonaws.services.s3.model.DeleteObjectsRequest;
+import com.amazonaws.services.s3.model.DeleteObjectsResult;
+import com.amazonaws.services.s3.model.MultiObjectDeleteException;
+import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.swyp.artego.global.common.code.ErrorCode;
 import com.swyp.artego.global.excpetion.BusinessExceptionHandler;
-import com.swyp.artego.global.file.dto.response.FileUploadResponseExample;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -14,11 +16,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 @Slf4j
 @Service
@@ -36,30 +34,10 @@ public class FileService {
     private String bucketName;
 
     /**
-     * 단일 파일 업로드
-     *
-     * @param multipartFile
-     * @param folderName 해당 파일을 업로드할 폴더명
-     * @return FileResponse
-     */
-    public FileUploadResponseExample uploadFile(MultipartFile multipartFile, String folderName) {
-        validateFilesExtension(List.of(multipartFile));
-
-        String key = uploadSingleFile(multipartFile, folderName);
-
-        return FileUploadResponseExample.builder()
-                .originalFileName(multipartFile.getOriginalFilename())
-                .uploadFileName(key.substring(key.lastIndexOf("/") + 1))
-                .uploadFilePath(folderName)
-                .uploadFileUrl(endPoint + "/" + bucketName + "/" + key)
-                .build();
-    }
-
-    /**
      * 다중 파일 업로드
      *
      * @param multipartFiles
-     * @param folderName 해당 파일을 업로드할 폴더명
+     * @param folderName     해당 파일을 업로드할 폴더명
      * @return List<String> 업로드되어 접근할 수 있는 파일의 url
      */
     public List<String> uploadFiles(List<MultipartFile> multipartFiles, String folderName) {
@@ -67,7 +45,7 @@ public class FileService {
 
         List<String> fileUrls = new ArrayList<>();
         List<String> uploadedKeys = new ArrayList<>();
-        
+
         for (MultipartFile multipartFile : multipartFiles) {
             try {
                 String key = uploadSingleFile(multipartFile, folderName);
@@ -89,7 +67,7 @@ public class FileService {
      * @param imgUrl 이미지의 전체 url
      */
     public void deleteFile(String imgUrl) {
-       String key = extractKeyFromImgUrl(imgUrl);
+        String key = extractKeyFromImgUrl(imgUrl);
 
         try {
             amazonS3.deleteObject(bucketName, key);
@@ -104,7 +82,7 @@ public class FileService {
      * uploadFile() 과 uploadFiles() 에서 사용하는 공통 로직을 추출한 것이다.
      *
      * @param multipartFile
-     * @param folderName 파일이 존재하는 폴더명
+     * @param folderName    파일이 존재하는 폴더명
      * @return String S3 key(폴더명/파일명.확장자)
      */
     private String uploadSingleFile(MultipartFile multipartFile, String folderName) {
@@ -132,7 +110,7 @@ public class FileService {
     /**
      * 파일이 올바른 형식인지 확인한다.
      * 현재 허용하는 이미지 형식(Content-Type: image/png, image/jpeg)이 아닌 경우, 상황 별 예외를 던진다.
-     *
+     * <p>
      * TODO: DEVELOP: 파일 내용(Magic Number) 검사?
      *
      * @param multipartFiles
@@ -196,12 +174,12 @@ public class FileService {
         try {
             DeleteObjectsResult result = amazonS3.deleteObjects(deleteObjectsRequest);
             List<DeleteObjectsResult.DeletedObject> deletedObjects = result.getDeletedObjects();
-            for(DeleteObjectsResult.DeletedObject deletedObject : deletedObjects) {
+            for (DeleteObjectsResult.DeletedObject deletedObject : deletedObjects) {
                 log.info("[FileService] 롤백 완료 - 삭제된 파일 key: {}", deletedObject.getKey());
             }
-        } catch (MultiObjectDeleteException e){
+        } catch (MultiObjectDeleteException e) {
             List<MultiObjectDeleteException.DeleteError> errors = e.getErrors();
-            for(MultiObjectDeleteException.DeleteError error : errors) {
+            for (MultiObjectDeleteException.DeleteError error : errors) {
                 log.error("[FileService] 롤백 일부 실패 - 삭제 실패 파일 key: {}, 코드: {}, 메시지: {}",
                         error.getKey(), error.getCode(), error.getMessage());
             }

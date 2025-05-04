@@ -29,7 +29,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 import java.util.Set;
 
-@Tag(name = "items", description = "작품 API")
+@Tag(name = "Items", description = "작품 API")
 @RestController
 @RequestMapping("/api/v1/items")
 @RequiredArgsConstructor
@@ -45,7 +45,7 @@ public class ItemController {
      * 작품 생성 API
      */
     @PostMapping(value = "",
-             consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "작품 등록", description = "작품을 등록하는 메소드입니다.")
     public ResponseEntity<ApiResponse> createItem(
             @AuthenticationPrincipal AuthUser user,
@@ -112,10 +112,6 @@ public class ItemController {
                         .build()
         );
     }
-
-
-
-
 
 
 }
