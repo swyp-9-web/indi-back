@@ -3,9 +3,12 @@ package com.swyp.artego.domain.item.service;
 import com.swyp.artego.domain.item.dto.request.ItemCreateRequest;
 import com.swyp.artego.domain.item.dto.request.ItemSearchRequest;
 import com.swyp.artego.domain.item.dto.response.ItemCreateResponse;
+import com.swyp.artego.domain.item.dto.response.ItemDeleteResponse;
 import com.swyp.artego.domain.item.dto.response.ItemInfoResponse;
 import com.swyp.artego.domain.item.dto.response.ItemSearchResultResponse;
+import com.swyp.artego.domain.item.entity.Item;
 import com.swyp.artego.domain.item.enums.SizeType;
+import com.swyp.artego.domain.item.enums.StatusType;
 import com.swyp.artego.domain.item.repository.ItemRepository;
 import com.swyp.artego.domain.user.entity.User;
 import com.swyp.artego.domain.user.repository.UserRepository;
@@ -28,11 +31,7 @@ public class ItemServiceImpl implements ItemService {
     private final ItemRepository itemRepository;
     private final UserRepository userRepository;
 
-
-
-
     private final FileService fileService;
-
 
     @Override
     @Transactional
@@ -49,6 +48,24 @@ public class ItemServiceImpl implements ItemService {
                 itemRepository.save(request.toEntity(user, imgUrls, sizeType))
         );
 
+    }
+
+    @Override
+    @Transactional
+    public ItemDeleteResponse deleteItem(AuthUser authUser, Long itemId) {
+        User user = userRepository.findByOauthId(authUser.getOauthId())
+                .orElseThrow(() -> new BusinessExceptionHandler("유저가 존재하지 않습니다.", ErrorCode.NOT_FOUND_ERROR));
+
+        Item item = itemRepository.findById(itemId)
+                .orElseThrow(() -> new BusinessExceptionHandler("작품이 존재하지 않습니다.", ErrorCode.NOT_FOUND_ERROR));
+
+        if (!item.getUser().getId().equals(user.getId())){
+            throw new BusinessExceptionHandler("작품을 삭제할 권한이 없습니다.", ErrorCode.FORBIDDEN_ERROR);
+        }
+
+        item.setStatusType(StatusType.HIDE);
+
+        return ItemDeleteResponse.fromEntity(item);
     }
 
     @Override

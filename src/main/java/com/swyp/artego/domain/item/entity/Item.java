@@ -5,13 +5,9 @@
     import com.swyp.artego.domain.item.enums.StatusType;
     import com.swyp.artego.domain.user.entity.User;
     import com.swyp.artego.global.common.entity.BaseTimeEntity;
-    import com.swyp.artego.global.converter.BooleanToYNConverter;
     import com.swyp.artego.global.converter.StringListConverter;
     import jakarta.persistence.*;
-    import lombok.AccessLevel;
-    import lombok.Builder;
-    import lombok.Getter;
-    import lombok.NoArgsConstructor;
+    import lombok.*;
 
     import java.util.List;
 
@@ -59,6 +55,7 @@
         @Column(name= "material")
         private String material;
 
+        @Setter
         @Column(name = "status",nullable = false)
         @Enumerated(EnumType.STRING)
         private StatusType statusType = StatusType.OPEN;

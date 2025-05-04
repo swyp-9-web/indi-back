@@ -3,7 +3,7 @@ package com.swyp.artego.domain.item.controller;
 import com.swyp.artego.domain.item.dto.request.ItemCreateRequest;
 import com.swyp.artego.domain.item.dto.request.ItemSearchRequest;
 import com.swyp.artego.domain.item.dto.response.ItemCreateResponse;
-import com.swyp.artego.domain.item.dto.response.ItemInfoResponse;
+import com.swyp.artego.domain.item.dto.response.ItemDeleteResponse;
 import com.swyp.artego.domain.item.dto.response.ItemSearchResultResponse;
 import com.swyp.artego.domain.item.service.ItemService;
 import com.swyp.artego.global.auth.oauth.model.AuthUser;
@@ -74,6 +74,25 @@ public class ItemController {
                 .build();
 
         return new ResponseEntity<>(ar, HttpStatus.OK);
+    }
+
+    /**
+     * 작품 삭제 API
+     */
+    @DeleteMapping(value = "/{itemId}")
+    @Operation(summary = "작품 삭제", description = "작품을 삭제하는 메소드입니다. 참고: 실제 DB에서 삭제하는 건 아님")
+    public ResponseEntity<ApiResponse<ItemDeleteResponse>> deleteItem(
+            @AuthenticationPrincipal AuthUser user,
+            @PathVariable Long itemId) {
+
+        ItemDeleteResponse res = itemService.deleteItem(user, itemId);
+
+        return ResponseEntity.status(SuccessCode.DELETE_SUCCESS.getStatus())
+                .body(ApiResponse.<ItemDeleteResponse>builder()
+                        .result(res)
+                        .resultCode(Integer.parseInt(SuccessCode.DELETE_SUCCESS.getCode()))
+                        .resultMessage(SuccessCode.DELETE_SUCCESS.getMessage())
+                        .build());
     }
 
 
