@@ -7,4 +7,6 @@ public enum SortType {
     SCRAPED_TOP,      // 스크랩 많은 순
     SCRAPED_RECENT    // 최근 스크랩 순
 
+
+
 }
