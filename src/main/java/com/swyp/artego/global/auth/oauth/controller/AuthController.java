@@ -1,21 +1,13 @@
 package com.swyp.artego.global.auth.oauth.controller;
 
 
-import com.swyp.artego.domain.user.entity.User;
 import com.swyp.artego.domain.user.repository.UserRepository;
-import com.swyp.artego.global.auth.oauth.model.AuthUser;
-
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-
-import java.util.Map;
 
 @Slf4j
 @Controller
@@ -35,12 +27,10 @@ public class AuthController {
     }
 
 
-
     @GetMapping("/")
     public String home() {
-    return "home";
+        return "home";
     }
-
 
 
 }

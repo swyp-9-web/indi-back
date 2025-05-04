@@ -29,7 +29,7 @@ public class CodeController {
      *
      * @return ResponseEntity<ApiResponse> : 응답 결과 및 응답 코드 반환
      */
-    @PostMapping("/")
+    @PostMapping("")
     public ResponseEntity<ApiResponse> createCode(
             @RequestBody @Valid CodeCreateRequest codeDto
     ) {
@@ -50,7 +50,7 @@ public class CodeController {
      *
      * @return ResponseEntity<ApiResponse> : 응답 결과 및 응답 코드 반환
      */
-    @GetMapping("/")
+    @GetMapping("")
     public ResponseEntity<ApiResponse> findAllCode() {
         log.debug("[CodeController] 코드를 전체 조회합니다.");
         List<CodeFindAllResponse> res = codeService.findAllCode();

@@ -44,7 +44,7 @@ public class ItemController {
     /**
      * 작품 생성 API
      */
-    @PostMapping(value = "/",
+    @PostMapping(value = "",
              consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "작품 등록", description = "작품을 등록하는 메소드입니다.")
     public ResponseEntity<ApiResponse> createItem(
