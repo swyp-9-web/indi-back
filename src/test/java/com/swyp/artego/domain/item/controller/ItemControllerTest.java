@@ -71,7 +71,7 @@ class ItemControllerTest {
 
     private AuthUser testUser;
 
-    private final String URL_PREFIX = "/api/v1/items/";
+    private final String URL_PREFIX = "/api/v1/items";
 
     /**
      * 테스트 환경에서 javax.validation.Validator를 수동으로 빈 등록하기 위한 설정 클래스
@@ -138,7 +138,7 @@ class ItemControllerTest {
         );
 
         // when + then
-        mockMvc.perform(multipart("/api/v1/items/")
+        mockMvc.perform(multipart("/api/v1/items")
                         .file(requestPart)
                         .file(imagePart)
                         .with(user(testUser))
