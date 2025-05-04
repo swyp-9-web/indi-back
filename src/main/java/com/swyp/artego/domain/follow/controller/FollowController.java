@@ -25,7 +25,7 @@ public class FollowController {
     private final FollowService followService;
 
     @Operation(summary = "팔로우 생성", description = "아티스트 ID를 기반으로 팔로우를 생성합니다.")
-    @PostMapping
+    @PostMapping("/{artistId}")
     public ResponseEntity<ApiResponse<Void>> createFollow(
             @Parameter(description = "로그인한 사용자 정보", hidden = true)
             @AuthenticationPrincipal AuthUser user,
@@ -74,7 +74,7 @@ public class FollowController {
     }
 
     @Operation(summary = "팔로우 취소", description = "아티스트 ID를 기반으로 팔로우를 취소합니다.")
-    @DeleteMapping
+    @DeleteMapping("/{artistId}")
     public ResponseEntity<ApiResponse<Void>> deleteFollow(
             @Parameter(description = "로그인한 사용자 정보", hidden = true)
             @AuthenticationPrincipal AuthUser user,
