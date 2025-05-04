@@ -8,6 +8,7 @@ import com.amazonaws.services.s3.model.MultiObjectDeleteException;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.swyp.artego.global.common.code.ErrorCode;
 import com.swyp.artego.global.excpetion.BusinessExceptionHandler;
+import com.swyp.artego.global.file.dto.response.FileUploadResponseExample;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -32,6 +33,26 @@ public class FileService {
 
     @Value("${ncp.storage.bucket.name}")
     private String bucketName;
+
+    /**
+     * 단일 파일 업로드
+     *
+     * @param multipartFile
+     * @param folderName    해당 파일을 업로드할 폴더명
+     * @return FileResponse
+     */
+    public FileUploadResponseExample uploadFile(MultipartFile multipartFile, String folderName) {
+        validateFilesExtension(List.of(multipartFile));
+
+        String key = uploadSingleFile(multipartFile, folderName);
+
+        return FileUploadResponseExample.builder()
+                .originalFileName(multipartFile.getOriginalFilename())
+                .uploadFileName(key.substring(key.lastIndexOf("/") + 1))
+                .uploadFilePath(folderName)
+                .uploadFileUrl(endPoint + "/" + bucketName + "/" + key)
+                .build();
+    }
 
     /**
      * 다중 파일 업로드

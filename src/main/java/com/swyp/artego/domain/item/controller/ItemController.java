@@ -29,7 +29,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 import java.util.Set;
 
-@Tag(name = "Items", description = "작품 API")
+@Tag(name = "Item", description = "작품 API")
 @RestController
 @RequestMapping("/api/v1/items")
 @RequiredArgsConstructor

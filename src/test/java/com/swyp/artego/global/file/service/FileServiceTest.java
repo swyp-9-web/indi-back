@@ -8,6 +8,7 @@ import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectResult;
 import com.swyp.artego.global.common.code.ErrorCode;
 import com.swyp.artego.global.excpetion.BusinessExceptionHandler;
+import com.swyp.artego.global.file.dto.response.FileUploadResponseExample;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -91,6 +92,34 @@ class FileServiceTest {
                 System.out.println("[TEARDOWN] 남은 파일 삭제: " + key);
             }
         }
+    }
+
+    /**
+     * [테스트] uploadFile 메서드 후 deleteFile 메서드 - 정상적인 단일 파일 업로드와 삭제 성공 검증
+     * <p>
+     * 유효한 이미지 파일을 업로드 후 반환된 URL로 삭제 요청 시,
+     * S3 putObject와 deleteObject가 각각 1회 호출되어야 한다.
+     */
+    @Test
+    void uploadAndDeleteFile_shouldWorkSuccessfully_whenValidFileProvided() {
+        // given
+        MockMultipartFile mockMultipartFile =
+                new MockMultipartFile("files", "test-image1.jpg", "image/jpeg", "Dummy Image Content".getBytes());
+
+        // when
+        FileUploadResponseExample response = fileService.uploadFile(mockMultipartFile, folderName);
+        String imgUrl = response.getUploadFileUrl();
+
+        fileService.deleteFile(imgUrl);
+
+        // then
+        String key = response.getUploadFilePath() + "/" + response.getUploadFileName();
+
+        verify(amazonS3, times(1))
+                .putObject(anyString(), eq(key), any(InputStream.class), any(ObjectMetadata.class));
+
+        verify(amazonS3, times(1))
+                .deleteObject(anyString(), eq(key));
     }
 
     /**
