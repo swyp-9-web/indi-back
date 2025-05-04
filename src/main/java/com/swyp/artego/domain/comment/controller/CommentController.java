@@ -18,7 +18,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-@Tag(name = "comments", description = "댓글/대댓글 API")
+@Tag(name = "Comments", description = "댓글/대댓글 API")
 @RestController
 @RequestMapping("/api/v1/comments")
 @RequiredArgsConstructor
