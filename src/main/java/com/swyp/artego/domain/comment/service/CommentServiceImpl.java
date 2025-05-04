@@ -2,7 +2,10 @@ package com.swyp.artego.domain.comment.service;
 
 import com.swyp.artego.domain.comment.dto.request.CommentCreateRequest;
 import com.swyp.artego.domain.comment.dto.request.CommentUpdateRequest;
-import com.swyp.artego.domain.comment.dto.response.*;
+import com.swyp.artego.domain.comment.dto.response.CommentCreateResponse;
+import com.swyp.artego.domain.comment.dto.response.CommentDeleteResponse;
+import com.swyp.artego.domain.comment.dto.response.CommentFindByItemIdWrapperResponse;
+import com.swyp.artego.domain.comment.dto.response.CommentUpdateResponse;
 import com.swyp.artego.domain.comment.entity.Comment;
 import com.swyp.artego.domain.comment.repository.CommentRepository;
 import com.swyp.artego.domain.item.entity.Item;
@@ -16,8 +19,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.List;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -43,7 +46,7 @@ public class CommentServiceImpl implements CommentService {
         }
 
         return CommentCreateResponse.fromEntity(
-            commentRepository.save(request.toEntity(user, item, parentComment))
+                commentRepository.save(request.toEntity(user, item, parentComment))
         );
     }
 
@@ -67,7 +70,7 @@ public class CommentServiceImpl implements CommentService {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new BusinessExceptionHandler("존재하지 않는 댓글입니다.", ErrorCode.NOT_FOUND_ERROR));
 
-        if (!comment.getUser().getId().equals(user.getId())){
+        if (!comment.getUser().getId().equals(user.getId())) {
             throw new BusinessExceptionHandler("댓글을 삭제할 권한이 없습니다.", ErrorCode.FORBIDDEN_ERROR);
         }
 
@@ -85,7 +88,7 @@ public class CommentServiceImpl implements CommentService {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new BusinessExceptionHandler("존재하지 않는 댓글입니다.", ErrorCode.NOT_FOUND_ERROR));
 
-        if (!comment.getUser().getId().equals(user.getId())){
+        if (!comment.getUser().getId().equals(user.getId())) {
             throw new BusinessExceptionHandler("댓글을 수정할 권한이 없습니다.", ErrorCode.FORBIDDEN_ERROR);
         }
 
@@ -100,22 +103,13 @@ public class CommentServiceImpl implements CommentService {
         return CommentUpdateResponse.fromEntity(comment);
     }
 
-    @Override
-    @Transactional(readOnly = true)
-    public List<CommentInfoResponse> getAllComments() {
-        return commentRepository.findAllByOrderByCreatedAtDesc()
-                .stream()
-                .map(CommentInfoResponse::fromEntity)
-                .collect(Collectors.toList());
-    }
-
     /**
      * 대댓글 생성의 경우, 최초 댓글의 작성자와 작가 본인만 대댓글을 작성할 수 있다.
      * 두 경우가 아닌 사용자가 대댓글을 작성할 때 에러를 던진다.
      *
-     * @param user 대댓글을 작성하는 유저
+     * @param user          대댓글을 작성하는 유저
      * @param parentComment 대댓글이 작성되는 원댓글
-     * @param item 대댓글이 작성되는 작품
+     * @param item          대댓글이 작성되는 작품
      */
     private static void validateReplyCommentPermission(User user, Comment parentComment, Item item) {
         Long replyAuthorId = user.getId();

@@ -2,8 +2,10 @@ package com.swyp.artego.domain.comment.controller;
 
 import com.swyp.artego.domain.comment.dto.request.CommentCreateRequest;
 import com.swyp.artego.domain.comment.dto.request.CommentUpdateRequest;
+import com.swyp.artego.domain.comment.dto.response.CommentCreateResponse;
+import com.swyp.artego.domain.comment.dto.response.CommentDeleteResponse;
+import com.swyp.artego.domain.comment.dto.response.CommentFindByItemIdWrapperResponse;
 import com.swyp.artego.domain.comment.dto.response.CommentUpdateResponse;
-import com.swyp.artego.domain.comment.dto.response.*;
 import com.swyp.artego.domain.comment.service.CommentService;
 import com.swyp.artego.global.auth.oauth.model.AuthUser;
 import com.swyp.artego.global.common.code.SuccessCode;
@@ -15,8 +17,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @Tag(name = "comments", description = "댓글/대댓글 API")
 @RestController
@@ -103,22 +103,4 @@ public class CommentController {
                         .resultMessage(SuccessCode.DELETE_SUCCESS.getMessage())
                         .build());
     }
-
-    /**
-     * 댓글 전체 조회 API (최신순)
-     */
-    @GetMapping("")
-    @Operation(summary = "❌ (사용X) 댓글 전체 조회")
-    public ResponseEntity<ApiResponse<List<CommentInfoResponse>>> getAllComments() {
-        List<CommentInfoResponse> comments = commentService.getAllComments();
-
-        return ResponseEntity.status(SuccessCode.SELECT_SUCCESS.getStatus())
-                .body(ApiResponse.<List<CommentInfoResponse>>builder()
-                        .result(comments)
-                        .resultCode(Integer.parseInt(SuccessCode.SELECT_SUCCESS.getCode()))
-                        .resultMessage(SuccessCode.SELECT_SUCCESS.getMessage())
-                        .build());
-    }
-
-
 }
