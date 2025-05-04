@@ -8,7 +8,6 @@ import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectResult;
 import com.swyp.artego.global.common.code.ErrorCode;
 import com.swyp.artego.global.excpetion.BusinessExceptionHandler;
-import com.swyp.artego.global.file.dto.response.FileUploadResponseExample;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -26,7 +25,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
@@ -94,36 +94,8 @@ class FileServiceTest {
     }
 
     /**
-     * [테스트] uploadFile 메서드 후 deleteFile 메서드 - 정상적인 단일 파일 업로드와 삭제 성공 검증
-     *
-     * 유효한 이미지 파일을 업로드 후 반환된 URL로 삭제 요청 시,
-     * S3 putObject와 deleteObject가 각각 1회 호출되어야 한다.
-     */
-    @Test
-    void uploadAndDeleteFile_shouldWorkSuccessfully_whenValidFileProvided() {
-        // given
-        MockMultipartFile mockMultipartFile =
-                new MockMultipartFile("files", "test-image1.jpg", "image/jpeg", "Dummy Image Content".getBytes());
-
-        // when
-        FileUploadResponseExample response = fileService.uploadFile(mockMultipartFile, folderName);
-        String imgUrl = response.getUploadFileUrl();
-
-        fileService.deleteFile(imgUrl);
-
-        // then
-        String key = response.getUploadFilePath() + "/" + response.getUploadFileName();
-
-        verify(amazonS3, times(1))
-                .putObject(anyString(), eq(key), any(InputStream.class), any(ObjectMetadata.class));
-
-        verify(amazonS3, times(1))
-                .deleteObject(anyString(), eq(key));
-    }
-
-    /**
      * [테스트] uploadFiles 메서드 - 정상적인 파일 리스트가 주어질 때 전체 파일 업로드 성공 검증
-     *
+     * <p>
      * 유효한 이미지 파일 리스트를 업로드하는 경우, S3 putObject가 파일 수만큼 호출되고
      * 각 파일에 대해 FileResponse가 정상적으로 반환되어야 한다.
      */
@@ -141,7 +113,7 @@ class FileServiceTest {
 
     /**
      * [테스트] uploadFiles 메서드 - 유효하지 않은 파일 확장자가 포함된 경우 예외 발생 검증
-     *
+     * <p>
      * 주어진 파일 리스트에 하나라도 유효하지 않은 확장자(.doc, 확장자 없음 등)가 존재하면
      * BusinessExceptionHandler가 발생하고, ErrorCode.INVALID_FILE을 반환해야 한다.
      */
@@ -166,7 +138,7 @@ class FileServiceTest {
 
     /**
      * [테스트] uploadFiles 메서드 - 파일 업로드 도중 IOException 발생 시 롤백 및 예외 처리 검증
-     *
+     * <p>
      * 파일 업로드 과정에서 IOException이 발생하는 경우,
      * 업로드된 파일들을 롤백(delete)한 후 BusinessExceptionHandler(IO_ERROR)를 발생시켜야 한다.
      */
@@ -199,7 +171,7 @@ class FileServiceTest {
 
     /**
      * [테스트] uploadFiles 메서드 - S3 업로드 도중 SdkClientException 발생 시 롤백 및 예외 처리 검증
-     *
+     * <p>
      * S3에 파일 업로드 중 SdkClientException이 발생하는 경우,
      * 업로드된 파일들을 롤백(delete)한 후 BusinessExceptionHandler(AMAZON_S3_API_ERROR)를 발생시켜야 한다.
      */
@@ -227,7 +199,7 @@ class FileServiceTest {
 
     /**
      * [테스트 유틸] S3 DeleteObjectsResult Mock 객체 생성
-     *
+     * <p>
      * 주어진 key 목록으로 S3 삭제 응답(DeleteObjectsResult)을 생성합니다.
      * 테스트 시 S3 삭제 성공 응답을 시뮬레이션할 때 사용합니다.
      *
