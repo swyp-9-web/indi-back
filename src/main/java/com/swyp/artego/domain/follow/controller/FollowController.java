@@ -29,7 +29,7 @@ public class FollowController {
     public ResponseEntity<ApiResponse<Void>> createFollow(
             @Parameter(description = "로그인한 사용자 정보", hidden = true)
             @AuthenticationPrincipal AuthUser user,
-            @Parameter(description = "팔로우할 아티스트의 ID") @RequestParam Long artistId) {
+            @Parameter(description = "팔로우할 아티스트의 ID") @PathVariable Long artistId) {
 
         followService.createFollow(user, artistId);
 
@@ -78,7 +78,7 @@ public class FollowController {
     public ResponseEntity<ApiResponse<Void>> deleteFollow(
             @Parameter(description = "로그인한 사용자 정보", hidden = true)
             @AuthenticationPrincipal AuthUser user,
-            @Parameter(description = "언팔로우할 아티스트의 ID") @RequestParam Long artistId) {
+            @Parameter(description = "언팔로우할 아티스트의 ID") @PathVariable Long artistId) {
 
         followService.deleteFollow(user, artistId);
 
