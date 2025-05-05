@@ -40,7 +40,7 @@ public class CommentFindByItemIdResponse {
         private String comment;
         private boolean secret;
 
-        @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+
         private LocalDateTime createdAt;
     }
 

@@ -14,7 +14,7 @@ public class FollowInfoResponse {
     private Long followId;
     private String followerName;
     private String artistName;
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+
     private LocalDateTime createdAt;
 
 
