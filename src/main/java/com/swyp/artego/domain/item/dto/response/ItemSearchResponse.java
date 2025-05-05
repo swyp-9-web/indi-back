@@ -2,14 +2,18 @@ package com.swyp.artego.domain.item.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.querydsl.core.annotations.QueryProjection;
+import com.swyp.artego.domain.item.entity.Item;
 import com.swyp.artego.domain.item.enums.CategoryType;
 import com.swyp.artego.domain.item.enums.SizeType;
-import lombok.Getter;
+import lombok.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
 @Getter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class ItemSearchResponse {
 
     private Long id;
@@ -30,7 +34,7 @@ public class ItemSearchResponse {
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime updatedAt;
 
-
+    // QueryDSL 프로젝션용 생성자
     @QueryProjection
     public ItemSearchResponse(
             Long itemId,
@@ -64,40 +68,63 @@ public class ItemSearchResponse {
         this.updatedAt = updatedAt;
     }
 
+    //  기본 fromEntity (스크랩 정보 없음)
+    public static ItemSearchResponse fromEntity(Item item) {
+        return fromEntity(item, false, null);
+    }
+
+    //  스크랩 정보 포함하는 fromEntity
+    public static ItemSearchResponse fromEntity(Item item, boolean isScrapped, LocalDateTime scrapedAt) {
+        return ItemSearchResponse.builder()
+                .id(item.getId())
+                .thumbnailImgUrl(item.getImgUrls() != null && !item.getImgUrls().isEmpty() ? item.getImgUrls().get(0) : null)
+                .name(item.getTitle())
+                .price(item.getPrice())
+                .category(item.getCategoryType())
+                .size(item.getSizeType())
+                .artist(new Artist(
+                        item.getUser().getId(),
+                        item.getUser().getName()
+                ))
+                .scrap(new Scrap(isScrapped, scrapedAt))
+                .totalScraped(item.getScrapCount())
+                .totalReaction(new Reaction(
+                        item.getLikeCount(),
+                        item.getWantCount(),
+                        item.getRevisitCount()
+                ))
+                .createdAt(item.getCreatedAt())
+                .updatedAt(item.getUpdatedAt())
+                .build();
+    }
+
+    //  Artist 정보 DTO
     @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class Artist {
         private Long id;
         private String nickname;
-
-        public Artist(Long id, String nickname) {
-            this.id = id;
-            this.nickname = nickname;
-        }
     }
 
+    //  Scrap 정보 DTO
     @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class Scrap {
         private Boolean isScrapped;
 
         @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
         private LocalDateTime scrapedAt;
-
-        public Scrap(Boolean isScrapped, LocalDateTime scrapedAt) {
-            this.isScrapped = isScrapped;
-            this.scrapedAt = scrapedAt;
-        }
     }
 
+    //  Reaction 정보 DTO
     @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class Reaction {
         private int likes;
         private int wants;
         private int revisits;
-
-        public Reaction(int likes, int wants, int revisits) {
-            this.likes = likes;
-            this.wants = wants;
-            this.revisits = revisits;
-        }
     }
 }

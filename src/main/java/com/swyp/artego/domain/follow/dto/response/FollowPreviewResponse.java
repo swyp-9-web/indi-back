@@ -12,11 +12,16 @@ public class FollowPreviewResponse {
     private String profileImgUrl;
     private String nickname;
 
+    private Boolean isFollowing; //팔로잉 여부 => 프론트 요구에 따라 생성
+
     public static FollowPreviewResponse fromEntity(User artist) {
         return FollowPreviewResponse.builder()
                 .id(artist.getId())
                 .profileImgUrl(artist.getImgUrl())
                 .nickname(artist.getName()) // or artist.getNickname() if nickname exists
+                .isFollowing(true)
                 .build();
     }
+
+
 }

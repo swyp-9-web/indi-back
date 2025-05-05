@@ -2,6 +2,7 @@ package com.swyp.artego.domain.follow.controller;
 
 import com.swyp.artego.domain.follow.dto.response.FollowInfoResponse;
 import com.swyp.artego.domain.follow.dto.response.FollowPreviewListResponse;
+import com.swyp.artego.domain.follow.dto.response.FollowedArtistsResponse;
 import com.swyp.artego.domain.follow.service.FollowService;
 import com.swyp.artego.global.auth.oauth.model.AuthUser;
 import com.swyp.artego.global.common.code.SuccessCode;
@@ -19,7 +20,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/follows")
 @RequiredArgsConstructor
-@Tag(name = "Follow", description = "팔로우 관련 API")
+@Tag(name = "Follow", description = "팔로우 API")
 public class FollowController {
 
     private final FollowService followService;
@@ -59,19 +60,28 @@ public class FollowController {
     }
 
 
-    @Operation(summary = "팔로우 전체 조회", description = "전체 팔로우 정보를 최신순으로 조회합니다.")
-    @GetMapping
-    public ResponseEntity<ApiResponse<List<FollowInfoResponse>>> getAllFollows() {
-        List<FollowInfoResponse> follows = followService.getAllFollows();
+    @Operation(summary = "팔로우한 작가 목록 조회", description = "로그인한 사용자가 팔로우한 작가들을 최신순으로 페이지네이션하여 조회합니다.")
+    @GetMapping("/artists")
+    public ResponseEntity<ApiResponse<FollowedArtistsResponse>> getFollowedArtists(
+            @Parameter(description = "로그인한 사용자 정보", hidden = true)
+            @AuthenticationPrincipal AuthUser user,
+            @RequestParam(defaultValue = "1") Integer page,
+            @RequestParam(defaultValue = "10") Integer size) {
+
+        FollowedArtistsResponse response = followService.getFollowedArtists(user, page, size);
 
         return ResponseEntity.ok(
-                ApiResponse.<List<FollowInfoResponse>>builder()
-                        .result(follows)
+                ApiResponse.<FollowedArtistsResponse>builder()
+                        .result(response)
                         .resultCode(Integer.parseInt(SuccessCode.SELECT_SUCCESS.getCode()))
-                        .resultMessage(SuccessCode.SELECT_SUCCESS.getMessage())
+                        .resultMessage("팔로우한 작가 목록 조회 성공")
                         .build()
         );
     }
+
+
+
+
 
     @Operation(summary = "팔로우 취소", description = "아티스트 ID를 기반으로 팔로우를 취소합니다.")
     @DeleteMapping("/{artistId}")
