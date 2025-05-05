@@ -63,7 +63,7 @@ public class ItemSearchRepositoryImpl implements ItemSearchRepository {
                         item.categoryType,
                         item.sizeType,
                         item.user.id,
-                        item.user.name,
+                        item.user.nickname,
                         isScrappedExpr,        // 로그인한 유저가 해당 아이템을 스크랩했는지 여부
                         scrapCreatedAtExpr,    // 스크랩한 시간
                         item.scrapCount,

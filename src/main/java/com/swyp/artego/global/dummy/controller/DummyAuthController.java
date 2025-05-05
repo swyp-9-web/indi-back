@@ -27,27 +27,27 @@ public class DummyAuthController {
 
     @Operation(
             summary = "더미 유저 로그인",
-            description = "테스트용 더미 유저를 생성하고 로그인합니다. `role` 파라미터로 USER 또는 ARTIST 지정 가능"
+            description = "테스트용 더미 유저를 생성하고 로그인합니다. 매번 새로운 더미 유저가 생성되며 Spring Security 세션에 등록됩니다."
     )
 
     @PostMapping("/auth/dummy-login")
-    public ResponseEntity<ApiResponse<String>> loginWithRandomDummy(
-            HttpSession session,
-            @RequestParam(defaultValue = "USER") Role role // role=USER 또는 role=ARTIST
-    ) {
+    public ResponseEntity<ApiResponse<String>> loginWithRandomDummy(HttpSession session,
+                                                                    @RequestParam(defaultValue = "USER") Role role) {
         String randomId = UUID.randomUUID().toString().substring(0, 8);
-        String oauthId = "dummy_" + randomId;
-        String nickname = generateRandomNickname();
+        String oauthId = "dummy " + randomId;
+        String nickname = generateRandomNickname() +"#"+ UUID.randomUUID().toString().replace("-", "").substring(0, 6);;
 
-        // 1. 유저 생성
+
+        // 1. 유저 생성 및 저장
         User user = User.builder()
                 .oauthId(oauthId)
                 .name(nickname)
+                .nickname(nickname)
                 .email("dummy_" + randomId + "@test.com")
                 .telNumber("010-0000-0000")
                 .build();
 
-        user.setRole(role); // 역할 설정
+        user.setRole(role);
 
         userRepository.save(user);
 
@@ -58,16 +58,21 @@ public class DummyAuthController {
                 user.getEmail(),
                 user.getTelNumber()
         );
+
+
+        //AuthUser authUser = new AuthUser(dummyResponse, "ROLE_USER");
         AuthUser authUser = new AuthUser(dummyResponse, "ROLE_" + role.name());
 
-        // 3. 인증 처리
+        // 3. Spring Security Context에 인증 정보 등록
         UsernamePasswordAuthenticationToken authentication =
                 new UsernamePasswordAuthenticationToken(authUser, null, authUser.getAuthorities());
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
+
+        // 4. 세션에 Security Context 저장
         session.setAttribute("SPRING_SECURITY_CONTEXT", SecurityContextHolder.getContext());
 
-        // 4. 응답
+        // 5. 응답
         return ResponseEntity.status(SuccessCode.INSERT_SUCCESS.getStatus())
                 .body(ApiResponse.<String>builder()
                         .result(oauthId)
@@ -76,12 +81,12 @@ public class DummyAuthController {
                         .build());
     }
 
-    // 랜덤 닉네임 생성기
+    //  닉네임 생성기
     private String generateRandomNickname() {
         String[] first = {"밤하늘", "햇살", "잉크", "달빛", "감성", "수채화", "몽환", "종이", "무지개", "꽃잎"};
         String[] second = {"마녀", "소년", "고양이", "마법사", "정원사", "작가", "화가", "공방", "나무", "펜"};
         String word = first[(int) (Math.random() * first.length)] + second[(int) (Math.random() * second.length)];
-        int number = (int) (Math.random() * 9000) + 1000;
-        return word + "_" + number;
+
+        return word;
     }
 }

@@ -25,12 +25,6 @@ public interface UserService {
     UserInfoSimpleResponse getMyUserInfo(String oauthId);
 
 
-    /**
-     * 유저 전체 조회
-     * @return 유저 목록
-     */
-    List<UserInfoResponse> getAllUsers();
-
 
 
     // TODO: 사용자 프로필, 아티스트 프로필 (이때 유저 식별자값도 보내줘야 나중에 사용자가 아티스트를 팔로우 가능)

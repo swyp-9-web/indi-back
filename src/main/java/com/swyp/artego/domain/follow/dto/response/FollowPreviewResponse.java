@@ -18,7 +18,7 @@ public class FollowPreviewResponse {
         return FollowPreviewResponse.builder()
                 .id(artist.getId())
                 .profileImgUrl(artist.getImgUrl())
-                .nickname(artist.getName()) // or artist.getNickname() if nickname exists
+                .nickname(artist.getNickname())
                 .isFollowing(true)
                 .build();
     }

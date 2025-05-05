@@ -19,6 +19,8 @@ public class DummyItemService {
 
     private final JdbcTemplate jdbcTemplate;
 
+    private static final int MAX_NICKNAME_RETRY = 2;
+
     private static final List<String> DUMMY_IMG_URLS = List.of(
             "https://kr.object.ncloudstorage.com/artego-bucket/file_domain/e96f5ed4-ff1b-4c54-9a40-e4427af53f57.jpg",
             "https://kr.object.ncloudstorage.com/artego-bucket/file_domain/d90998c8-744a-4b28-bf2f-7bb3059d6b89.jpg",
@@ -33,13 +35,6 @@ public class DummyItemService {
     );
 
     private static final List<String> MATERIALS = List.of("캔버스", "종이", "나무", "아크릴");
-
-    private static final List<String> ARTIST_NAMES = List.of(
-            "모노그래피", "빈티지블루", "달의조각", "코튼무드", "한낮의별",
-            "잉크드림", "살랑살랑", "캔버스위치", "물빛공방", "흑백의술사",
-            "마르지않는꽃", "햇살도감", "아트코코", "봄의수채화", "하루드로잉",
-            "노을빛작가", "미니멀몽", "밤하늘노트", "페인트폭스", "투명정원"
-    );
 
     private static final List<String> ITEM_TITLES = List.of(
             "푸른 정오", "별의 기억", "나무 아래에서", "비 오는 오후", "작은 숨결",
@@ -64,11 +59,10 @@ public class DummyItemService {
         String insertItemSql = """
             INSERT INTO item (user_id, title, description, img_urls, price, size, size_width, size_heigth, size_depth, material, status, category_type, scrap_count, like_count, want_count, revisit_count, total_reaction_score, created_at, updated_at)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """;
+        """;
 
         for (int i = 0; i < count; i++) {
             Long userId = userIds.get(random.nextInt(userIds.size()));
-
             int width = random.nextInt(30) + 10;
             int height = random.nextInt(30) + 10;
             int depth = random.nextInt(30) + 10;
@@ -150,7 +144,11 @@ public class DummyItemService {
     }
 
     private Long insertDummyUser() {
-        String sql = "INSERT INTO `user` (oauth_id, name, email, tel_number, img_url, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        String sql = """
+    INSERT INTO `user` (oauth_id, name, email, nickname, tel_number, img_url, banned, deleted, created_at, updated_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+""";
+
         Random random = new Random();
         LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
 
@@ -158,15 +156,48 @@ public class DummyItemService {
         String oauthId = "dummy_" + uuid;
         String email = "user" + uuid + "@artego.com";
         String telNumber = "010-" + (1000 + random.nextInt(9000)) + "-" + (1000 + random.nextInt(9000));
-        String nickname = ARTIST_NAMES.get(random.nextInt(ARTIST_NAMES.size()));
+        String nickname = null;
 
-        jdbcTemplate.update(sql, oauthId, nickname, email, telNumber, DEFAULT_PROFILE_IMG_URL, now, now);
+        int retry = 0;
+        while (retry++ < MAX_NICKNAME_RETRY) {
+            String candidate = generateRandomNickname();
+            Integer count = jdbcTemplate.queryForObject(
+                    "SELECT COUNT(*) FROM `user` WHERE nickname = ?",
+                    Integer.class,
+                    candidate
+            );
+            if (count != null && count == 0) {
+                nickname = candidate;
+                break;
+            }
+        }
+
+        if (nickname == null) {
+            throw new RuntimeException("중복되지 않는 닉네임 생성 실패");
+        }
+
+        jdbcTemplate.update(sql,
+                oauthId,
+                nickname,  // name
+                email,
+                nickname,
+                telNumber,
+                DEFAULT_PROFILE_IMG_URL,
+                "N", // banned
+                "N", // deleted
+                now,
+                now
+        );
 
         return jdbcTemplate.queryForObject(
                 "SELECT user_id FROM `user` WHERE oauth_id = ?",
                 Long.class,
                 oauthId
         );
+    }
+
+    private String generateRandomNickname() {
+        return "user#" + UUID.randomUUID().toString().replace("-", "").substring(0, 6);
     }
 
     private List<SizeType> generateBalancedSizeTypes(int total) {

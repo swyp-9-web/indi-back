@@ -6,6 +6,8 @@ import com.swyp.artego.global.auth.oauth.dto.response.NaverOAuth2Response;
 import com.swyp.artego.global.auth.oauth.dto.response.OAuth2Response;
 import com.swyp.artego.global.auth.oauth.model.AuthUser;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.service.spi.ServiceException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
@@ -14,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
+import java.util.UUID;
 
 
 @Service
@@ -22,6 +25,7 @@ public class AuthService extends DefaultOAuth2UserService {
 
     private final UserRepository userRepository;
 
+    private static final int MAX_NICKNAME_RETRY = 2;
 
     //  loadUser() 메서드는 Spring Security 내부에서 자동으로 호출되는 메서드입니다.
 
@@ -73,16 +77,42 @@ public class AuthService extends DefaultOAuth2UserService {
 
     }
 
+
+
     @Transactional
     protected void createUser(OAuth2Response oAuth2Response, String oauthId) {
-        User newUser = User.builder()
-                .oauthId(oauthId)
-                .name(oAuth2Response.getName())
-                .email(oAuth2Response.getEmail())
-                .telNumber(oAuth2Response.getPhoneNumber())
-                .build();
+        int retry = 0;
 
-        userRepository.save(newUser);
+        while (retry++ < MAX_NICKNAME_RETRY) {
+            String nickname;
+
+            //  중복 아닐 때까지 무한 생성
+            do {
+                nickname = generateRandomNickname();
+            } while (userRepository.existsByNickname(nickname));
+
+            try {
+                User newUser = User.builder()
+                        .oauthId(oauthId)
+                        .name(oAuth2Response.getName())
+                        .email(oAuth2Response.getEmail())
+                        .telNumber(oAuth2Response.getPhoneNumber())
+                        .nickname(nickname)
+                        .build();
+
+                userRepository.save(newUser);
+                return;
+            } catch (DataIntegrityViolationException e) {
+                // 저장 실패 (Race Condition) → 재시도
+            }
+        }
+
+        throw new ServiceException("닉네임 생성 실패: 중복 또는 저장 실패로 인해 생성 불가");
+    }
+
+
+    private String generateRandomNickname() {
+        return "user#" + UUID.randomUUID().toString().replace("-", "").substring(0, 6);
     }
 
 }

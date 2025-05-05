@@ -31,8 +31,8 @@ public class User extends BaseTimeEntity {
     @Column(name = "email", nullable = false)
     private String email;
 
-//    @Column(name = "nickname", nullable = false)
-//    private String nickname;
+    @Column(name = "nickname", nullable = false, unique = true)
+    private String nickname;
 
     @Column(name = "tel_number", nullable = false)
     private String telNumber;
@@ -43,29 +43,35 @@ public class User extends BaseTimeEntity {
 
     @Column(name = "img_url", nullable = false)
     private String imgUrl = "https://kr.object.ncloudstorage.com/artego-bucket/file_domain/b3db25fe-5e0e-485e-b342-91ee1239950d.jpg"; // 기본 프로필 이미지
-//
-//    @Convert(converter = StringListConverter.class)
-//    @Column(name = "artist_sns_info")
-//    // '종류_링크' 형식으로 저장. 예시) insta_https://blahblah, youtube_https://blahblah
-//    private List<String> artistSnsInfo; // Nullable
 
-//    @Column(name = "artist_about_me")
-//    private String artistAboutMe; // Nullable
-//
-//    @Convert(converter = BooleanToYNConverter.class)
-//    @Column(name = "banned", length = 1, nullable = false)
-//    private boolean banned = false;
-//
-//    @Convert(converter = BooleanToYNConverter.class)
-//    @Column(name = "deleted", length = 1, nullable = false)
-//    private boolean deleted = false;
+
+    @Column(name = "artist_home_sns_info")
+    private String artistHomeSnsInfo; // 개인 홈페이지용
+
+
+    @Convert(converter = StringListConverter.class)
+    @Column(name = "artist_sns_info")
+    // '종류_링크' 형식으로 저장. 예시) insta_https://blahblah, youtube_https://blahblah
+    private List<String> artistSnsInfo; // Nullable
+
+    @Column(name = "artist_about_me")
+    private String artistAboutMe; // Nullable // 자기소개
+
+    @Convert(converter = BooleanToYNConverter.class)
+    @Column(name = "banned", length = 1, nullable = false)
+    private boolean banned = false;
+
+    @Convert(converter = BooleanToYNConverter.class)
+    @Column(name = "deleted", length = 1, nullable = false)
+    private boolean deleted = false;
 
 
     @Builder
-    public User(String oauthId, String name, String email, String telNumber) {
+    public User(String oauthId, String name, String email,String nickname, String telNumber) {
         this.oauthId = oauthId;
         this.name = name;
         this.email = email;
+        this.nickname = nickname;
         this.telNumber = telNumber;
     }
 
