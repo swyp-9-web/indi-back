@@ -70,6 +70,9 @@ public class User extends BaseTimeEntity {
     }
 
     // 아래에 세터 메서드
+    public void setRole(Role role) {
+        this.role = role;
+    }
 }
 
 

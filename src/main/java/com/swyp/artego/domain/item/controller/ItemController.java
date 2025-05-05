@@ -10,6 +10,7 @@ import com.swyp.artego.global.auth.oauth.model.AuthUser;
 import com.swyp.artego.global.common.code.SuccessCode;
 import com.swyp.artego.global.common.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.ConstraintViolation;
@@ -77,28 +78,20 @@ public class ItemController {
 
 
     /**
-     * 아이템 전체 조회 API (최신순)
-     */
-    @GetMapping
-    public ResponseEntity<ApiResponse<List<ItemInfoResponse>>> getAllItems() {
-        List<ItemInfoResponse> items = itemService.getAllItems();
-
-        return ResponseEntity.ok(
-                ApiResponse.<List<ItemInfoResponse>>builder()
-                        .result(items)
-                        .resultCode(Integer.parseInt(SuccessCode.SELECT_SUCCESS.getCode()))
-                        .resultMessage(SuccessCode.SELECT_SUCCESS.getMessage())
-                        .build()
-        );
-    }
-
-
-    /**
      * 아이템 검색 API
      */
 
+    @Operation(
+            summary = "작품 검색",
+            description = "검색 조건에 맞는 작품을 페이지네이션 형태로 조회합니다.\n\n" +
+                    "- 작가 이름 또는 작품명으로 검색 가능\n" +
+                    "- 카테고리, 사이즈 필터링 가능\n" +
+                    "- 정렬 조건 (최신순, 인기순 등)\n" +
+                    "- 특정 작가의 작품만 조회도 가능"
+    )
     @GetMapping("/search")
     public ResponseEntity<ApiResponse<ItemSearchResultResponse>> searchItems(
+            @Parameter(description = "인증된 사용자 정보", hidden = true)
             @AuthenticationPrincipal AuthUser user,
             @ParameterObject @ModelAttribute ItemSearchRequest request) {
 
