@@ -14,9 +14,11 @@ import lombok.NoArgsConstructor;
 public class UserInfoSimpleResponse {
 
     private Long id;
+    private String nickname;
     private String profileImgUrl;
     private String email;
     private Role role;
+
 
     public static UserInfoSimpleResponse fromEntity(User user) {
         return UserInfoSimpleResponse.builder()
@@ -24,7 +26,9 @@ public class UserInfoSimpleResponse {
                 .profileImgUrl(user.getImgUrl())
                 .email(user.getEmail())
                 .role(user.getRole())
+                .nickname(user.getNickname())
                 .build();
     }
+
 
 }

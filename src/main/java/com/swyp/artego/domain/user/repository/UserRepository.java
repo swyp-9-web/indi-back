@@ -8,5 +8,5 @@ import java.util.Optional;
 
 public interface UserRepository extends JpaRepository<User,Long> {
     Optional<User> findByOauthId(String oauthId);
-    List<User> findAllByOrderByCreatedAtDesc();
+    boolean existsByNickname(String nickname);
 }

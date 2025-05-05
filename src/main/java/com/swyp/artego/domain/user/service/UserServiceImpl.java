@@ -35,14 +35,7 @@ public class UserServiceImpl implements UserService{
         return UserInfoSimpleResponse.fromEntity(user);
     }
 
-    @Override
-    @Transactional(readOnly = true)
-    public List<UserInfoResponse> getAllUsers() {
-        return userRepository.findAllByOrderByCreatedAtDesc()
-                .stream()
-                .map(UserInfoResponse::fromEntity)
-                .collect(Collectors.toList());
-    }
+
 
 
 

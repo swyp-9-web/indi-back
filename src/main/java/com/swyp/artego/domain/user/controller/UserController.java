@@ -52,20 +52,6 @@ public class UserController {
         );
     }
 
-    @Operation(summary = "전체 유저 조회", description = "가입된 모든 유저 정보를 조회합니다.")
-    @GetMapping
-    public ResponseEntity<ApiResponse<List<UserInfoResponse>>> getAllUsers() {
-        List<UserInfoResponse> users = userService.getAllUsers();
-        return ResponseEntity.ok(
-                ApiResponse.<List<UserInfoResponse>>builder()
-                        .result(users)
-                        .resultCode(Integer.parseInt(SuccessCode.SELECT_SUCCESS.getCode()))
-                        .resultMessage(SuccessCode.SELECT_SUCCESS.getMessage())
-                        .build()
-        );
-    }
-
-
 
 
 }
