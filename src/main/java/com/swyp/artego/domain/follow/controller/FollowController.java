@@ -66,9 +66,9 @@ public class FollowController {
             @Parameter(description = "로그인한 사용자 정보", hidden = true)
             @AuthenticationPrincipal AuthUser user,
             @RequestParam(defaultValue = "1") Integer page,
-            @RequestParam(defaultValue = "10") Integer size) {
+            @RequestParam(defaultValue = "10") Integer limit) {
 
-        FollowedArtistsResponse response = followService.getFollowedArtists(user, page, size);
+        FollowedArtistsResponse response = followService.getFollowedArtists(user, page, limit);
 
         return ResponseEntity.ok(
                 ApiResponse.<FollowedArtistsResponse>builder()
