@@ -17,7 +17,7 @@ public class ScrapInfoResponse {
     private String userName;
 
 
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+
     private LocalDateTime createdAt;
 
     public static ScrapInfoResponse fromEntity(Scrap scrap) {

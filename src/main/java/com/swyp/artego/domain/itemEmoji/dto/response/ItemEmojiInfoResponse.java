@@ -18,7 +18,7 @@ public class ItemEmojiInfoResponse {
     private String userName;
     private EmojiType emojiType;
 
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+
     private LocalDateTime createdAt;
 
     public static ItemEmojiInfoResponse fromEntity(ItemEmoji itemEmoji) {

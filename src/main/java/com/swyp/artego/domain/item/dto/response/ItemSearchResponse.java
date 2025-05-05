@@ -28,10 +28,10 @@ public class ItemSearchResponse {
     private int totalScraped;
     private Reaction totalReaction;
 
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+
     private LocalDateTime createdAt;
 
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+
     private LocalDateTime updatedAt;
 
     // QueryDSL 프로젝션용 생성자
@@ -114,7 +114,6 @@ public class ItemSearchResponse {
     public static class Scrap {
         private Boolean isScrapped;
 
-        @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
         private LocalDateTime scrapedAt;
     }
 
