@@ -2,9 +2,11 @@ package com.swyp.artego.domain.item.controller;
 
 import com.swyp.artego.domain.item.dto.request.ItemCreateRequest;
 import com.swyp.artego.domain.item.dto.request.ItemSearchRequest;
+import com.swyp.artego.domain.item.dto.request.ItemUpdateRequest;
 import com.swyp.artego.domain.item.dto.response.ItemCreateResponse;
 import com.swyp.artego.domain.item.dto.response.ItemDeleteResponse;
 import com.swyp.artego.domain.item.dto.response.ItemSearchResultResponse;
+import com.swyp.artego.domain.item.dto.response.ItemUpdateResponse;
 import com.swyp.artego.domain.item.service.ItemService;
 import com.swyp.artego.global.auth.oauth.model.AuthUser;
 import com.swyp.artego.global.common.code.SuccessCode;
@@ -40,7 +42,7 @@ public class ItemController {
     private final Validator validator;
 
     @Value("${ncp.storage.bucket.folder.item-post}")
-    private String folderName;
+    private String folderName; // TODO: 비즈니스 로직이니 서비스 계층으로 이동. (*역할 분리)
 
     /**
      * 작품 생성 API
@@ -74,6 +76,40 @@ public class ItemController {
                 .build();
 
         return new ResponseEntity<>(ar, HttpStatus.OK);
+    }
+
+    /**
+     * 작품 수정 API
+     */
+    @PatchMapping(value = "/{itemId}",
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(summary = "작품 수정")
+    public ResponseEntity<ApiResponse<ItemUpdateResponse>> updateItem(
+            @AuthenticationPrincipal AuthUser user,
+            @PathVariable Long itemId,
+            @RequestPart("request") ItemUpdateRequest request,
+
+            @Schema(description = "이미지 정보")
+            @Size(max = 8, message = "8개 이하만 업로드 가능합니다.")
+            @RequestPart(value = "images", required = false) List<MultipartFile> multipartFiles
+    ) {
+        /*
+        Request DTO 수동 검증
+        multipart/form-data + JSON 혼용 시 @RequestPart("request")에 @Valid가 자동 적용되지 않는 문제를 해결하기 위함
+         */
+        Set<ConstraintViolation<ItemUpdateRequest>> violations = validator.validate(request);
+        if (!violations.isEmpty()) {
+            throw new ConstraintViolationException(violations);
+        }
+
+        ItemUpdateResponse res = itemService.updateItem(user, itemId, request, multipartFiles, folderName);
+
+        return ResponseEntity.status(SuccessCode.UPDATE_SUCCESS.getStatus())
+                .body(ApiResponse.<ItemUpdateResponse>builder()
+                        .result(res)
+                        .resultCode(Integer.parseInt(SuccessCode.UPDATE_SUCCESS.getCode()))
+                        .resultMessage(SuccessCode.UPDATE_SUCCESS.getMessage())
+                        .build());
     }
 
     /**

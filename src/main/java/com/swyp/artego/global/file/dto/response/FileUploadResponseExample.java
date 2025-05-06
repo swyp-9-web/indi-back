@@ -10,5 +10,6 @@ public class FileUploadResponseExample {
     private String originalFileName;
     private String uploadFileName;
     private String uploadFilePath;
+    private String uploadKey;
     private String uploadFileUrl;
 }

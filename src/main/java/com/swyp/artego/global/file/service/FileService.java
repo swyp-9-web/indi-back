@@ -50,6 +50,7 @@ public class FileService {
                 .originalFileName(multipartFile.getOriginalFilename())
                 .uploadFileName(key.substring(key.lastIndexOf("/") + 1))
                 .uploadFilePath(folderName)
+                .uploadKey(key)
                 .uploadFileUrl(endPoint + "/" + bucketName + "/" + key)
                 .build();
     }
@@ -106,7 +107,7 @@ public class FileService {
      * @param folderName    파일이 존재하는 폴더명
      * @return String S3 key(폴더명/파일명.확장자)
      */
-    private String uploadSingleFile(MultipartFile multipartFile, String folderName) {
+    public String uploadSingleFile(MultipartFile multipartFile, String folderName) {
         String originalFileName = multipartFile.getOriginalFilename();
         String uploadFileName = getUuidFileName(originalFileName);
         String key = folderName + "/" + uploadFileName;
@@ -180,7 +181,7 @@ public class FileService {
      *
      * @param uploadedKeys 업로드 완료한 파일명이 담긴 리스트
      */
-    void rollbackUploadedFiles(List<String> uploadedKeys) {
+    public void rollbackUploadedFiles(List<String> uploadedKeys) {
         if (uploadedKeys.isEmpty()) {
             log.info("[FileService] 롤백 완료 - 업로드된 파일이 없습니다.");
             return;
@@ -217,7 +218,7 @@ public class FileService {
      * @param imgUrl
      * @return
      */
-    String extractKeyFromImgUrl(String imgUrl) {
+    public String extractKeyFromImgUrl(String imgUrl) {
         String marker = "/" + bucketName + "/";
         int idx = imgUrl.indexOf(marker);
         if (idx == -1) {
