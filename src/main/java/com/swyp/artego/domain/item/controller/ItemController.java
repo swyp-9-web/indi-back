@@ -21,7 +21,6 @@ import jakarta.validation.Validator;
 import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -40,9 +39,6 @@ public class ItemController {
 
     private final ItemService itemService;
     private final Validator validator;
-
-    @Value("${ncp.storage.bucket.folder.item-post}")
-    private String folderName; // TODO: 비즈니스 로직이니 서비스 계층으로 이동. (*역할 분리)
 
     /**
      * 작품 생성 API
@@ -67,7 +63,7 @@ public class ItemController {
             throw new ConstraintViolationException(violations);
         }
 
-        ItemCreateResponse res = itemService.createItem(user, request, multipartFiles, folderName);
+        ItemCreateResponse res = itemService.createItem(user, request, multipartFiles);
 
         ApiResponse ar = ApiResponse.builder()
                 .result(res)
@@ -102,7 +98,7 @@ public class ItemController {
             throw new ConstraintViolationException(violations);
         }
 
-        ItemUpdateResponse res = itemService.updateItem(user, itemId, request, multipartFiles, folderName);
+        ItemUpdateResponse res = itemService.updateItem(user, itemId, request, multipartFiles);
 
         return ResponseEntity.status(SuccessCode.UPDATE_SUCCESS.getStatus())
                 .body(ApiResponse.<ItemUpdateResponse>builder()

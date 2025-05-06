@@ -17,6 +17,7 @@ import com.swyp.artego.global.file.dto.response.FileUploadResponseExample;
 import com.swyp.artego.global.file.service.FileService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -34,9 +35,12 @@ public class ItemServiceImpl implements ItemService {
 
     private final FileService fileService;
 
+    @Value("${ncp.storage.bucket.folder.item-post}")
+    private String folderName;
+
     @Override
     @Transactional
-    public ItemCreateResponse createItem(AuthUser authUser, ItemCreateRequest request, List<MultipartFile> multipartFiles, String folderName) {
+    public ItemCreateResponse createItem(AuthUser authUser, ItemCreateRequest request, List<MultipartFile> multipartFiles) {
         User user = userRepository.findByOauthId(authUser.getOauthId())
                 .orElseThrow(() -> new BusinessExceptionHandler("유저가 존재하지 않습니다.", ErrorCode.NOT_FOUND_ERROR));
 
@@ -53,7 +57,7 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     @Transactional
-    public ItemUpdateResponse updateItem(AuthUser authUser, Long itemId, ItemUpdateRequest request, List<MultipartFile> multipartFiles, String folderName) {
+    public ItemUpdateResponse updateItem(AuthUser authUser, Long itemId, ItemUpdateRequest request, List<MultipartFile> multipartFiles) {
         User user = userRepository.findByOauthId(authUser.getOauthId())
                 .orElseThrow(() -> new BusinessExceptionHandler("유저가 존재하지 않습니다.", ErrorCode.NOT_FOUND_ERROR));
 
