@@ -112,7 +112,7 @@ public class ItemServiceImpl implements ItemService {
                     uploadedKeys.add(response.getUploadKey());
                 } catch (BusinessExceptionHandler e) {
                     log.info("[ItemService] 수정 API: #### 업로드된 파일 롤백 시작 ####");
-                    fileService.rollbackUploadedFiles(uploadedKeys);
+                    fileService.deleteFiles(uploadedKeys);
                     throw e; // 단일 업로드에서도 이미 비즈니스 예외로 변환했기 때문에 그대로 던짐
                 }
                 finalImageUrls.add(response.getUploadFileUrl());
@@ -134,8 +134,8 @@ public class ItemServiceImpl implements ItemService {
 
         // 삭제 실행
         if (!deletedKeys.isEmpty()) {
-            log.info("[ItemService] 수정 API: #### 사용자가 삭제한 사진을 S3에서 삭제 ####");
-            fileService.rollbackUploadedFiles(deletedKeys);
+            log.info("[ItemService] 수정 API: #### 게시글에서 내린 사진을 S3에서 실제로 삭제 ####");
+            fileService.deleteFiles(deletedKeys);
         }
 
         // 이미지 외 나머지 요소 수정

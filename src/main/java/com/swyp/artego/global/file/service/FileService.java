@@ -76,7 +76,7 @@ public class FileService {
                 fileUrls.add(endPoint + "/" + bucketName + "/" + key);
             } catch (BusinessExceptionHandler e) {
                 log.info("[FileService] #### 업로드된 파일 롤백 시작 ####");
-                rollbackUploadedFiles(uploadedKeys);
+                deleteFiles(uploadedKeys);
                 throw e; // 단일 업로드에서도 이미 비즈니스 예외로 변환했기 때문에 그대로 던짐
             }
         }
@@ -95,6 +95,42 @@ public class FileService {
             amazonS3.deleteObject(bucketName, key);
         } catch (SdkClientException e) {
             log.error("[FileService] 파일 삭제 도중 오류 발생: {}", e.toString());
+            throw new BusinessExceptionHandler("파일 삭제 도중 오류가 발생했습니다.", ErrorCode.AMAZON_S3_API_ERROR);
+        }
+    }
+
+    /**
+     * S3에 저장된 여러 파일을 한 번에 삭제한다.
+     * 업로드 도중 롤백하는 경우에도 사용할 수 있다.
+     *
+     * @param uploadedKeys S3에 업로드가 되어있으며, 삭제할 파일 key 목록
+     */
+    public void deleteFiles(List<String> uploadedKeys) {
+        if (uploadedKeys.isEmpty()) {
+            log.info("[FileService] 삭제 완료 - 업로드된 파일이 없습니다.");
+            return;
+        }
+
+        List<DeleteObjectsRequest.KeyVersion> keys = uploadedKeys.stream()
+                .map(DeleteObjectsRequest.KeyVersion::new)
+                .toList();
+
+        DeleteObjectsRequest deleteObjectsRequest = new DeleteObjectsRequest(bucketName).withKeys(keys);
+
+        try {
+            DeleteObjectsResult result = amazonS3.deleteObjects(deleteObjectsRequest);
+            List<DeleteObjectsResult.DeletedObject> deletedObjects = result.getDeletedObjects();
+            for (DeleteObjectsResult.DeletedObject deletedObject : deletedObjects) {
+                log.info("[FileService] 삭제 완료 - 삭제된 파일 key: {}", deletedObject.getKey());
+            }
+        } catch (MultiObjectDeleteException e) {
+            List<MultiObjectDeleteException.DeleteError> errors = e.getErrors();
+            for (MultiObjectDeleteException.DeleteError error : errors) {
+                log.error("[FileService] 삭제 일부 실패 - 삭제 실패 파일 key: {}, 코드: {}, 메시지: {}",
+                        error.getKey(), error.getCode(), error.getMessage());
+            }
+        } catch (SdkClientException e) {
+            log.error("[FileService] 삭제 전체 실패 - 네트워크 오류로 전체 삭제 실패", e);
             throw new BusinessExceptionHandler("파일 삭제 도중 오류가 발생했습니다.", ErrorCode.AMAZON_S3_API_ERROR);
         }
     }
@@ -174,41 +210,6 @@ public class FileService {
     public String getUuidFileName(String fileName) {
         String ext = fileName.substring(fileName.lastIndexOf('.') + 1).toLowerCase();
         return UUID.randomUUID().toString() + "." + ext;
-    }
-
-    /**
-     * 스토리지에 여러 파일을 올리는 도중 에러가 발생하는 경우, 이전까지 저장했던 파일을 삭제(=롤백)한다.
-     *
-     * @param uploadedKeys 업로드 완료한 파일명이 담긴 리스트
-     */
-    public void rollbackUploadedFiles(List<String> uploadedKeys) {
-        if (uploadedKeys.isEmpty()) {
-            log.info("[FileService] 롤백 완료 - 업로드된 파일이 없습니다.");
-            return;
-        }
-
-        List<DeleteObjectsRequest.KeyVersion> keys = uploadedKeys.stream()
-                .map(DeleteObjectsRequest.KeyVersion::new)
-                .toList();
-
-        DeleteObjectsRequest deleteObjectsRequest = new DeleteObjectsRequest(bucketName).withKeys(keys);
-
-        try {
-            DeleteObjectsResult result = amazonS3.deleteObjects(deleteObjectsRequest);
-            List<DeleteObjectsResult.DeletedObject> deletedObjects = result.getDeletedObjects();
-            for (DeleteObjectsResult.DeletedObject deletedObject : deletedObjects) {
-                log.info("[FileService] 롤백 완료 - 삭제된 파일 key: {}", deletedObject.getKey());
-            }
-        } catch (MultiObjectDeleteException e) {
-            List<MultiObjectDeleteException.DeleteError> errors = e.getErrors();
-            for (MultiObjectDeleteException.DeleteError error : errors) {
-                log.error("[FileService] 롤백 일부 실패 - 삭제 실패 파일 key: {}, 코드: {}, 메시지: {}",
-                        error.getKey(), error.getCode(), error.getMessage());
-            }
-        } catch (SdkClientException e) {
-            log.error("[FileService] 롤백 전체 실패 - 네트워크 오류로 전체 삭제 실패", e);
-            throw new BusinessExceptionHandler("파일 삭제(롤백) 도중 오류가 발생했습니다.", ErrorCode.AMAZON_S3_API_ERROR);
-        }
     }
 
     /**
