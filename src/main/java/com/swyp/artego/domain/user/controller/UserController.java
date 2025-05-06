@@ -48,7 +48,7 @@ public class UserController {
             @PathVariable Long artistId,
             @AuthenticationPrincipal AuthUser authUser) {
 
-        ArtistDetailInfoResponse result = userService.getArtistDetailInfo(artistId, authUser.getOauthId());
+        ArtistDetailInfoResponse result = userService.getArtistDetailInfo(artistId, authUser);
 
         return ResponseEntity.ok(
                 ApiResponse.<ArtistDetailInfoResponse>builder()

@@ -3,6 +3,7 @@ package com.swyp.artego.domain.user.service;
 import com.swyp.artego.domain.user.dto.request.UserCreateRequest;
 import com.swyp.artego.domain.user.dto.response.ArtistDetailInfoResponse;
 import com.swyp.artego.domain.user.dto.response.UserInfoSimpleResponse;
+import com.swyp.artego.global.auth.oauth.model.AuthUser;
 
 import java.util.List;
 
@@ -25,7 +26,7 @@ public interface UserService {
     UserInfoSimpleResponse getMyUserInfo(String oauthId);
 
 
-    ArtistDetailInfoResponse getArtistDetailInfo(Long artistId, String viewerOauthId);
+    ArtistDetailInfoResponse getArtistDetailInfo(Long artistId, AuthUser authUser);
 
 
 

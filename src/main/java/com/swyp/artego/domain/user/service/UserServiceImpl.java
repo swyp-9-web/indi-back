@@ -6,6 +6,7 @@ import com.swyp.artego.domain.user.dto.response.ArtistDetailInfoResponse;
 import com.swyp.artego.domain.user.dto.response.UserInfoSimpleResponse;
 import com.swyp.artego.domain.user.entity.User;
 import com.swyp.artego.domain.user.repository.UserRepository;
+import com.swyp.artego.global.auth.oauth.model.AuthUser;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.service.spi.ServiceException;
 import org.springframework.stereotype.Service;
@@ -38,7 +39,7 @@ public class UserServiceImpl implements UserService{
 
     @Override
     @Transactional(readOnly = true)
-    public ArtistDetailInfoResponse getArtistDetailInfo(Long artistId, String viewerOauthId) {
+    public ArtistDetailInfoResponse getArtistDetailInfo(Long artistId, AuthUser authUser) {
         User artist = userRepository.findById(artistId)
                 .orElseThrow(() -> new ServiceException("해당 작가를 찾을 수 없습니다."));
 
@@ -46,10 +47,15 @@ public class UserServiceImpl implements UserService{
             throw new ServiceException("활성화된 작가만 조회할 수 있습니다.");
         }
 
-        User viewer = userRepository.findByOauthId(viewerOauthId)
-                .orElseThrow(() -> new ServiceException("요청한 유저를 찾을 수 없습니다."));
 
-        Boolean isFollowing = followRepository.findByUserAndUserArtist(viewer, artist).isPresent();
+        Boolean isFollowing = false;
+
+        //로그인 상태면
+        if(authUser != null){
+            User viewer = userRepository.findByOauthId(authUser.getOauthId())
+                    .orElseThrow(() -> new ServiceException("요청한 유저를 찾을 수 없습니다."));
+           isFollowing = followRepository.findByUserAndUserArtist(viewer, artist).isPresent();
+        }
 
         return ArtistDetailInfoResponse.from(artist, isFollowing);
     }
