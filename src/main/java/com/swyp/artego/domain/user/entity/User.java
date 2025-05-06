@@ -65,6 +65,18 @@ public class User extends BaseTimeEntity {
     @Column(name = "deleted", length = 1, nullable = false)
     private boolean deleted = false;
 
+    @Column(name = "item_count")
+    private int itemCount = 0;
+
+    @Column(name = "scrap_count")
+    private int scrapCount = 0;
+
+    @Column(name = "reaction_count")
+    private int reactionCount = 0;
+
+    @Column(name = "follower_count")
+    private int followerCount = 0;
+
 
     @Builder
     public User(String oauthId, String name, String email,String nickname, String telNumber) {
@@ -75,9 +87,22 @@ public class User extends BaseTimeEntity {
         this.telNumber = telNumber;
     }
 
-    // 아래에 세터 메서드
+
     public void setRole(Role role) {
         this.role = role;
+    }
+
+    public void setItemCount(int itemCount) {
+        this.itemCount = itemCount;
+    }
+    public void setScrapCount(int scrapCount) {
+        this.scrapCount = scrapCount;
+    }
+    public void setReactionCount(int reactionCount) {
+        this.reactionCount = reactionCount;
+    }
+    public void setFollowerCount(int followerCount) {
+        this.followerCount = followerCount;
     }
 }
 

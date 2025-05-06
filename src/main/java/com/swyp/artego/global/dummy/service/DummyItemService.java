@@ -145,9 +145,13 @@ public class DummyItemService {
 
     private Long insertDummyUser() {
         String sql = """
-    INSERT INTO `user` (oauth_id, name, email, nickname, tel_number, img_url, banned, deleted, created_at, updated_at)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-""";
+        INSERT INTO `user` (
+            oauth_id, name, email, nickname, tel_number, img_url, banned, deleted,
+            item_count, scrap_count, reaction_count, follower_count,
+            artist_home_sns_info, artist_sns_info, artist_about_me,
+            created_at, updated_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    """;
 
         Random random = new Random();
         LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
@@ -176,6 +180,16 @@ public class DummyItemService {
             throw new RuntimeException("중복되지 않는 닉네임 생성 실패");
         }
 
+        // 👇 더미 데이터
+        int itemCount = 0;
+        int scrapCount = 0;
+        int reactionCount = 0;
+        int followerCount = 0;
+
+        String artistHomeSnsInfo = "https://artist" + uuid + ".home";
+        String artistSnsInfo = "[\"insta_https://instagram.com/artist" + uuid + "\", \"youtube_https://youtube.com/@artist" + uuid + "\"]";
+        String artistAboutMe = "안녕하세요, 작가 " + nickname + "입니다. 자연과 감성을 주제로 작업하고 있어요.";
+
         jdbcTemplate.update(sql,
                 oauthId,
                 nickname,  // name
@@ -185,6 +199,13 @@ public class DummyItemService {
                 DEFAULT_PROFILE_IMG_URL,
                 "N", // banned
                 "N", // deleted
+                itemCount,
+                scrapCount,
+                reactionCount,
+                followerCount,
+                artistHomeSnsInfo,
+                artistSnsInfo,
+                artistAboutMe,
                 now,
                 now
         );
@@ -195,6 +216,7 @@ public class DummyItemService {
                 oauthId
         );
     }
+
 
     private String generateRandomNickname() {
         return "user#" + UUID.randomUUID().toString().replace("-", "").substring(0, 6);
