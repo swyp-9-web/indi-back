@@ -1,6 +1,7 @@
 package com.swyp.artego.domain.user.controller;
 
 import com.swyp.artego.domain.user.dto.request.UserCreateRequest;
+import com.swyp.artego.domain.user.dto.response.ArtistDetailInfoResponse;
 import com.swyp.artego.domain.user.dto.response.UserInfoResponse;
 import com.swyp.artego.domain.user.dto.response.UserInfoSimpleResponse;
 import com.swyp.artego.domain.user.service.UserService;
@@ -24,17 +25,6 @@ public class UserController {
 
     private final UserService userService;
 
-    @Operation(summary = "유저 생성", description = "신규 유저를 생성합니다.")
-    @PostMapping
-    public ResponseEntity<ApiResponse<Void>> createUser(@RequestBody UserCreateRequest request) {
-        userService.createUser(request);
-        return ResponseEntity.status(SuccessCode.INSERT_SUCCESS.getStatus())
-                .body(ApiResponse.<Void>builder()
-                        .result(null)
-                        .resultCode(Integer.parseInt(SuccessCode.INSERT_SUCCESS.getCode()))
-                        .resultMessage(SuccessCode.INSERT_SUCCESS.getMessage())
-                        .build());
-    }
 
     @Operation(summary = "내 유저 정보 조회", description = "로그인한 유저의 간단한 정보를 반환합니다.")
     @GetMapping("/me")
@@ -46,6 +36,23 @@ public class UserController {
         return ResponseEntity.ok(
                 ApiResponse.<UserInfoSimpleResponse>builder()
                         .result(userInfo)
+                        .resultCode(Integer.parseInt(SuccessCode.SELECT_SUCCESS.getCode()))
+                        .resultMessage(SuccessCode.SELECT_SUCCESS.getMessage())
+                        .build()
+        );
+    }
+
+    @Operation(summary = "작가 상세 정보 조회", description = "작가 ID로 작가의 세부 정보를 반환합니다.")
+    @GetMapping("/artists/{artistId}")
+    public ResponseEntity<ApiResponse<ArtistDetailInfoResponse>> getArtistDetail(
+            @PathVariable Long artistId,
+            @AuthenticationPrincipal AuthUser authUser) {
+
+        ArtistDetailInfoResponse result = userService.getArtistDetailInfo(artistId, authUser.getOauthId());
+
+        return ResponseEntity.ok(
+                ApiResponse.<ArtistDetailInfoResponse>builder()
+                        .result(result)
                         .resultCode(Integer.parseInt(SuccessCode.SELECT_SUCCESS.getCode()))
                         .resultMessage(SuccessCode.SELECT_SUCCESS.getMessage())
                         .build()

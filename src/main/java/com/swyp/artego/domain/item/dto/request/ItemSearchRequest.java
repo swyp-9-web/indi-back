@@ -16,19 +16,19 @@ import java.util.List;
 @Schema(description = "아이템 검색 요청 DTO")
 public class ItemSearchRequest {
 
-    @Schema(description = "검색 키워드 (작가명 또는 작품명)", example = "바다")
+    @Schema(description = "검색 키워드 (작가명 또는 작품명)")
     private String keyword;
 
-    @Schema(description = "카테고리 필터 (여러 개 선택 가능)", example = "[\"TEXTILE_ART\", \"VISUAL_ART\"]")
+    @Schema(description = "카테고리 필터 (여러 개 선택 가능)")
     private List<CategoryType> categoryTypes;
 
-    @Schema(description = "사이즈 필터 (여러 개 선택 가능)", example = "[\"S\", \"M\", \"L\"]")
+    @Schema(description = "사이즈 필터 (여러 개 선택 가능)")
     private List<SizeType> sizeTypes;
 
     @Schema(description = "정렬 방식", example = "CREATED_RECENT")
     private SortType sortType;
 
-    @Schema(description = "조회할 작가 ID (선택값, 없으면 전체 조회)", example = "123")
+    @Schema(description = "조회할 작가 ID (선택값, 없으면 전체 조회)")
     private Long artistId;
 
     @Schema(description = "페이지 번호 (1부터 시작)", defaultValue = "1", example = "1")
