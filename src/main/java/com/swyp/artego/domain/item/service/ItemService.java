@@ -20,7 +20,7 @@ public interface ItemService {
      * @param folderName
      * @return
      */
-    ItemCreateResponse createItem(AuthUser authUser, ItemCreateRequest request, List<MultipartFile> multipartFiles, String folderName);
+    ItemCreateResponse createItem(AuthUser authUser, ItemCreateRequest request, List<MultipartFile> multipartFiles);
 
     /**
      * 작품을 수정한다.
@@ -30,7 +30,7 @@ public interface ItemService {
      * @param request  수정 내용
      * @return ItemUpdateResponse
      */
-    ItemUpdateResponse updateItem(AuthUser authUser, Long itemId, ItemUpdateRequest request, List<MultipartFile> multipartFiles, String folderName);
+    ItemUpdateResponse updateItem(AuthUser authUser, Long itemId, ItemUpdateRequest request, List<MultipartFile> multipartFiles);
 
     /**
      * 작품을 삭제한다.
