@@ -60,6 +60,7 @@ public class ItemCreateRequest {
         private int depth;
     }
 
+    @Schema(hidden = true)
     @AssertTrue(message = "사이즈는 (0x0x0), (양수x양수x0), 또는 (양수x양수x양수) 형태만 가능합니다.")
     public boolean isValidSizeCombination() {
 
