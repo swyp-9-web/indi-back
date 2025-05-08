@@ -13,7 +13,6 @@ import com.swyp.artego.domain.user.repository.UserRepository;
 import com.swyp.artego.global.auth.oauth.model.AuthUser;
 import com.swyp.artego.global.common.code.ErrorCode;
 import com.swyp.artego.global.excpetion.BusinessExceptionHandler;
-import com.swyp.artego.global.file.dto.response.FileUploadResponseExample;
 import com.swyp.artego.global.file.service.FileService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -44,11 +43,9 @@ public class ItemServiceImpl implements ItemService {
         User user = userRepository.findByOauthId(authUser.getOauthId())
                 .orElseThrow(() -> new BusinessExceptionHandler("유저가 존재하지 않습니다.", ErrorCode.NOT_FOUND_ERROR));
 
-        // 이미지 이름 검증
         List<String> imageOrder = request.getImageOrder();
         validateFileSizeAndNameMatch(multipartFiles, imageOrder);
-
-        List<String> imgUrls = uploadNewImagesInOrderWithRollback(multipartFiles, imageOrder);
+        List<String> imgUrls = fileService.uploadNewFilesInOrder(multipartFiles, imageOrder, folderName);
 
         ItemCreateRequest.ItemSize requestSize = request.getSize();
         SizeType sizeType = calculateSizeType(requestSize.getWidth(), requestSize.getHeight(), requestSize.getDepth());
@@ -94,7 +91,7 @@ public class ItemServiceImpl implements ItemService {
         List<String> imageOrder = request.getImageOrder();
         validateFileSizeAndNameMatch(multipartFiles, imageOrder);
 
-        List<String> updatedImageUrls = uploadNewImagesInOrderWithRollback(multipartFiles, imageOrder);
+        List<String> updatedImageUrls = fileService.uploadNewFilesInOrder(multipartFiles, imageOrder, folderName);
 
         deleteRemovedImages(item.getImgUrls(), updatedImageUrls);
 
@@ -162,55 +159,22 @@ public class ItemServiceImpl implements ItemService {
                 .filter(name -> !name.startsWith("https"))
                 .toList();
 
-        List<String> actualUploadedFileNames = Optional.ofNullable(multipartFiles)
+        List<String> multipartFileNames = Optional.ofNullable(multipartFiles)
                 .orElse(Collections.emptyList())
                 .stream()
                 .map(MultipartFile::getOriginalFilename)
                 .toList();
 
-        if (expectedNewImageNames.size() != actualUploadedFileNames.size()) {
-            throw new BusinessExceptionHandler("새 이미지 개수와 업로드된 파일 개수가 일치하지 않습니다.", ErrorCode.BAD_REQUEST_ERROR);
+        Set<String> expectedSet = new HashSet<>(expectedNewImageNames);
+        Set<String> actualSet = new HashSet<>(multipartFileNames);
 
+        if (!expectedSet.equals(actualSet)) {
+            throw new BusinessExceptionHandler(
+                    "imageOrder에 명시된 새 이미지와 업로드된 파일 이름 혹은 개수가 일치하지 않습니다. " +
+                            "누락되었거나 불필요한 파일이 존재할 수 있습니다.",
+                    ErrorCode.BAD_REQUEST_ERROR
+            );
         }
-
-        for (int i = 0; i < expectedNewImageNames.size(); i++) {
-            if (!expectedNewImageNames.get(i).equals(actualUploadedFileNames.get(i))) {
-                throw new BusinessExceptionHandler("파일 이름 불일치: imageOrder 있는 사진 이름은 " +
-                        expectedNewImageNames.get(i) + " 이지만, multipartfile에는 " + actualUploadedFileNames.get(i) + " 이 전송되었습니다.", ErrorCode.BAD_REQUEST_ERROR);
-            }
-        }
-    }
-
-    /**
-     * [등록, 수정 API] 순서대로 새 이미지를 업로드하고 실패 시 롤백까지 수행한다.
-     *
-     * @param multipartFiles 새 이미지 정보
-     * @param imageOrder     사용자가 원하는 이미지 순서
-     * @return DB에 업데이트할 새로운 imgUrls
-     */
-    private List<String> uploadNewImagesInOrderWithRollback(List<MultipartFile> multipartFiles, List<String> imageOrder) {
-        List<String> finalImageUrls = new ArrayList<>();
-        Iterator<MultipartFile> fileIterator = Optional.ofNullable(multipartFiles).orElse(Collections.emptyList()).iterator();
-        List<String> uploadedKeys = new ArrayList<>();
-
-        for (String imageRef : imageOrder) {
-            if (imageRef.startsWith("https")) {
-                finalImageUrls.add(imageRef);
-            } else {
-                MultipartFile file = fileIterator.next();
-                FileUploadResponseExample response;
-                try {
-                    response = fileService.uploadFile(file, folderName);
-                    uploadedKeys.add(response.getUploadKey());
-                } catch (BusinessExceptionHandler e) {
-                    log.info("[ItemService] 수정 API: #### 업로드된 파일 롤백 시작 ####");
-                    fileService.deleteFiles(uploadedKeys);
-                    throw e;
-                }
-                finalImageUrls.add(response.getUploadFileUrl());
-            }
-        }
-        return finalImageUrls;
     }
 
     /**
