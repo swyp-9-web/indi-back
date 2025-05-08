@@ -87,7 +87,7 @@ public class ItemServiceImpl implements ItemService {
         }
 
         // 이미지 요소 검증 및 imgUrls 반환, 사용하지 않는 사진은 삭제
-        List<String> orderedList = request.getOrderedImageList();
+        List<String> orderedList = request.getImageOrder();
         validateFileSizeAndNameMatch(multipartFiles, orderedList);
 
         List<String> updatedImageUrls = uploadNewImagesInOrderWithRollback(multipartFiles, orderedList);
