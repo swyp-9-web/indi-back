@@ -10,12 +10,13 @@ import java.util.List;
 @Getter
 @Builder
 public class CommentFindByItemIdWrapperResponse {
-    // TODO: 댓글 총 개수 필드 추가
+    private int totalCount;
     private CommentFindByItemIdResponse.UserInfo creator;
     private List<CommentFindByItemIdResponse> comments;
 
     public static CommentFindByItemIdWrapperResponse from(User creator, List<Comment> flatList) {
         return CommentFindByItemIdWrapperResponse.builder()
+                .totalCount(flatList.size())
                 .creator(CommentFindByItemIdResponse.UserInfo.builder()
                         .id(creator.getId())
                         .name(creator.getName())
