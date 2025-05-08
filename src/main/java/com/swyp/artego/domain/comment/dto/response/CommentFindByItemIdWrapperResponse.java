@@ -19,7 +19,7 @@ public class CommentFindByItemIdWrapperResponse {
                 .creator(CommentFindByItemIdResponse.UserInfo.builder()
                         .id(creator.getId())
                         .name(creator.getName())
-                        .imgUrl("creator's imgUrl") // TODO: 프로필 사진 연동하기
+                        .imgUrl(creator.getImgUrl())
                         .build())
                 .comments(CommentFindByItemIdResponse.convertFlatToDepth1Tree(flatList))
                 .build();

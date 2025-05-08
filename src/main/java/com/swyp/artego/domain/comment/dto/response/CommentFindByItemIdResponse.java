@@ -1,6 +1,5 @@
 package com.swyp.artego.domain.comment.dto.response;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.swyp.artego.domain.comment.entity.Comment;
 import lombok.AllArgsConstructor;
@@ -46,7 +45,7 @@ public class CommentFindByItemIdResponse {
 
     /**
      * flat 구조의 댓글 목록을 depth 1의 계층형 댓글 응답 구조로 변환한다.
-     *
+     * <p>
      * parent가 null인 댓글을 루트 댓글로 간주하고,
      * 해당 댓글을 기준으로 직접적인 자식(대댓글)들을 묶어 replies 필드에 포함한다.
      * 대댓글은 루트 댓글 하나에만 속하며, 추가 중첩은 지원하지 않는다.
@@ -88,7 +87,7 @@ public class CommentFindByItemIdResponse {
                     .user(UserInfo.builder()
                             .id(parent.getUser().getId())
                             .name(parent.getUser().getName())
-                            .imgUrl("user's imgUrl") // TODO: 프로필 사진 연동하기
+                            .imgUrl(parent.getUser().getImgUrl())
                             .build())
                     .comment(CommentInfo.builder()
                             .id(parent.getId())
