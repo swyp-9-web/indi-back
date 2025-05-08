@@ -88,6 +88,12 @@ public class User extends BaseTimeEntity {
     }
 
 
+
+    public void changeImgUrl(String newImgUrl) {
+        this.imgUrl = newImgUrl;
+    }
+
+
     public void setRole(Role role) {
         this.role = role;
     }
@@ -103,6 +109,13 @@ public class User extends BaseTimeEntity {
     }
     public void setFollowerCount(int followerCount) {
         this.followerCount = followerCount;
+    }
+
+    public void updateArtistProfile(String nickname, String aboutMe, String homeLink, List<String> snsLinks) {
+        this.nickname = nickname;
+        this.artistAboutMe = aboutMe;
+        this.artistHomeSnsInfo = homeLink;
+        this.artistSnsInfo = snsLinks;
     }
 }
 
