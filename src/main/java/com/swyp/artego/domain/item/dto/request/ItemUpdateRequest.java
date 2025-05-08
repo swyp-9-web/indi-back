@@ -40,7 +40,7 @@ public class ItemUpdateRequest {
 
     private StatusType statusType;
 
-    private List<String> orderedImageList;
+    private List<String> orderedImageList; // TODO: imageOrder로 이름 변경
 
     @Getter
     @AllArgsConstructor
