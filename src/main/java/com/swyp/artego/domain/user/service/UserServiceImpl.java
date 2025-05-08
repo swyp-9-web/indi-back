@@ -82,44 +82,33 @@ public class UserServiceImpl implements UserService{
         User artist = userRepository.findByOauthId(authUser.getOauthId())
                 .orElseThrow(() -> new ServiceException("해당 작가를 찾을 수 없습니다."));
 
-        //  아티스트 권한 체크
+        // 아티스트 권한 체크
         if (!artist.getRole().isArtist()) {
             throw new ServiceException("아티스트만 프로필을 수정할 수 있습니다.");
         }
 
-        // 닉네임 중복 체크 (변경 시에만)
-        if (artistRequest.getNickname() != null
-                && userRepository.existsByNickname(artistRequest.getNickname())) {
-            throw new ServiceException("이미 사용 중인 닉네임입니다.");
+        // 닉네임이 현재 닉네임과 다를 경우에만 중복 체크
+        String newNickname = artistRequest.getNickname();
+        if (newNickname != null && !newNickname.equals(artist.getNickname())) {
+            if (userRepository.existsByNickname(newNickname)) {
+                throw new ServiceException("이미 사용 중인 닉네임입니다.");
+            }
+            artist.changeNickname(newNickname);
         }
 
         // 프로필 이미지 처리
         if (profileImage != null && !profileImage.isEmpty()) {
-
-            // 기존 이미지 삭제
             fileService.deleteFile(artist.getImgUrl());
-
-            // 새 이미지 업로드 및 반영
             String newImgUrl = fileService.uploadFile(profileImage, folderName).getUploadFileUrl();
             artist.changeImgUrl(newImgUrl);
         }
 
-        // 프로필 정보 수정
-        artist.updateArtistProfile(
-                artistRequest.getNickname(),
-                artistRequest.getAboutMe(),
-                artistRequest.getHomeLink(),
-                artistRequest.getSnsLinks()
-        );
+        // 나머지 필드는 무조건 업데이트 (값이 null일 수 없다는 전제)
+        artist.changeAboutMe(artistRequest.getAboutMe());
+        artist.changeHomeLink(artistRequest.getHomeLink());
+        artist.changeSnsLinks(artistRequest.getSnsLinks());
 
         return ArtistDetailInfoResponse.from(artist, false);
     }
-
-
-
-
-
-
-
 
 }
