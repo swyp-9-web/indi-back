@@ -44,7 +44,11 @@ public class ItemServiceImpl implements ItemService {
         User user = userRepository.findByOauthId(authUser.getOauthId())
                 .orElseThrow(() -> new BusinessExceptionHandler("유저가 존재하지 않습니다.", ErrorCode.NOT_FOUND_ERROR));
 
-        List<String> imgUrls = fileService.uploadFiles(multipartFiles, folderName);
+        // 이미지 이름 검증
+        List<String> imageOrder = request.getImageOrder();
+        validateFileSizeAndNameMatch(multipartFiles, imageOrder);
+
+        List<String> imgUrls = uploadNewImagesInOrderWithRollback(multipartFiles, imageOrder);
 
         ItemCreateRequest.ItemSize requestSize = request.getSize();
         SizeType sizeType = calculateSizeType(requestSize.getWidth(), requestSize.getHeight(), requestSize.getDepth());
@@ -87,10 +91,10 @@ public class ItemServiceImpl implements ItemService {
         }
 
         // 이미지 요소 검증 및 imgUrls 반환, 사용하지 않는 사진은 삭제
-        List<String> orderedList = request.getImageOrder();
-        validateFileSizeAndNameMatch(multipartFiles, orderedList);
+        List<String> imageOrder = request.getImageOrder();
+        validateFileSizeAndNameMatch(multipartFiles, imageOrder);
 
-        List<String> updatedImageUrls = uploadNewImagesInOrderWithRollback(multipartFiles, orderedList);
+        List<String> updatedImageUrls = uploadNewImagesInOrderWithRollback(multipartFiles, imageOrder);
 
         deleteRemovedImages(item.getImgUrls(), updatedImageUrls);
 
@@ -144,17 +148,17 @@ public class ItemServiceImpl implements ItemService {
     }
 
     /**
-     * [수정 API] 파일 이름 및 개수 유효성 검증
+     * [등록, 수정 API] 파일 이름 및 개수 유효성 검증
      * <p>
-     * orderedList로 부터 새로 추가될 이미지 리스트와 multipartFiles로부터 새로 추가될 이미지의 실제 이름 리스트를 비교한다.
+     * imageOrder로부터 새로 추가될 이미지 리스트와 multipartFiles로부터 새로 추가될 이미지의 실제 이름 리스트를 비교한다.
      * 두 리스트의 사이즈를 비교하고 실제 이름을 비교한다.
      *
      * @param multipartFiles
-     * @param orderedList    사용자가 새로 정렬한 사진 순서
+     * @param imageOrder     사용자가 새로 정렬한 사진 순서
      */
-    private static void validateFileSizeAndNameMatch(List<MultipartFile> multipartFiles, List<String> orderedList) {
+    private static void validateFileSizeAndNameMatch(List<MultipartFile> multipartFiles, List<String> imageOrder) {
 
-        List<String> expectedNewImageNames = orderedList.stream()
+        List<String> expectedNewImageNames = imageOrder.stream()
                 .filter(name -> !name.startsWith("https"))
                 .toList();
 
@@ -171,25 +175,25 @@ public class ItemServiceImpl implements ItemService {
 
         for (int i = 0; i < expectedNewImageNames.size(); i++) {
             if (!expectedNewImageNames.get(i).equals(actualUploadedFileNames.get(i))) {
-                throw new BusinessExceptionHandler("파일 이름 불일치: orderedList에 있는 사진 이름은 " +
+                throw new BusinessExceptionHandler("파일 이름 불일치: imageOrder 있는 사진 이름은 " +
                         expectedNewImageNames.get(i) + " 이지만, multipartfile에는 " + actualUploadedFileNames.get(i) + " 이 전송되었습니다.", ErrorCode.BAD_REQUEST_ERROR);
             }
         }
     }
 
     /**
-     * [수정 API] 순서대로 새 이미지를 업로드하고 실패 시 롤백까지 수행한다.
+     * [등록, 수정 API] 순서대로 새 이미지를 업로드하고 실패 시 롤백까지 수행한다.
      *
      * @param multipartFiles 새 이미지 정보
-     * @param orderedList    사용자가 원하는 이미지 순서
+     * @param imageOrder     사용자가 원하는 이미지 순서
      * @return DB에 업데이트할 새로운 imgUrls
      */
-    private List<String> uploadNewImagesInOrderWithRollback(List<MultipartFile> multipartFiles, List<String> orderedList) {
+    private List<String> uploadNewImagesInOrderWithRollback(List<MultipartFile> multipartFiles, List<String> imageOrder) {
         List<String> finalImageUrls = new ArrayList<>();
         Iterator<MultipartFile> fileIterator = Optional.ofNullable(multipartFiles).orElse(Collections.emptyList()).iterator();
         List<String> uploadedKeys = new ArrayList<>();
 
-        for (String imageRef : orderedList) {
+        for (String imageRef : imageOrder) {
             if (imageRef.startsWith("https")) {
                 finalImageUrls.add(imageRef);
             } else {
