@@ -66,7 +66,6 @@ public class CommentController {
 
     /**
      * 댓글/대댓글 수정 API
-     * TODO: 기획- 답글이 달린 경우, 수정 불가능하게?
      */
     @PatchMapping("/{commentId}")
     @Operation(summary = "댓글/대댓글 수정")
