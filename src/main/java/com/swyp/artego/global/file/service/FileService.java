@@ -18,6 +18,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -78,6 +79,44 @@ public class FileService {
                 log.info("[FileService] #### 업로드된 파일 롤백 시작 ####");
                 deleteFiles(uploadedKeys);
                 throw e; // 단일 업로드에서도 이미 비즈니스 예외로 변환했기 때문에 그대로 던짐
+            }
+        }
+        return fileUrls;
+    }
+
+    /**
+     * [Item 등록, 수정 API] 순서대로 새 이미지를 업로드하고 실패 시 롤백까지 수행한다.
+     *
+     * @param multipartFiles 새 이미지 정보
+     * @param imageOrder     사용자가 원하는 이미지 순서
+     * @return DB에 업데이트할 새로운 imgUrls
+     */
+    public List<String> uploadNewFilesInOrder(List<MultipartFile> multipartFiles, List<String> imageOrder, String folderName) {
+        validateFilesExtension(multipartFiles);
+
+        List<String> fileUrls = new ArrayList<>();
+        List<String> uploadedKeys = new ArrayList<>();
+
+        Map<String, MultipartFile> fileMap = Optional.ofNullable(multipartFiles)
+                .orElse(Collections.emptyList())
+                .stream()
+                .collect(Collectors.toMap(MultipartFile::getOriginalFilename, file -> file));
+
+        for (String imageRef : imageOrder) {
+            if (imageRef.startsWith("https")) {
+                fileUrls.add(imageRef);
+            } else {
+                MultipartFile file = fileMap.get(imageRef);
+                FileUploadResponseExample response;
+                try {
+                    String key = uploadSingleFile(file, folderName);
+                    uploadedKeys.add(key);
+                    fileUrls.add(endPoint + "/" + bucketName + "/" + key);
+                } catch (BusinessExceptionHandler e) {
+                    log.info("[ItemService] #### 업로드된 파일 롤백 시작 ####");
+                    deleteFiles(uploadedKeys);
+                    throw e;
+                }
             }
         }
         return fileUrls;
@@ -185,17 +224,13 @@ public class FileService {
             Optional.ofNullable(multipartFile.getOriginalFilename())
                     .filter(name -> name.contains("."))
                     .orElseThrow(() -> new BusinessExceptionHandler(
-                            "올바르지 않은 파일입니다. 파일명 혹은 파일 확장자를 확인해주세요.", ErrorCode.INVALID_FILE
-                    ));
-
-//            String ext = originalFileName.substring(originalFileName.lastIndexOf('.') + 1).toLowerCase();
+                            "올바르지 않은 파일입니다. 파일명 혹은 파일 확장자를 확인해주세요.", ErrorCode.INVALID_FILE));
 
             String contentType = multipartFile.getContentType();
             if (!IMAGE_CONTENT_TYPES.contains(contentType)) {
                 throw new BusinessExceptionHandler(
                         "지원하지 않는 파일 타입입니다. 현재 지원하는 타입: " + String.join(", ", IMAGE_CONTENT_TYPES),
-                        ErrorCode.INVALID_FILE
-                );
+                        ErrorCode.INVALID_FILE);
             }
         }
     }

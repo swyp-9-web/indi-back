@@ -186,6 +186,29 @@ class FileServiceTest {
         assertEquals(ErrorCode.IO_ERROR, exception.getErrorCode());
     }
 
+    /**
+     * [테스트] uploadNewFilesInOrder 메서드 - 파일 업로드 도중 IOException 발생 시 롤백 및 예외 처리 검증
+     * <p>
+     * 파일 업로드 과정에서 IOException이 발생하는 경우,
+     * 업로드된 파일들을 롤백(delete)한 후 BusinessExceptionHandler(IO_ERROR)를 발생시켜야 한다.
+     */
+    @Test
+    void uploadNewFilesInOrder_shouldRollbackAndThrowIOException_whenFileUploadFails() {
+        // given
+        mockMultipartFiles.add(new IOExceptionMultipartFile(
+                "files", "test-IOFail-image.jpg", "image/jpeg", "Fail Content".getBytes()));
+
+        List<String> imageOrder = List.of("test-image1.jpg", "test-image2.png", "test-IOFail-image.jpg");
+
+        // when + then
+        BusinessExceptionHandler exception = assertThrows(
+                BusinessExceptionHandler.class,
+                () -> fileService.uploadNewFilesInOrder(mockMultipartFiles, imageOrder, folderName)
+        );
+
+        assertEquals(ErrorCode.IO_ERROR, exception.getErrorCode());
+    }
+
     static class IOExceptionMultipartFile extends MockMultipartFile {
 
         public IOExceptionMultipartFile(String name, String originalFilename, String contentType, byte[] content) {
