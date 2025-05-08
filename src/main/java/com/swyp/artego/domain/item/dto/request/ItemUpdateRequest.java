@@ -4,12 +4,10 @@ import com.swyp.artego.domain.item.entity.Item;
 import com.swyp.artego.domain.item.enums.CategoryType;
 import com.swyp.artego.domain.item.enums.SizeType;
 import com.swyp.artego.domain.item.enums.StatusType;
-import com.swyp.artego.domain.user.entity.User;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -17,10 +15,8 @@ import java.util.List;
 
 @Getter
 @AllArgsConstructor
-@NoArgsConstructor
-@Builder
 @Schema(description = "이미지를 제외한 작품 정보")
-public class ItemCreateRequest {
+public class ItemUpdateRequest {
 
     @NotBlank
     @Size(max = 40)
@@ -30,7 +26,7 @@ public class ItemCreateRequest {
 
     @Valid
     @NotNull(message = "사이즈 정보는 필수입니다. 측정이 불가하다면 숫자 0을 작성해주세요.")
-    private ItemSize size;
+    private ItemCreateRequest.ItemSize size;
 
     @Size(max = 40)
     private String material;
@@ -44,7 +40,7 @@ public class ItemCreateRequest {
 
     private StatusType statusType;
 
-    // TODO: imageOrder 필드 추가, 관련 로직 추가
+    private List<String> orderedImageList; // TODO: imageOrder로 이름 변경
 
     @Getter
     @AllArgsConstructor
@@ -77,24 +73,20 @@ public class ItemCreateRequest {
         return isAllZero || isDepthZero || isAllPositive;
     }
 
-
     /**
-     * Item 엔티티로 변환하는 메서드
+     * Item 엔티티를 업데이트는 메서드
      */
-    public Item toEntity(User user, List<String> imgUrls, SizeType sizeType) {
-        return Item.builder()
-                .user(user)
-                .title(this.title)
-                .description(this.description)
-                .imgUrls(imgUrls)
-                .price(this.price)
-                .sizeType(sizeType)
-                .sizeWidth(this.size.getWidth())
-                .sizeHeight(this.size.getHeight())
-                .sizeDepth(this.size.getDepth())
-                .material(this.material)
-                .statusType(statusType != null ? statusType : StatusType.OPEN)
-                .categoryType(this.categoryType)
-                .build();
+    public void applyToEntity(Item item, List<String> imgUrls, SizeType sizeType) {
+        item.setTitle(this.title);
+        item.setDescription(this.description);
+        item.setImgUrls(imgUrls);
+        item.setPrice(this.price);
+        item.setSizeType(sizeType);
+        item.setSizeWidth(this.size.getWidth());
+        item.setSizeHeight(this.size.getHeight());
+        item.setSizeDepth(this.size.getDepth());
+        item.setMaterial(this.material);
+        item.setStatusType(this.statusType);
+        item.setCategoryType(this.categoryType);
     }
 }

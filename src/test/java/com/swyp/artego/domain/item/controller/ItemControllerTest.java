@@ -75,8 +75,9 @@ class ItemControllerTest {
 
     /**
      * 테스트 환경에서 javax.validation.Validator를 수동으로 빈 등록하기 위한 설정 클래스
-     *
+     * <p>
      * Multipart/form-data와 JSON을 함께 사용하는 경우,
+     *
      * @RequestPart로 전달된 DTO에 @Valid가 자동 적용되지 않는 이슈가 발생할 수 있으므로,
      * Validator를 직접 주입 받아 수동 검증을 수행하기 위해 사용한다.
      */
@@ -115,7 +116,7 @@ class ItemControllerTest {
         ItemCreateRequest request = ItemCreateRequest.builder()
                 .title("title")
                 .categoryType(CategoryType.TEXTILE_ART)
-                .size(new ItemCreateRequest.ItemSize(10,20,0))
+                .size(new ItemCreateRequest.ItemSize(10, 20, 0))
                 .material("material")
                 .description("description")
                 .price(10000)
@@ -125,7 +126,7 @@ class ItemControllerTest {
         ItemCreateResponse mockResponse = new ItemCreateResponse(1L); // 응답 객체 생성
 
         when(itemService.createItem(
-                Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any())
+                Mockito.any(), Mockito.any(), Mockito.any())
         ).thenReturn(mockResponse);
 
         MockMultipartFile requestPart = new MockMultipartFile(
@@ -150,13 +151,14 @@ class ItemControllerTest {
 
     /**
      * [예외 테스트] createItem - 이미지 파일이 최대 개수 초과 시 400 Bad Request를 반환하는지 검증
+     *
      * @throws Exception
      */
     @Test
     void createItem_shouldReturnBadRequest_whenTooManyImagesProvided() throws Exception {
         // given
         ItemCreateRequest request = ItemCreateRequest.builder()
-                .size(new ItemCreateRequest.ItemSize(0,20,30))
+                .size(new ItemCreateRequest.ItemSize(0, 20, 30))
                 .build();
 
         MockMultipartFile requestPart = new MockMultipartFile(
@@ -188,13 +190,14 @@ class ItemControllerTest {
 
     /**
      * [예외 테스트] createItem - 이미지 파트가 누락되었을 때 400 Bad Request 반환 여부 검증
+     *
      * @throws Exception
      */
     @Test
     void createItem_shouldReturnBadRequest_whenImagePartMissing() throws Exception {
         // given
         ItemCreateRequest request = ItemCreateRequest.builder()
-                .size(new ItemCreateRequest.ItemSize(0,20,30))
+                .size(new ItemCreateRequest.ItemSize(0, 20, 30))
                 .build();
 
         MockMultipartFile requestPart = new MockMultipartFile(
@@ -213,12 +216,12 @@ class ItemControllerTest {
 
     /**
      * [예외 테스트] createItem - 유효하지 않은 사이즈(ItemSize)가 주어진 경우 400 Bad Request 반환 여부 검증
-     *
+     * <p>
      * 잘못된 사이즈 조합 예:
-     *  - (0, 0, 30)
-     *  - (10, 0, 30)
-     *  - (10, -1, 30)
-     *  - (10, 0, 0)
+     * - (0, 0, 30)
+     * - (10, 0, 30)
+     * - (10, -1, 30)
+     * - (10, 0, 0)
      *
      * @throws Exception
      */

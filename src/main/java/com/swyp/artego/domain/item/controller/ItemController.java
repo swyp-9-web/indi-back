@@ -2,9 +2,8 @@ package com.swyp.artego.domain.item.controller;
 
 import com.swyp.artego.domain.item.dto.request.ItemCreateRequest;
 import com.swyp.artego.domain.item.dto.request.ItemSearchRequest;
-import com.swyp.artego.domain.item.dto.response.ItemCreateResponse;
-import com.swyp.artego.domain.item.dto.response.ItemInfoResponse;
-import com.swyp.artego.domain.item.dto.response.ItemSearchResultResponse;
+import com.swyp.artego.domain.item.dto.request.ItemUpdateRequest;
+import com.swyp.artego.domain.item.dto.response.*;
 import com.swyp.artego.domain.item.service.ItemService;
 import com.swyp.artego.global.auth.oauth.model.AuthUser;
 import com.swyp.artego.global.common.code.SuccessCode;
@@ -19,7 +18,6 @@ import jakarta.validation.Validator;
 import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -38,9 +36,6 @@ public class ItemController {
 
     private final ItemService itemService;
     private final Validator validator;
-
-    @Value("${ncp.storage.bucket.folder.item-post}")
-    private String folderName;
 
     /**
      * 작품 생성 API
@@ -65,7 +60,7 @@ public class ItemController {
             throw new ConstraintViolationException(violations);
         }
 
-        ItemCreateResponse res = itemService.createItem(user, request, multipartFiles, folderName);
+        ItemCreateResponse res = itemService.createItem(user, request, multipartFiles);
 
         ApiResponse ar = ApiResponse.builder()
                 .result(res)
@@ -74,6 +69,77 @@ public class ItemController {
                 .build();
 
         return new ResponseEntity<>(ar, HttpStatus.OK);
+    }
+
+    /**
+     * 작품 세부조회 API
+     */
+    @GetMapping(value = "/{itemId}")
+    @Operation(summary = "작품 세부조회")
+    public ResponseEntity<ApiResponse<ItemFindByItemIdResponse>> findItemByItemId(
+            @PathVariable Long itemId) {
+
+        ItemFindByItemIdResponse res = itemService.findItemByItemId(itemId);
+
+        return ResponseEntity.status(SuccessCode.SELECT_SUCCESS.getStatus())
+                .body(ApiResponse.<ItemFindByItemIdResponse>builder()
+                        .result(res)
+                        .resultCode(Integer.parseInt(SuccessCode.SELECT_SUCCESS.getCode()))
+                        .resultMessage(SuccessCode.SELECT_SUCCESS.getMessage())
+                        .build());
+    }
+
+    /**
+     * 작품 수정 API
+     */
+    @PatchMapping(value = "/{itemId}",
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(summary = "작품 수정")
+    public ResponseEntity<ApiResponse<ItemUpdateResponse>> updateItem(
+            @AuthenticationPrincipal AuthUser user,
+            @PathVariable Long itemId,
+            @RequestPart("request") ItemUpdateRequest request,
+
+            @Schema(description = "이미지 정보")
+            @Size(max = 8, message = "8개 이하만 업로드 가능합니다.")
+            @RequestPart(value = "images", required = false) List<MultipartFile> multipartFiles
+    ) {
+        /*
+        Request DTO 수동 검증
+        multipart/form-data + JSON 혼용 시 @RequestPart("request")에 @Valid가 자동 적용되지 않는 문제를 해결하기 위함
+         */
+        Set<ConstraintViolation<ItemUpdateRequest>> violations = validator.validate(request);
+        if (!violations.isEmpty()) {
+            throw new ConstraintViolationException(violations);
+        }
+
+        ItemUpdateResponse res = itemService.updateItem(user, itemId, request, multipartFiles);
+
+        return ResponseEntity.status(SuccessCode.UPDATE_SUCCESS.getStatus())
+                .body(ApiResponse.<ItemUpdateResponse>builder()
+                        .result(res)
+                        .resultCode(Integer.parseInt(SuccessCode.UPDATE_SUCCESS.getCode()))
+                        .resultMessage(SuccessCode.UPDATE_SUCCESS.getMessage())
+                        .build());
+    }
+
+    /**
+     * 작품 삭제 API
+     */
+    @DeleteMapping(value = "/{itemId}")
+    @Operation(summary = "작품 삭제", description = "작품을 삭제하는 메소드입니다. 참고: 실제 DB에서 삭제하는 건 아님")
+    public ResponseEntity<ApiResponse<ItemDeleteResponse>> deleteItem(
+            @AuthenticationPrincipal AuthUser user,
+            @PathVariable Long itemId) {
+
+        ItemDeleteResponse res = itemService.deleteItem(user, itemId);
+
+        return ResponseEntity.status(SuccessCode.DELETE_SUCCESS.getStatus())
+                .body(ApiResponse.<ItemDeleteResponse>builder()
+                        .result(res)
+                        .resultCode(Integer.parseInt(SuccessCode.DELETE_SUCCESS.getCode()))
+                        .resultMessage(SuccessCode.DELETE_SUCCESS.getMessage())
+                        .build());
     }
 
 
