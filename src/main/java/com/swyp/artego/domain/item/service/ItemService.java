@@ -23,6 +23,14 @@ public interface ItemService {
     ItemCreateResponse createItem(AuthUser authUser, ItemCreateRequest request, List<MultipartFile> multipartFiles);
 
     /**
+     * 작품의 세부 정보를 조회한다.
+     *
+     * @param itemId 작품의 id
+     * @return
+     */
+    ItemFindByItemIdResponse findItemByItemId(Long itemId);
+
+    /**
      * 작품을 수정한다.
      *
      * @param authUser 수정을 시도하는 사용자

@@ -3,10 +3,7 @@ package com.swyp.artego.domain.item.controller;
 import com.swyp.artego.domain.item.dto.request.ItemCreateRequest;
 import com.swyp.artego.domain.item.dto.request.ItemSearchRequest;
 import com.swyp.artego.domain.item.dto.request.ItemUpdateRequest;
-import com.swyp.artego.domain.item.dto.response.ItemCreateResponse;
-import com.swyp.artego.domain.item.dto.response.ItemDeleteResponse;
-import com.swyp.artego.domain.item.dto.response.ItemSearchResultResponse;
-import com.swyp.artego.domain.item.dto.response.ItemUpdateResponse;
+import com.swyp.artego.domain.item.dto.response.*;
 import com.swyp.artego.domain.item.service.ItemService;
 import com.swyp.artego.global.auth.oauth.model.AuthUser;
 import com.swyp.artego.global.common.code.SuccessCode;
@@ -72,6 +69,24 @@ public class ItemController {
                 .build();
 
         return new ResponseEntity<>(ar, HttpStatus.OK);
+    }
+
+    /**
+     * 작품 세부조회 API
+     */
+    @GetMapping(value = "/{itemId}")
+    @Operation(summary = "작품 세부조회")
+    public ResponseEntity<ApiResponse<ItemFindByItemIdResponse>> findItemByItemId(
+            @PathVariable Long itemId) {
+
+        ItemFindByItemIdResponse res = itemService.findItemByItemId(itemId);
+
+        return ResponseEntity.status(SuccessCode.SELECT_SUCCESS.getStatus())
+                .body(ApiResponse.<ItemFindByItemIdResponse>builder()
+                        .result(res)
+                        .resultCode(Integer.parseInt(SuccessCode.SELECT_SUCCESS.getCode()))
+                        .resultMessage(SuccessCode.SELECT_SUCCESS.getMessage())
+                        .build());
     }
 
     /**

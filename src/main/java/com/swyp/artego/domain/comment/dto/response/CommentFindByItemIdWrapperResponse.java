@@ -10,6 +10,7 @@ import java.util.List;
 @Getter
 @Builder
 public class CommentFindByItemIdWrapperResponse {
+    // TODO: 댓글 총 개수 필드 추가
     private CommentFindByItemIdResponse.UserInfo creator;
     private List<CommentFindByItemIdResponse> comments;
 

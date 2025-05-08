@@ -57,17 +57,20 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     @Transactional(readOnly = true)
+    public ItemFindByItemIdResponse findItemByItemId(Long itemId) {
+        Item item = itemRepository.findById(itemId)
+                .orElseThrow(() -> new BusinessExceptionHandler("작품이 존재하지 않습니다.", ErrorCode.NOT_FOUND_ERROR));
+
+        return ItemFindByItemIdResponse.fromEntity(item);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public List<ItemInfoResponse> getAllItems() {
         return itemRepository.findAllByOrderByCreatedAtDesc()
                 .stream()
                 .map(ItemInfoResponse::fromEntity)
                 .collect(Collectors.toList());
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public ItemSearchResultResponse searchItems(AuthUser authUser, ItemSearchRequest request) {
-        return itemRepository.searchItems(authUser, request);
     }
 
     @Override
@@ -115,6 +118,12 @@ public class ItemServiceImpl implements ItemService {
         item.setStatusType(StatusType.HIDE);
 
         return ItemDeleteResponse.fromEntity(item);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public ItemSearchResultResponse searchItems(AuthUser authUser, ItemSearchRequest request) {
+        return itemRepository.searchItems(authUser, request);
     }
 
     /**

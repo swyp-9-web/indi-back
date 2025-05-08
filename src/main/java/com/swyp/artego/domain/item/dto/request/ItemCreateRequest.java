@@ -44,6 +44,8 @@ public class ItemCreateRequest {
 
     private StatusType statusType;
 
+    // TODO: imageOrder 필드 추가, 관련 로직 추가
+
     @Getter
     @AllArgsConstructor
     @NoArgsConstructor
