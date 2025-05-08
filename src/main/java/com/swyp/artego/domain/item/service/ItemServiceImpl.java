@@ -9,6 +9,7 @@ import com.swyp.artego.domain.item.enums.SizeType;
 import com.swyp.artego.domain.item.enums.StatusType;
 import com.swyp.artego.domain.item.repository.ItemRepository;
 import com.swyp.artego.domain.user.entity.User;
+import com.swyp.artego.domain.user.enums.Role;
 import com.swyp.artego.domain.user.repository.UserRepository;
 import com.swyp.artego.global.auth.oauth.model.AuthUser;
 import com.swyp.artego.global.common.code.ErrorCode;
@@ -42,6 +43,10 @@ public class ItemServiceImpl implements ItemService {
     public ItemCreateResponse createItem(AuthUser authUser, ItemCreateRequest request, List<MultipartFile> multipartFiles) {
         User user = userRepository.findByOauthId(authUser.getOauthId())
                 .orElseThrow(() -> new BusinessExceptionHandler("유저가 존재하지 않습니다.", ErrorCode.NOT_FOUND_ERROR));
+
+        if (user.getRole() != Role.ARTIST) {
+            throw new BusinessExceptionHandler("작품을 등록할 권한이 없습니다.", ErrorCode.FORBIDDEN_ERROR);
+        }
 
         List<String> imageOrder = request.getImageOrder();
         validateFileSizeAndNameMatch(multipartFiles, imageOrder);
