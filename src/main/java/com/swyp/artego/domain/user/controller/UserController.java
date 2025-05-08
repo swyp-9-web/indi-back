@@ -1,8 +1,8 @@
 package com.swyp.artego.domain.user.controller;
 
-import com.swyp.artego.domain.user.dto.request.UserCreateRequest;
+
+import com.swyp.artego.domain.user.dto.request.ArtistUpdateRequest;
 import com.swyp.artego.domain.user.dto.response.ArtistDetailInfoResponse;
-import com.swyp.artego.domain.user.dto.response.UserInfoResponse;
 import com.swyp.artego.domain.user.dto.response.UserInfoSimpleResponse;
 import com.swyp.artego.domain.user.service.UserService;
 import com.swyp.artego.global.auth.oauth.model.AuthUser;
@@ -11,11 +11,12 @@ import com.swyp.artego.global.common.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
-import java.util.List;
 
 @Tag(name = "User", description = "유저 관련 API")
 @RestController
@@ -58,6 +59,45 @@ public class UserController {
                         .build()
         );
     }
+
+    @Operation(summary = "닉네임 중복 여부 확인", description = "입력한 닉네임이 이미 사용 중인지 여부를 확인합니다.")
+    @GetMapping("/check-nickname")
+    public ResponseEntity<ApiResponse<Boolean>> checkNicknameDuplicate(
+            @RequestParam String nickname
+    ) {
+        boolean isDuplicated = userService.isNicknameDuplicated(nickname);
+
+        return ResponseEntity.ok(
+                ApiResponse.<Boolean>builder()
+                        .result(isDuplicated)
+                        .resultCode(Integer.parseInt(SuccessCode.SELECT_SUCCESS.getCode()))
+                        .resultMessage(SuccessCode.SELECT_SUCCESS.getMessage())
+                        .build()
+        );
+    }
+
+
+    @Operation(summary = "작가 프로필 수정", description = "닉네임, 소개, 프로필 이미지 등을 수정합니다.")
+    @PatchMapping(value = "/artist/profile", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<ApiResponse<ArtistDetailInfoResponse>> updateArtistProfile(
+            @AuthenticationPrincipal AuthUser authUser,
+            @RequestPart ArtistUpdateRequest request,
+            @RequestPart(required = false) MultipartFile profileImage
+    ) {
+        ArtistDetailInfoResponse response = userService.updateArtistProfile(authUser, request, profileImage);
+
+        return ResponseEntity.ok(
+                ApiResponse.<ArtistDetailInfoResponse>builder()
+                        .result(response)
+                        .resultCode(Integer.parseInt(SuccessCode.UPDATE_SUCCESS.getCode()))
+                        .resultMessage(SuccessCode.UPDATE_SUCCESS.getMessage())
+                        .build()
+        );
+    }
+
+
+
+
 
 
 
