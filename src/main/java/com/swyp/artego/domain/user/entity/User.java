@@ -7,6 +7,7 @@ import com.swyp.artego.global.converter.StringListConverter;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -46,16 +47,16 @@ public class User extends BaseTimeEntity {
 
 
     @Column(name = "artist_home_sns_info")
-    private String artistHomeSnsInfo; // 개인 홈페이지용
+    private String artistHomeSnsInfo = ""; // 개인 홈페이지용
 
 
     @Convert(converter = StringListConverter.class)
     @Column(name = "artist_sns_info")
     // '종류_링크' 형식으로 저장. 예시) insta_https://blahblah, youtube_https://blahblah
-    private List<String> artistSnsInfo; // Nullable
+    private List<String> artistSnsInfo = new ArrayList<>(); // Nullable
 
     @Column(name = "artist_about_me")
-    private String artistAboutMe; // Nullable // 자기소개
+    private String artistAboutMe = ""; // Nullable // 자기소개
 
     @Convert(converter = BooleanToYNConverter.class)
     @Column(name = "banned", length = 1, nullable = false)
@@ -98,6 +99,11 @@ public class User extends BaseTimeEntity {
         this.role = role;
     }
 
+    public void changeNickname(String nickname) { this.nickname = nickname; }
+    public void changeAboutMe(String aboutMe) { this.artistAboutMe = aboutMe; }
+    public void changeHomeLink(String homeLink) { this.artistHomeSnsInfo = homeLink; }
+    public void changeSnsLinks(List<String> snsLinks) { this.artistSnsInfo = snsLinks; }
+
     public void setItemCount(int itemCount) {
         this.itemCount = itemCount;
     }
@@ -111,12 +117,8 @@ public class User extends BaseTimeEntity {
         this.followerCount = followerCount;
     }
 
-    public void updateArtistProfile(String nickname, String aboutMe, String homeLink, List<String> snsLinks) {
-        this.nickname = nickname;
-        this.artistAboutMe = aboutMe;
-        this.artistHomeSnsInfo = homeLink;
-        this.artistSnsInfo = snsLinks;
-    }
+
+
 }
 
 
