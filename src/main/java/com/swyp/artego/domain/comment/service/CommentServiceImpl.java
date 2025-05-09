@@ -2,10 +2,7 @@ package com.swyp.artego.domain.comment.service;
 
 import com.swyp.artego.domain.comment.dto.request.CommentCreateRequest;
 import com.swyp.artego.domain.comment.dto.request.CommentUpdateRequest;
-import com.swyp.artego.domain.comment.dto.response.CommentCreateResponse;
-import com.swyp.artego.domain.comment.dto.response.CommentDeleteResponse;
-import com.swyp.artego.domain.comment.dto.response.CommentFindByItemIdWrapperResponse;
-import com.swyp.artego.domain.comment.dto.response.CommentUpdateResponse;
+import com.swyp.artego.domain.comment.dto.response.*;
 import com.swyp.artego.domain.comment.entity.Comment;
 import com.swyp.artego.domain.comment.repository.CommentRepository;
 import com.swyp.artego.domain.item.entity.Item;
@@ -63,6 +60,14 @@ public class CommentServiceImpl implements CommentService {
 
         return CommentFindByItemIdWrapperResponse.from(item.getUser(), comments);
     }
+
+
+    @Override
+    @Transactional(readOnly = true)
+    public MyCommentActivityResultResponse getMyCommentActivities(AuthUser user, int page, int limit) {
+        return commentRepository.findMyCommentActivity(user, page, limit);
+    }
+
 
     @Override
     @Transactional
@@ -129,4 +134,6 @@ public class CommentServiceImpl implements CommentService {
             throw new BusinessExceptionHandler("대댓글 작성 권한이 없습니다.", ErrorCode.FORBIDDEN_ERROR);
         }
     }
+
+
 }

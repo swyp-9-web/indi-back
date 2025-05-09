@@ -2,10 +2,7 @@ package com.swyp.artego.domain.comment.service;
 
 import com.swyp.artego.domain.comment.dto.request.CommentCreateRequest;
 import com.swyp.artego.domain.comment.dto.request.CommentUpdateRequest;
-import com.swyp.artego.domain.comment.dto.response.CommentCreateResponse;
-import com.swyp.artego.domain.comment.dto.response.CommentDeleteResponse;
-import com.swyp.artego.domain.comment.dto.response.CommentFindByItemIdWrapperResponse;
-import com.swyp.artego.domain.comment.dto.response.CommentUpdateResponse;
+import com.swyp.artego.domain.comment.dto.response.*;
 import com.swyp.artego.global.auth.oauth.model.AuthUser;
 
 public interface CommentService {
@@ -26,6 +23,12 @@ public interface CommentService {
      * @return CommentFindByItemIdWrapperResponse
      */
     CommentFindByItemIdWrapperResponse getCommentsByItemId(Long itemId);
+
+
+    /**
+     * 유저 페이지 댓글 목록 (최신순)
+     */
+    MyCommentActivityResultResponse getMyCommentActivities(AuthUser user, int page, int limit);
 
     /**
      * 댓글/대댓글 수정

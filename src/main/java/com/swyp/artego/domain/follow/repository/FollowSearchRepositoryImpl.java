@@ -29,8 +29,8 @@ public class FollowSearchRepositoryImpl implements FollowSearchRepository {
 
     @Override
     public FollowedArtistsResponse findFollowedArtistsWithItems(Long userId, Integer page, Integer size) {
-        if (userId == null || page == null || size == null) {
-            throw new IllegalArgumentException("userId, page, size는 null일 수 없습니다.");
+        if (userId== null) {
+            throw new IllegalArgumentException("로그인한 유저만 사용 가능합니다.");
         }
 
         QFollow follow = QFollow.follow;
