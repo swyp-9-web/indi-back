@@ -75,7 +75,7 @@ public class DummyAuthController {
         // 5. 응답
         return ResponseEntity.status(SuccessCode.INSERT_SUCCESS.getStatus())
                 .body(ApiResponse.<String>builder()
-                        .result(oauthId)
+                        .result(session.getId())
                         .resultCode(Integer.parseInt(SuccessCode.INSERT_SUCCESS.getCode()))
                         .resultMessage("더미 유저 로그인 성공 (" + role.name() + ")")
                         .build());
