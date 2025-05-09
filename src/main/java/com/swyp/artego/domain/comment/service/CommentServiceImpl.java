@@ -56,9 +56,9 @@ public class CommentServiceImpl implements CommentService {
         Item item = itemRepository.findById(itemId)
                 .orElseThrow(() -> new BusinessExceptionHandler("존재하지 않는 작품입니다.", ErrorCode.NOT_FOUND_ERROR));
 
-        List<Comment> flatList = commentRepository.findByItemIdOrderByCreatedAtDesc(itemId);
+        List<Comment> comments = commentRepository.findByItemIdOrderByCreatedAtDesc(itemId);
 
-        return CommentFindByItemIdWrapperResponse.from(item.getUser(), flatList);
+        return CommentFindByItemIdWrapperResponse.from(item.getUser(), comments);
     }
 
     @Override
