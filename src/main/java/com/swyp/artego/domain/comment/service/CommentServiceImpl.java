@@ -39,11 +39,13 @@ public class CommentServiceImpl implements CommentService {
         Item item = itemRepository.findById(request.getItemId())
                 .orElseThrow(() -> new BusinessExceptionHandler("작품이 존재하지 않습니다.", ErrorCode.NOT_FOUND_ERROR));
 
-        // parentComment 가 존재하면 대댓글 작성 요청임
-        // TODO: 존재하지 않는 ParentID 면 예외 발생. 현재는 null로 저장됨.
-        Comment parentComment = commentRepository.findById(request.getParentCommentId()).orElse(null);
-        if (parentComment != null) {
-            validateReplyCommentPermission(user, parentComment, item);
+        Comment parentComment = null;
+        if (request.getParentCommentId() != null) {
+            parentComment = commentRepository.findById(request.getParentCommentId())
+                    .orElseThrow(() -> new BusinessExceptionHandler("존재하지 않는 parentId 입니다.", ErrorCode.NOT_FOUND_ERROR));
+            if (parentComment != null) {
+                validateReplyCommentPermission(user, parentComment, item);
+            }
         }
 
         return CommentCreateResponse.fromEntity(
