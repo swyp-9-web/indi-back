@@ -43,6 +43,7 @@ public class ItemFindByItemIdResponse {
     @Builder
     public static class Artist {
         private String name;
+        private String profileImgUrl;
         private String description;
     }
 
@@ -83,6 +84,7 @@ public class ItemFindByItemIdResponse {
                 .artist(
                         Artist.builder()
                                 .name(artist.getName())
+                                .profileImgUrl(artist.getImgUrl())
                                 .description(artist.getArtistAboutMe())
                                 .build()
                 )
