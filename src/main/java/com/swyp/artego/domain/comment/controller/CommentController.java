@@ -2,10 +2,7 @@ package com.swyp.artego.domain.comment.controller;
 
 import com.swyp.artego.domain.comment.dto.request.CommentCreateRequest;
 import com.swyp.artego.domain.comment.dto.request.CommentUpdateRequest;
-import com.swyp.artego.domain.comment.dto.response.CommentCreateResponse;
-import com.swyp.artego.domain.comment.dto.response.CommentDeleteResponse;
-import com.swyp.artego.domain.comment.dto.response.CommentFindByItemIdWrapperResponse;
-import com.swyp.artego.domain.comment.dto.response.CommentUpdateResponse;
+import com.swyp.artego.domain.comment.dto.response.*;
 import com.swyp.artego.domain.comment.service.CommentService;
 import com.swyp.artego.global.auth.oauth.model.AuthUser;
 import com.swyp.artego.global.common.code.SuccessCode;
@@ -63,6 +60,24 @@ public class CommentController {
                         .resultMessage(SuccessCode.SELECT_SUCCESS.getMessage())
                         .build());
     }
+
+    @GetMapping("/my-activities")
+    @Operation(summary = "내가 작성한 댓글 기반 활동 목록 조회 (작품별 최신 댓글 + 작가 대댓글 포함)")
+    public ResponseEntity<ApiResponse<MyCommentActivityResultResponse>> getMyCommentActivities(
+            @AuthenticationPrincipal AuthUser user,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int limit) {
+
+        MyCommentActivityResultResponse result = commentService.getMyCommentActivities(user, page, limit);
+
+        return ResponseEntity.status(SuccessCode.SELECT_SUCCESS.getStatus())
+                .body(ApiResponse.<MyCommentActivityResultResponse>builder()
+                        .result(result)
+                        .resultCode(Integer.parseInt(SuccessCode.SELECT_SUCCESS.getCode()))
+                        .resultMessage(SuccessCode.SELECT_SUCCESS.getMessage())
+                        .build());
+    }
+
 
     /**
      * 댓글/대댓글 수정 API
