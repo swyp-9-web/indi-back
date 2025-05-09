@@ -38,7 +38,7 @@ public class CommentFindByItemIdResponse {
         private Long writerId;
         private String comment;
         private boolean secret;
-
+        private boolean deleted;
 
         private LocalDateTime createdAt;
     }
@@ -81,6 +81,7 @@ public class CommentFindByItemIdResponse {
                             .writerId(reply.getUser().getId())
                             .comment(reply.getComment())
                             .secret(reply.isSecret())
+                            .deleted(reply.isDeleted())
                             .createdAt(reply.getCreatedAt())
                             .build())
                     .toList();
@@ -96,6 +97,7 @@ public class CommentFindByItemIdResponse {
                             .writerId(parent.getUser().getId())
                             .comment(parent.getComment())
                             .secret(parent.isSecret())
+                            .deleted(parent.isDeleted())
                             .createdAt(parent.getCreatedAt())
                             .build())
                     .replies(replyResponses.isEmpty() ? null : replyResponses)

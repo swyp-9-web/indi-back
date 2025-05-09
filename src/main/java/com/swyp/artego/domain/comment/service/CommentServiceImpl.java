@@ -40,6 +40,7 @@ public class CommentServiceImpl implements CommentService {
                 .orElseThrow(() -> new BusinessExceptionHandler("작품이 존재하지 않습니다.", ErrorCode.NOT_FOUND_ERROR));
 
         // parentComment 가 존재하면 대댓글 작성 요청임
+        // TODO: 존재하지 않는 ParentID 면 예외 발생. 현재는 null로 저장됨.
         Comment parentComment = commentRepository.findById(request.getParentCommentId()).orElse(null);
         if (parentComment != null) {
             validateReplyCommentPermission(user, parentComment, item);
@@ -59,24 +60,6 @@ public class CommentServiceImpl implements CommentService {
         List<Comment> comments = commentRepository.findByItemIdOrderByCreatedAtDesc(itemId);
 
         return CommentFindByItemIdWrapperResponse.from(item.getUser(), comments);
-    }
-
-    @Override
-    @Transactional
-    public CommentDeleteResponse deleteComment(AuthUser authUser, Long commentId) {
-        User user = userRepository.findByOauthId(authUser.getOauthId())
-                .orElseThrow(() -> new BusinessExceptionHandler("유저가 존재하지 않습니다.", ErrorCode.NOT_FOUND_ERROR));
-
-        Comment comment = commentRepository.findById(commentId)
-                .orElseThrow(() -> new BusinessExceptionHandler("존재하지 않는 댓글입니다.", ErrorCode.NOT_FOUND_ERROR));
-
-        if (!comment.getUser().getId().equals(user.getId())) {
-            throw new BusinessExceptionHandler("댓글을 삭제할 권한이 없습니다.", ErrorCode.FORBIDDEN_ERROR);
-        }
-
-        commentRepository.delete(comment);
-
-        return CommentDeleteResponse.from(commentId);
     }
 
     @Override
@@ -101,6 +84,30 @@ public class CommentServiceImpl implements CommentService {
         }
 
         return CommentUpdateResponse.fromEntity(comment);
+    }
+
+    @Override
+    @Transactional
+    public CommentDeleteResponse deleteComment(AuthUser authUser, Long commentId) {
+        User user = userRepository.findByOauthId(authUser.getOauthId())
+                .orElseThrow(() -> new BusinessExceptionHandler("유저가 존재하지 않습니다.", ErrorCode.NOT_FOUND_ERROR));
+
+        Comment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new BusinessExceptionHandler("존재하지 않는 댓글입니다.", ErrorCode.NOT_FOUND_ERROR));
+
+        if (!comment.getUser().getId().equals(user.getId())) {
+            throw new BusinessExceptionHandler("댓글을 삭제할 권한이 없습니다.", ErrorCode.FORBIDDEN_ERROR);
+        }
+
+        // commentId를 parentId로 갖는 댓글이 있으면 실제 삭제 불가능.
+        if (commentRepository.findByParentId(commentId) == null) {
+            commentRepository.delete(comment);
+        } else {
+            comment.setDeleted(true);
+            comment.setComment("삭제된 댓글입니다.");
+        }
+
+        return CommentDeleteResponse.from(commentId);
     }
 
     /**
