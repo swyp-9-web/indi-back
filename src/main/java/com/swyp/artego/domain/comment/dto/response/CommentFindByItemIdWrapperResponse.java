@@ -14,15 +14,15 @@ public class CommentFindByItemIdWrapperResponse {
     private CommentFindByItemIdResponse.UserInfo creator;
     private List<CommentFindByItemIdResponse> comments;
 
-    public static CommentFindByItemIdWrapperResponse from(User creator, List<Comment> flatList) {
+    public static CommentFindByItemIdWrapperResponse from(User creator, List<Comment> comments) {
         return CommentFindByItemIdWrapperResponse.builder()
-                .totalCount(flatList.size())
+                .totalCount(comments.size())
                 .creator(CommentFindByItemIdResponse.UserInfo.builder()
                         .id(creator.getId())
                         .name(creator.getName())
                         .imgUrl(creator.getImgUrl())
                         .build())
-                .comments(CommentFindByItemIdResponse.convertFlatToDepth1Tree(flatList))
+                .comments(CommentFindByItemIdResponse.convertFlatToDepth1Tree(comments))
                 .build();
     }
 }

@@ -28,15 +28,6 @@ public interface CommentService {
     CommentFindByItemIdWrapperResponse getCommentsByItemId(Long itemId);
 
     /**
-     * 댓글/대댓글 삭제
-     *
-     * @param user      댓글 삭제를 시도하는 유저
-     * @param commentId 삭제하려는 댓글의 id
-     * @return CommentDeleteResponse
-     */
-    CommentDeleteResponse deleteComment(AuthUser user, Long commentId);
-
-    /**
      * 댓글/대댓글 수정
      *
      * @param user      댓글 수정을 시도하는 유저
@@ -44,4 +35,13 @@ public interface CommentService {
      * @return CommentUpdateResponse
      */
     CommentUpdateResponse updateComment(AuthUser user, Long commentId, CommentUpdateRequest request);
+
+    /**
+     * 댓글/대댓글 삭제
+     *
+     * @param user      댓글 삭제를 시도하는 유저
+     * @param commentId 삭제하려는 댓글의 id
+     * @return CommentDeleteResponse
+     */
+    CommentDeleteResponse deleteComment(AuthUser user, Long commentId);
 }

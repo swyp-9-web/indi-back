@@ -22,11 +22,11 @@ public class Comment extends BaseTimeEntity {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name="user_id")
+    @JoinColumn(name = "user_id")
     private User user;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name="item_id")
+    @JoinColumn(name = "item_id")
     private Item item;
 
     @Setter
@@ -37,6 +37,11 @@ public class Comment extends BaseTimeEntity {
     @Convert(converter = BooleanToYNConverter.class)
     @Column(name = "secret", length = 1, nullable = false)
     private boolean secret;
+
+    @Setter
+    @Convert(converter = BooleanToYNConverter.class)
+    @Column(name = "deleted", length = 1, nullable = false)
+    private boolean deleted = false;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parent_id")
