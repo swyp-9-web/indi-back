@@ -2,10 +2,7 @@ package com.swyp.artego.global.file.service;
 
 import com.amazonaws.SdkClientException;
 import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.model.DeleteObjectsRequest;
-import com.amazonaws.services.s3.model.DeleteObjectsResult;
-import com.amazonaws.services.s3.model.MultiObjectDeleteException;
-import com.amazonaws.services.s3.model.ObjectMetadata;
+import com.amazonaws.services.s3.model.*;
 import com.swyp.artego.global.common.code.ErrorCode;
 import com.swyp.artego.global.excpetion.BusinessExceptionHandler;
 import com.swyp.artego.global.file.dto.response.FileUploadResponseExample;
@@ -192,7 +189,9 @@ public class FileService {
         objectMetadata.setContentType(multipartFile.getContentType());
 
         try (InputStream inputStream = multipartFile.getInputStream()) {
-            amazonS3.putObject(bucketName, key, inputStream, objectMetadata);
+            PutObjectRequest request = new PutObjectRequest(bucketName, key, inputStream, objectMetadata)
+                    .withCannedAcl(CannedAccessControlList.PublicRead);
+            amazonS3.putObject(request);
         } catch (IOException e) {
             log.error("[FileService] 파일 업로드 도중 오류 발생: {}", e.toString());
             throw new BusinessExceptionHandler("파일 업로드 도중 오류가 발생했습니다.", ErrorCode.IO_ERROR);
