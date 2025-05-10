@@ -2,6 +2,7 @@ package com.swyp.artego.domain.user.controller;
 
 
 import com.swyp.artego.domain.user.dto.request.ArtistUpdateRequest;
+import com.swyp.artego.domain.user.dto.request.UserUpdateRequest;
 import com.swyp.artego.domain.user.dto.response.ArtistDetailInfoResponse;
 import com.swyp.artego.domain.user.dto.response.UserInfoSimpleResponse;
 import com.swyp.artego.domain.user.service.UserService;
@@ -27,7 +28,7 @@ public class UserController {
     private final UserService userService;
 
 
-    @Operation(summary = "내 유저 정보 조회", description = "로그인한 유저의 간단한 정보를 반환합니다.")
+    @Operation(summary = "내 유저 정보 조회", description = "로그인한 유저의 정보를 반환합니다.")
     @GetMapping("/me")
     public ResponseEntity<ApiResponse<UserInfoSimpleResponse>> getMyUserInfo(
             @AuthenticationPrincipal AuthUser authUser) {
@@ -78,7 +79,7 @@ public class UserController {
 
 
     @Operation(summary = "작가 프로필 수정", description = "닉네임, 소개, 프로필 이미지 등을 수정합니다.")
-    @PatchMapping(value = "/artist/profile", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PatchMapping(value = "/profile/artist", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<ArtistDetailInfoResponse>> updateArtistProfile(
             @AuthenticationPrincipal AuthUser authUser,
             @RequestPart ArtistUpdateRequest request,
@@ -94,6 +95,27 @@ public class UserController {
                         .build()
         );
     }
+
+    @Operation(summary = "일반 유저 프로필 수정", description = "닉네임, 프로필 이미지 수정")
+    @PatchMapping(value = "/profile/user", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<ApiResponse<UserInfoSimpleResponse>> updateUserProfile(
+            @AuthenticationPrincipal AuthUser authUser,
+            @RequestPart UserUpdateRequest request,
+            @RequestPart(required = false) MultipartFile profileImage
+    ) {
+        UserInfoSimpleResponse response = userService.updateUserProfile(authUser, request, profileImage);
+
+        return ResponseEntity.ok(
+                ApiResponse.<UserInfoSimpleResponse>builder()
+                        .result(response)
+                        .resultCode(Integer.parseInt(SuccessCode.UPDATE_SUCCESS.getCode()))
+                        .resultMessage(SuccessCode.UPDATE_SUCCESS.getMessage())
+                        .build()
+        );
+    }
+
+
+
 
 
 

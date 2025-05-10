@@ -1,6 +1,5 @@
 package com.swyp.artego.domain.comment.dto.response;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -8,7 +7,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
-import java.util.List;
+
 
 @Getter
 @Builder
@@ -16,30 +15,50 @@ import java.util.List;
 @NoArgsConstructor
 public class MyCommentActivityResponse {
 
-    private Long itemId;
-    private String itemTitle;
-    private int itemPrice;
+    private ItemDTO item;
 
-    @JsonIgnore // 직렬화 대상에서 제외
-    private List<String> itemImgUrls;
-    private String artistNickname;
+    private CommentDTO myComment;
 
-    private CommentDto myComment;
-    private CommentDto artistReply;
+    private CommentDTO replyComment;
 
-    @JsonProperty("itemThumbnailUrl") // 프론트에는 이 필드로 노출됨
-    public String getItemThumbnailUrl() {
-        return itemImgUrls != null && !itemImgUrls.isEmpty() ? itemImgUrls.get(0) : null;
+    @Getter
+    @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class ItemDTO {
+        private Long id;
+        private String title;
+        private int price;
+        private ArtistDTO artist;
+        private String thumbnailImgUrl;
+
+        @Getter
+        @Builder
+        @AllArgsConstructor
+        @NoArgsConstructor
+        public static class ArtistDTO {
+            private Long id;
+            private String nickname;
+        }
     }
 
     @Getter
     @Builder
     @AllArgsConstructor
     @NoArgsConstructor
-    public static class CommentDto {
-        private Long commentId;
+    public static class CommentDTO {
+        private Long id;
         private String content;
         private LocalDateTime createdAt;
+        private UserDTO user;
+    }
+
+    @Getter
+    @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class UserDTO {
+        private Long id;
         private String nickname;
         private String profileImgUrl;
     }

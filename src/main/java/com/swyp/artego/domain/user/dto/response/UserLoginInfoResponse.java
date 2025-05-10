@@ -8,9 +8,9 @@ import lombok.*;
 @Getter
 @AllArgsConstructor
 @Builder
-public class UserInfoResponse {
+public class UserLoginInfoResponse {
 
-    @Schema(description = "유저 이름")
+    @Schema(description = "유저 닉네임")
     private String name;
 
     @Schema(description = "유저 이메일")
@@ -23,9 +23,9 @@ public class UserInfoResponse {
     /**
      * Entity -> DTO 변환 메서드
      */
-    public static UserInfoResponse fromEntity(User user) {
-        return UserInfoResponse.builder()
-                .name(user.getName())
+    public static UserLoginInfoResponse fromEntity(User user) {
+        return UserLoginInfoResponse.builder()
+                .name(user.getNickname())
                 .email(user.getEmail())
                 .telNumber(user.getTelNumber())
                 .build();

@@ -7,6 +7,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
@@ -18,6 +20,8 @@ public class UserInfoSimpleResponse {
     private String profileImgUrl;
     private String email;
     private Role role;
+    private String telNumber;
+    private LocalDateTime createdAt;
 
 
     public static UserInfoSimpleResponse fromEntity(User user) {
@@ -27,6 +31,8 @@ public class UserInfoSimpleResponse {
                 .email(user.getEmail())
                 .role(user.getRole())
                 .nickname(user.getNickname())
+                .createdAt(user.getCreatedAt())
+                .telNumber(user.getTelNumber())
                 .build();
     }
 

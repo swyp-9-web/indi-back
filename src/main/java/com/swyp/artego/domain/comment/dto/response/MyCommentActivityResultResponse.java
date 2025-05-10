@@ -13,6 +13,6 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class MyCommentActivityResultResponse {
-    private List<MyCommentActivityResponse> items;
+    private List<MyCommentActivityResponse> comments;
     private MetaResponse meta;
 }
