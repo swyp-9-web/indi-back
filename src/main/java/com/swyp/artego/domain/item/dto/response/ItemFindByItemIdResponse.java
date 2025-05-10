@@ -42,6 +42,7 @@ public class ItemFindByItemIdResponse {
     @AllArgsConstructor
     @Builder
     public static class Artist {
+        private Long id;
         private String name;
         private String profileImgUrl;
         private String description;
@@ -83,6 +84,7 @@ public class ItemFindByItemIdResponse {
                 .categoryType(item.getCategoryType())
                 .artist(
                         Artist.builder()
+                                .id(artist.getId())
                                 .name(artist.getName())
                                 .profileImgUrl(artist.getImgUrl())
                                 .description(artist.getArtistAboutMe())
