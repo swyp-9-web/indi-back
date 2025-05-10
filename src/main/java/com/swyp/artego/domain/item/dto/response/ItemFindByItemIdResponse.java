@@ -24,6 +24,7 @@ public class ItemFindByItemIdResponse {
     private String material;
     private CategoryType categoryType;
 
+    private Viewer viewer;
     private Artist artist;
     private Reaction reaction;
 
@@ -41,7 +42,16 @@ public class ItemFindByItemIdResponse {
     @Getter
     @AllArgsConstructor
     @Builder
+    public static class Viewer {
+        private Boolean isScrapped;
+        private Boolean isOwner;
+    }
+
+    @Getter
+    @AllArgsConstructor
+    @Builder
     public static class Artist {
+        private Long id;
         private String name;
         private String profileImgUrl;
         private String description;
@@ -58,7 +68,7 @@ public class ItemFindByItemIdResponse {
     }
 
 
-    public static ItemFindByItemIdResponse fromEntity(Item item) {
+    public static ItemFindByItemIdResponse fromEntity(Item item, Boolean isScrapped, boolean isOwner) {
         User artist = item.getUser();
 
         int likes = item.getLikeCount();
@@ -81,8 +91,15 @@ public class ItemFindByItemIdResponse {
                 )
                 .material(item.getMaterial())
                 .categoryType(item.getCategoryType())
+                .viewer(
+                        Viewer.builder()
+                                .isScrapped(isScrapped)
+                                .isOwner(isOwner)
+                                .build()
+                )
                 .artist(
                         Artist.builder()
+                                .id(artist.getId())
                                 .name(artist.getName())
                                 .profileImgUrl(artist.getImgUrl())
                                 .description(artist.getArtistAboutMe())

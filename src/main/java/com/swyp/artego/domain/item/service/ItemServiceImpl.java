@@ -8,6 +8,7 @@ import com.swyp.artego.domain.item.entity.Item;
 import com.swyp.artego.domain.item.enums.SizeType;
 import com.swyp.artego.domain.item.enums.StatusType;
 import com.swyp.artego.domain.item.repository.ItemRepository;
+import com.swyp.artego.domain.scrap.repository.ScrapRepository;
 import com.swyp.artego.domain.user.entity.User;
 import com.swyp.artego.domain.user.enums.Role;
 import com.swyp.artego.domain.user.repository.UserRepository;
@@ -32,6 +33,7 @@ public class ItemServiceImpl implements ItemService {
 
     private final ItemRepository itemRepository;
     private final UserRepository userRepository;
+    private final ScrapRepository scrapRepository;
 
     private final FileService fileService;
 
@@ -63,11 +65,24 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     @Transactional(readOnly = true)
-    public ItemFindByItemIdResponse findItemByItemId(Long itemId) {
+    public ItemFindByItemIdResponse findItemByItemId(AuthUser authUser, Long itemId) {
         Item item = itemRepository.findById(itemId)
                 .orElseThrow(() -> new BusinessExceptionHandler("작품이 존재하지 않습니다.", ErrorCode.NOT_FOUND_ERROR));
 
-        return ItemFindByItemIdResponse.fromEntity(item);
+        Boolean isScrapped = null;
+        boolean isOwner = false;
+        if (authUser != null) {
+            User user = userRepository.findByOauthId(authUser.getOauthId())
+                    .orElseThrow(() -> new BusinessExceptionHandler("유저가 존재하지 않습니다.", ErrorCode.NOT_FOUND_ERROR));
+
+            isScrapped = scrapRepository.existsByUserIdAndItemId(user.getId(), item.getId());
+
+            if (Objects.equals(item.getUser().getId(), user.getId())) {
+                isOwner = true;
+            }
+        }
+
+        return ItemFindByItemIdResponse.fromEntity(item, isScrapped, isOwner);
     }
 
     @Override
