@@ -70,14 +70,19 @@ public class ItemServiceImpl implements ItemService {
                 .orElseThrow(() -> new BusinessExceptionHandler("작품이 존재하지 않습니다.", ErrorCode.NOT_FOUND_ERROR));
 
         Boolean isScrapped = null;
+        boolean isOwner = false;
         if (authUser != null) {
             User user = userRepository.findByOauthId(authUser.getOauthId())
                     .orElseThrow(() -> new BusinessExceptionHandler("유저가 존재하지 않습니다.", ErrorCode.NOT_FOUND_ERROR));
 
             isScrapped = scrapRepository.existsByUserIdAndItemId(user.getId(), item.getId());
+
+            if (Objects.equals(item.getUser().getId(), user.getId())) {
+                isOwner = true;
+            }
         }
 
-        return ItemFindByItemIdResponse.fromEntity(item, isScrapped);
+        return ItemFindByItemIdResponse.fromEntity(item, isScrapped, isOwner);
     }
 
     @Override
