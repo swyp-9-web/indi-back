@@ -3,6 +3,7 @@ package com.swyp.artego.domain.user.service;
 
 import com.swyp.artego.domain.user.dto.request.ArtistUpdateRequest;
 import com.swyp.artego.domain.user.dto.request.UserCreateRequest;
+import com.swyp.artego.domain.user.dto.request.UserUpdateRequest;
 import com.swyp.artego.domain.user.dto.response.ArtistDetailInfoResponse;
 import com.swyp.artego.domain.user.dto.response.UserInfoSimpleResponse;
 import com.swyp.artego.global.auth.oauth.model.AuthUser;
@@ -52,6 +53,15 @@ public interface UserService {
      * @return ArtistDetailInfoResponse 아티스트 자세한 정보 DTO
      */
     ArtistDetailInfoResponse updateArtistProfile(AuthUser authUser, ArtistUpdateRequest request, MultipartFile profileImage);
+
+    /**
+     * 유저 프로필 수정
+     * @param authUser  로그인 유저
+     * @param request  유저 변경 정보
+     * @param profileImage  프로필 이미지
+     * @return UserInfoSimpleResponse 유저 정보 DTO
+     */
+    UserInfoSimpleResponse updateUserProfile(AuthUser authUser, UserUpdateRequest request, MultipartFile profileImage);
 
 
 

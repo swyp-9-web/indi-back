@@ -4,6 +4,7 @@ import com.swyp.artego.domain.follow.repository.FollowRepository;
 
 import com.swyp.artego.domain.user.dto.request.ArtistUpdateRequest;
 import com.swyp.artego.domain.user.dto.request.UserCreateRequest;
+import com.swyp.artego.domain.user.dto.request.UserUpdateRequest;
 import com.swyp.artego.domain.user.dto.response.ArtistDetailInfoResponse;
 import com.swyp.artego.domain.user.dto.response.UserInfoSimpleResponse;
 import com.swyp.artego.domain.user.entity.User;
@@ -110,5 +111,31 @@ public class UserServiceImpl implements UserService{
 
         return ArtistDetailInfoResponse.from(artist, false);
     }
+
+    @Override
+    @Transactional
+    public UserInfoSimpleResponse updateUserProfile(AuthUser authUser, UserUpdateRequest request, MultipartFile profileImage) {
+        User user = userRepository.findByOauthId(authUser.getOauthId())
+                .orElseThrow(() -> new ServiceException("유저를 찾을 수 없습니다."));
+
+        // 닉네임 변경
+        String newNickname = request.getNickname();
+        if (newNickname != null && !newNickname.equals(user.getNickname())) {
+            if (userRepository.existsByNickname(newNickname)) {
+                throw new ServiceException("이미 사용 중인 닉네임입니다.");
+            }
+            user.changeNickname(newNickname);
+        }
+
+        // 프로필 이미지 변경
+        if (profileImage != null && !profileImage.isEmpty()) {
+            fileService.deleteFile(user.getImgUrl());
+            String newImgUrl = fileService.uploadFile(profileImage, folderName).getUploadFileUrl();
+            user.changeImgUrl(newImgUrl);
+        }
+
+        return UserInfoSimpleResponse.fromEntity(user);
+    }
+
 
 }

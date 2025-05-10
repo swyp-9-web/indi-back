@@ -1,5 +1,6 @@
 package com.swyp.artego.domain.comment.repository;
 
+import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.CaseBuilder;
 import com.querydsl.jpa.JPAExpressions;
@@ -43,27 +44,24 @@ public class CommentQueryRepositoryImpl implements CommentQueryRepository {
         User loginUser = getLoginUser(authUser);
         Long userId = loginUser.getId();
 
-        // 1. 페이징 계산
         int page = Math.max(pageInput - 1, 0);
         int limit = limitInput > 0 ? limitInput : 10;
         Pageable pageable = PageRequest.of(page, limit);
         long offset = pageable.getOffset();
 
-        // 2. 내가 단 댓글 중 작품별 최신 댓글 ID만 추출 (일반 댓글 + 대댓글 모두 포함)
+        // 1. 내가 단 댓글 중 작품별 최신 댓글 ID만 추출
         List<Long> latestCommentIds = queryFactory
                 .select(comment.id)
                 .from(comment)
                 .where(
                         comment.user.id.eq(userId),
-                        comment.deleted.isFalse(),
                         comment.createdAt.eq(
                                 JPAExpressions
                                         .select(sub.createdAt.max())
                                         .from(sub)
                                         .where(
                                                 sub.item.id.eq(comment.item.id),
-                                                sub.user.id.eq(userId),
-                                                sub.deleted.isFalse()
+                                                sub.user.id.eq(userId)
                                         )
                         )
                 )
@@ -72,44 +70,37 @@ public class CommentQueryRepositoryImpl implements CommentQueryRepository {
                 .limit(limit)
                 .fetch();
 
+        // 2. 총 개수
         Long totalCount = queryFactory
                 .select(comment.item.id.countDistinct())
                 .from(comment)
-                .where(
-                        comment.user.id.eq(userId),
-                        comment.deleted.isFalse()
-                )
+                .where(comment.user.id.eq(userId))
                 .fetchOne();
 
         // 3. 실제 데이터 조회
-        List<MyCommentActivityResponse> items = queryFactory
-                .select(Projections.constructor(MyCommentActivityResponse.class,
+        List<Tuple> tuples = queryFactory
+                .select(
                         item.id,
                         item.title,
                         item.price,
                         item.imgUrls,
+
+                        artist.id,
                         artist.nickname,
+                        artist.imgUrl,
 
-                        Projections.constructor(MyCommentActivityResponse.CommentDto.class,
-                                comment.id,
-                                comment.comment,
-                                comment.createdAt,
-                                commenter.nickname,
-                                commenter.imgUrl
-                        ),
+                        comment.id,
+                        comment.comment,
+                        comment.createdAt,
 
-                        Projections.constructor(MyCommentActivityResponse.CommentDto.class,
-                                reply.id,
-                                reply.comment,
-                                reply.createdAt,
-                                new CaseBuilder()
-                                        .when(reply.id.isNotNull()).then(artist.nickname)
-                                        .otherwise((String) null),
-                                new CaseBuilder()
-                                        .when(reply.id.isNotNull()).then(artist.imgUrl)
-                                        .otherwise((String) null)
-                        )
-                ))
+                        commenter.id,
+                        commenter.nickname,
+                        commenter.imgUrl,
+
+                        reply.id,
+                        reply.comment,
+                        reply.createdAt
+                )
                 .from(comment)
                 .join(comment.item, item)
                 .join(item.user, artist)
@@ -122,7 +113,65 @@ public class CommentQueryRepositoryImpl implements CommentQueryRepository {
                 .orderBy(comment.createdAt.desc())
                 .fetch();
 
-        // 4. Meta 정보
+        List<MyCommentActivityResponse> responses = tuples.stream().map(t -> {
+            // 이미지
+            List<String> imgUrls = t.get(item.imgUrls);
+            String thumbnail = (imgUrls != null && !imgUrls.isEmpty()) ? imgUrls.get(0) : null;
+
+            // 아이템
+            MyCommentActivityResponse.ItemDTO.ArtistDTO artistDTO = MyCommentActivityResponse.ItemDTO.ArtistDTO.builder()
+                    .id(t.get(artist.id))
+                    .nickname(t.get(artist.nickname))
+                    .build();
+
+            MyCommentActivityResponse.ItemDTO itemDTO = MyCommentActivityResponse.ItemDTO.builder()
+                    .id(t.get(item.id))
+                    .title(t.get(item.title))
+                    .price(t.get(item.price))
+                    .artist(artistDTO)
+                    .thumbnailImgUrl(thumbnail)
+                    .build();
+
+            // 내 댓글 작성자
+            MyCommentActivityResponse.UserDTO myUser = MyCommentActivityResponse.UserDTO.builder()
+                    .id(t.get(commenter.id))
+                    .nickname(t.get(commenter.nickname))
+                    .profileImgUrl(t.get(commenter.imgUrl))
+                    .build();
+
+            // 내 댓글
+            MyCommentActivityResponse.CommentDTO myComment = MyCommentActivityResponse.CommentDTO.builder()
+                    .id(t.get(comment.id))
+                    .content(t.get(comment.comment))
+                    .createdAt(t.get(comment.createdAt))
+                    .user(myUser)
+                    .build();
+
+            // 작가 답글
+            MyCommentActivityResponse.CommentDTO replyComment = null;
+            if (t.get(reply.id) != null) {
+                MyCommentActivityResponse.UserDTO replyUser = MyCommentActivityResponse.UserDTO.builder()
+                        .id(t.get(artist.id))
+                        .nickname(t.get(artist.nickname))
+                        .profileImgUrl(t.get(artist.imgUrl))
+                        .build();
+
+                replyComment = MyCommentActivityResponse.CommentDTO.builder()
+                        .id(t.get(reply.id))
+                        .content(t.get(reply.comment))
+                        .createdAt(t.get(reply.createdAt))
+                        .user(replyUser)
+                        .build();
+            }
+
+            return MyCommentActivityResponse.builder()
+                    .item(itemDTO)
+                    .myComment(myComment)
+                    .replyComment(replyComment)
+                    .build();
+        }).toList();
+
+        // 4. 메타 정보
         MetaResponse meta = MetaResponse.builder()
                 .currentPage(page + 1)
                 .pageSize(limit)
@@ -130,12 +179,13 @@ public class CommentQueryRepositoryImpl implements CommentQueryRepository {
                 .hasNextPage((page + 1) * limit < (totalCount == null ? 0 : totalCount))
                 .build();
 
-        // 5. 응답 조립
         return MyCommentActivityResultResponse.builder()
-                .items(items)
+                .comments(responses)
                 .meta(meta)
                 .build();
     }
+
+
 
 
     // 로그인 유저 조회
@@ -144,4 +194,6 @@ public class CommentQueryRepositoryImpl implements CommentQueryRepository {
         return userRepository.findByOauthId(authUser.getOauthId())
                 .orElseThrow(() -> new IllegalArgumentException("Invalid auth user"));
     }
+
+
 }
