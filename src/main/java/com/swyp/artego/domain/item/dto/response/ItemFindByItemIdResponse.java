@@ -24,7 +24,7 @@ public class ItemFindByItemIdResponse {
     private String material;
     private CategoryType categoryType;
 
-    private UserInfo user;
+    private Viewer viewer;
     private Artist artist;
     private Reaction reaction;
 
@@ -42,7 +42,7 @@ public class ItemFindByItemIdResponse {
     @Getter
     @AllArgsConstructor
     @Builder
-    public static class UserInfo {
+    public static class Viewer {
         private Boolean isScrapped;
         private Boolean isOwner;
     }
@@ -91,8 +91,8 @@ public class ItemFindByItemIdResponse {
                 )
                 .material(item.getMaterial())
                 .categoryType(item.getCategoryType())
-                .user(
-                        UserInfo.builder()
+                .viewer(
+                        Viewer.builder()
                                 .isScrapped(isScrapped)
                                 .isOwner(isOwner)
                                 .build()
