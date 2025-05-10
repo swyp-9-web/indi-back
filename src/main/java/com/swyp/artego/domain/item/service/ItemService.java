@@ -17,7 +17,6 @@ public interface ItemService {
      * @param authUser
      * @param request
      * @param multipartFiles
-     * @param folderName
      * @return
      */
     ItemCreateResponse createItem(AuthUser authUser, ItemCreateRequest request, List<MultipartFile> multipartFiles);
@@ -28,7 +27,7 @@ public interface ItemService {
      * @param itemId 작품의 id
      * @return
      */
-    ItemFindByItemIdResponse findItemByItemId(Long itemId);
+    ItemFindByItemIdResponse findItemByItemId(AuthUser authUser, Long itemId);
 
     /**
      * 작품을 수정한다.
@@ -58,6 +57,5 @@ public interface ItemService {
     /**
      * 아이템 검색
      */
-
     ItemSearchResultResponse searchItems(AuthUser authUser, ItemSearchRequest request);
 }

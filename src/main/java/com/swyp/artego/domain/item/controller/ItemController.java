@@ -77,9 +77,10 @@ public class ItemController {
     @GetMapping(value = "/{itemId}")
     @Operation(summary = "작품 세부조회")
     public ResponseEntity<ApiResponse<ItemFindByItemIdResponse>> findItemByItemId(
+            @AuthenticationPrincipal AuthUser user,
             @PathVariable Long itemId) {
 
-        ItemFindByItemIdResponse res = itemService.findItemByItemId(itemId);
+        ItemFindByItemIdResponse res = itemService.findItemByItemId(user, itemId);
 
         return ResponseEntity.status(SuccessCode.SELECT_SUCCESS.getStatus())
                 .body(ApiResponse.<ItemFindByItemIdResponse>builder()
