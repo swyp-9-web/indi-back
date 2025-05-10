@@ -24,6 +24,8 @@ public class ItemFindByItemIdResponse {
     private String material;
     private CategoryType categoryType;
 
+    private Long totalScrapCount;
+
     private Viewer viewer;
     private Artist artist;
     private Reaction reaction;
@@ -68,7 +70,7 @@ public class ItemFindByItemIdResponse {
     }
 
 
-    public static ItemFindByItemIdResponse fromEntity(Item item, Boolean isScrapped, boolean isOwner) {
+    public static ItemFindByItemIdResponse fromEntity(Item item, Long totalScrapCount, Boolean isScrapped, boolean isOwner) {
         User artist = item.getUser();
 
         int likes = item.getLikeCount();
@@ -91,6 +93,7 @@ public class ItemFindByItemIdResponse {
                 )
                 .material(item.getMaterial())
                 .categoryType(item.getCategoryType())
+                .totalScrapCount(totalScrapCount)
                 .viewer(
                         Viewer.builder()
                                 .isScrapped(isScrapped)
