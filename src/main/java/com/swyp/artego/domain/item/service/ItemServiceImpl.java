@@ -68,6 +68,7 @@ public class ItemServiceImpl implements ItemService {
     public ItemFindByItemIdResponse findItemByItemId(AuthUser authUser, Long itemId) {
         Item item = itemRepository.findById(itemId)
                 .orElseThrow(() -> new BusinessExceptionHandler("작품이 존재하지 않습니다.", ErrorCode.NOT_FOUND_ERROR));
+        Long totalScrapCount = scrapRepository.countAllByItemId(item.getId());
 
         Boolean isScrapped = null;
         boolean isOwner = false;
@@ -82,7 +83,7 @@ public class ItemServiceImpl implements ItemService {
             }
         }
 
-        return ItemFindByItemIdResponse.fromEntity(item, isScrapped, isOwner);
+        return ItemFindByItemIdResponse.fromEntity(item, totalScrapCount, isScrapped, isOwner);
     }
 
     @Override
