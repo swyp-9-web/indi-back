@@ -118,6 +118,11 @@ public class UserServiceImpl implements UserService{
         User user = userRepository.findByOauthId(authUser.getOauthId())
                 .orElseThrow(() -> new ServiceException("유저를 찾을 수 없습니다."));
 
+        // 아티스트 권한 체크
+        if (user.getRole().isArtist()) {
+            throw new ServiceException("유저만 프로필을 수정할 수 있습니다.");
+        }
+
         // 닉네임 변경
         String newNickname = request.getNickname();
         if (newNickname != null && !newNickname.equals(user.getNickname())) {
