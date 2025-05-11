@@ -36,27 +36,40 @@ public class CommentServiceImpl implements CommentService {
         Item item = itemRepository.findById(request.getItemId())
                 .orElseThrow(() -> new BusinessExceptionHandler("작품이 존재하지 않습니다.", ErrorCode.NOT_FOUND_ERROR));
 
-        Comment parentComment = null;
-        if (request.getParentCommentId() != null) {
-            parentComment = commentRepository.findById(request.getParentCommentId())
+        Comment rootComment = null;
+        if (request.getRootCommentId() != null) {
+            rootComment = commentRepository.findById(request.getRootCommentId())
                     .orElseThrow(() -> new BusinessExceptionHandler("존재하지 않는 parentId 입니다.", ErrorCode.NOT_FOUND_ERROR));
-            if (parentComment != null) {
-                validateReplyCommentPermission(user, parentComment, item);
+            if (rootComment.getParent() != null) {
+                throw new BusinessExceptionHandler("루트 댓글의 id가 아닙니다.", ErrorCode.NOT_VALID_ERROR);
             }
+
+            validateReplyCommentPermission(user, rootComment, item);
         }
 
         return CommentCreateResponse.fromEntity(
-                commentRepository.save(request.toEntity(user, item, parentComment))
+                commentRepository.save(request.toEntity(user, item, rootComment))
         );
     }
 
     @Override
     @Transactional(readOnly = true)
-    public CommentFindByItemIdWrapperResponse getCommentsByItemId(Long itemId) {
+    public CommentFindByItemIdWrapperResponse getCommentsByItemId(AuthUser authUser, Long itemId) {
+        Long viewerId = null;
+        if (authUser != null) {
+            User user = userRepository.findByOauthId(authUser.getOauthId())
+                    .orElseThrow(() -> new BusinessExceptionHandler("유저가 존재하지 않습니다.", ErrorCode.NOT_FOUND_ERROR));
+
+            viewerId = user.getId();
+        }
+
         Item item = itemRepository.findById(itemId)
                 .orElseThrow(() -> new BusinessExceptionHandler("존재하지 않는 작품입니다.", ErrorCode.NOT_FOUND_ERROR));
+        long itemOwnerId = item.getUser().getId();
 
         List<Comment> comments = commentRepository.findByItemIdOrderByCreatedAtDesc(itemId);
+
+        applySecretPolicy(comments, viewerId, itemOwnerId);
 
         return CommentFindByItemIdWrapperResponse.from(item.getUser(), comments);
     }
@@ -64,8 +77,8 @@ public class CommentServiceImpl implements CommentService {
 
     @Override
     @Transactional(readOnly = true)
-    public MyCommentActivityResultResponse getMyCommentActivities(AuthUser user, int page, int limit) {
-        return commentRepository.findMyCommentActivity(user, page, limit);
+    public MyCommentActivityResultResponse getMyCommentActivities(AuthUser authUser, int page, int limit) {
+        return commentRepository.findMyCommentActivity(authUser, page, limit);
     }
 
 
@@ -121,19 +134,53 @@ public class CommentServiceImpl implements CommentService {
      * 대댓글 생성의 경우, 최초 댓글의 작성자와 작가 본인만 대댓글을 작성할 수 있다.
      * 두 경우가 아닌 사용자가 대댓글을 작성할 때 에러를 던진다.
      *
-     * @param user          대댓글을 작성하는 유저
-     * @param parentComment 대댓글이 작성되는 원댓글
-     * @param item          대댓글이 작성되는 작품
+     * @param user        대댓글을 작성하는 유저
+     * @param rootComment 대댓글이 작성되는 원댓글
+     * @param item        대댓글이 작성되는 작품
      */
-    private static void validateReplyCommentPermission(User user, Comment parentComment, Item item) {
+    private static void validateReplyCommentPermission(User user, Comment rootComment, Item item) {
         Long replyAuthorId = user.getId();
-        Long parentCommentAuthorId = parentComment.getUser().getId();
+        Long rootCommentAuthorId = rootComment.getUser().getId();
         Long itemCreatorId = item.getUser().getId();
 
-        if (!Objects.equals(parentCommentAuthorId, replyAuthorId) && !Objects.equals(itemCreatorId, replyAuthorId)) {
+        if (!Objects.equals(rootCommentAuthorId, replyAuthorId) && !Objects.equals(itemCreatorId, replyAuthorId)) {
             throw new BusinessExceptionHandler("대댓글 작성 권한이 없습니다.", ErrorCode.FORBIDDEN_ERROR);
         }
     }
 
+    /**
+     * 비밀 댓글인 경우 아래 정책에 따라 댓글을 가린다.
+     * <p>
+     * 루트 댓글의 작성자는 해당 스레드를 모두 열람할 수 있다.
+     * 작가는 모든 댓글을 열람할 수 있다.
+     * 로그인한 제 3자나 로그인하지 않은 유저는 비밀 댓글을 볼 수 없다.
+     *
+     * @param comments
+     * @param viewerId    댓글 조회 요청을 한 사람의 id. 로그인하지 않은 사용자는 null.
+     * @param itemOwnerId 작가 id
+     */
+    private void applySecretPolicy(List<Comment> comments, Long viewerId, long itemOwnerId) {
+        Long currentRootCommmentWriterId = null;
 
+        for (Comment comment : comments) {
+            if (comment.getParent() == null) {
+                // 루트 댓글 진입 시 현재 스레드 기준 변경
+                currentRootCommmentWriterId = comment.getUser().getId();
+            }
+
+            if (!comment.isSecret()) {
+                // 공개 댓글은 항상 보여진다.
+                continue;
+            }
+
+            boolean isItemOwner
+                    = viewerId != null && viewerId.equals(itemOwnerId);
+            boolean isRootCommentWriter
+                    = viewerId != null && viewerId.equals(currentRootCommmentWriterId);
+
+            if (!(isItemOwner || isRootCommentWriter)) {
+                comment.setComment("비밀 댓글입니다.");
+            }
+        }
+    }
 }

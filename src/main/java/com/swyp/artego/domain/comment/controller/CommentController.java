@@ -29,10 +29,10 @@ public class CommentController {
     @PostMapping("")
     @Operation(summary = "댓글/대댓글 등록")
     public ResponseEntity<ApiResponse<CommentCreateResponse>> createComment(
-            @AuthenticationPrincipal AuthUser user,
+            @AuthenticationPrincipal AuthUser authUser,
             @RequestBody @Valid CommentCreateRequest request) {
 
-        CommentCreateResponse res = commentService.createComment(user, request);
+        CommentCreateResponse res = commentService.createComment(authUser, request);
 
         return ResponseEntity.status(SuccessCode.INSERT_SUCCESS.getStatus())
                 .body(ApiResponse.<CommentCreateResponse>builder()
@@ -44,14 +44,14 @@ public class CommentController {
 
     /**
      * 작품 별 전체 댓글 조회 API
-     * TODO: 프런트 연동 이후 @AuthenticationPrincipal AuthUser user 를 추가, 볼 수 있는/없는 댓글을 응답에 적용한다.
      */
     @GetMapping("/item/{itemId}")
     @Operation(summary = "작품 별 댓글/대댓글 전체 조회")
     public ResponseEntity<ApiResponse<CommentFindByItemIdWrapperResponse>> getCommentsByItemId(
+            @AuthenticationPrincipal AuthUser authUser,
             @PathVariable Long itemId) {
 
-        CommentFindByItemIdWrapperResponse res = commentService.getCommentsByItemId(itemId);
+        CommentFindByItemIdWrapperResponse res = commentService.getCommentsByItemId(authUser, itemId);
 
         return ResponseEntity.status(SuccessCode.SELECT_SUCCESS.getStatus())
                 .body(ApiResponse.<CommentFindByItemIdWrapperResponse>builder()
@@ -64,11 +64,11 @@ public class CommentController {
     @GetMapping("/my-activities")
     @Operation(summary = "내가 작성한 댓글 기반 활동 목록 조회 (작품별 최신 댓글 + 작가 대댓글 포함)")
     public ResponseEntity<ApiResponse<MyCommentActivityResultResponse>> getMyCommentActivities(
-            @AuthenticationPrincipal AuthUser user,
+            @AuthenticationPrincipal AuthUser authUser,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int limit) {
 
-        MyCommentActivityResultResponse result = commentService.getMyCommentActivities(user, page, limit);
+        MyCommentActivityResultResponse result = commentService.getMyCommentActivities(authUser, page, limit);
 
         return ResponseEntity.status(SuccessCode.SELECT_SUCCESS.getStatus())
                 .body(ApiResponse.<MyCommentActivityResultResponse>builder()
