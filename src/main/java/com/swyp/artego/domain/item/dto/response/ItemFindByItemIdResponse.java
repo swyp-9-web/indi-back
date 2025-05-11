@@ -71,7 +71,7 @@ public class ItemFindByItemIdResponse {
     }
 
 
-    public static ItemFindByItemIdResponse fromEntity(Item item, Long totalScrapCount, Boolean isScrapped, Boolean isFollowing, boolean isOwner) {
+    public static ItemFindByItemIdResponse fromEntity(Item item, Long totalScrapCount, boolean isScrapped, boolean isFollowing, boolean isOwner) {
         User artist = item.getUser();
 
         int likes = item.getLikeCount();

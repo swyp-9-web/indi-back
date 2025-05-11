@@ -72,8 +72,8 @@ public class ItemServiceImpl implements ItemService {
                 .orElseThrow(() -> new BusinessExceptionHandler("작품이 존재하지 않습니다.", ErrorCode.NOT_FOUND_ERROR));
         Long totalScrapCount = scrapRepository.countAllByItemId(item.getId());
 
-        Boolean isScrapped = null;
-        Boolean isFollowing = null;
+        boolean isScrapped = false;
+        boolean isFollowing = false;
         boolean isOwner = false;
         if (authUser != null) {
             User user = userRepository.findByOauthId(authUser.getOauthId())
