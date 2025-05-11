@@ -1,5 +1,6 @@
 package com.swyp.artego.domain.item.service;
 
+import com.swyp.artego.domain.follow.repository.FollowRepository;
 import com.swyp.artego.domain.item.dto.request.ItemCreateRequest;
 import com.swyp.artego.domain.item.dto.request.ItemSearchRequest;
 import com.swyp.artego.domain.item.dto.request.ItemUpdateRequest;
@@ -34,6 +35,7 @@ public class ItemServiceImpl implements ItemService {
     private final ItemRepository itemRepository;
     private final UserRepository userRepository;
     private final ScrapRepository scrapRepository;
+    private final FollowRepository followRepository;
 
     private final FileService fileService;
 
@@ -71,10 +73,13 @@ public class ItemServiceImpl implements ItemService {
         Long totalScrapCount = scrapRepository.countAllByItemId(item.getId());
 
         Boolean isScrapped = null;
+        Boolean isFollowing = null;
         boolean isOwner = false;
         if (authUser != null) {
             User user = userRepository.findByOauthId(authUser.getOauthId())
                     .orElseThrow(() -> new BusinessExceptionHandler("유저가 존재하지 않습니다.", ErrorCode.NOT_FOUND_ERROR));
+
+            isFollowing = followRepository.existsByUserIdAndUserArtistId(user.getId(), item.getUser().getId());
 
             isScrapped = scrapRepository.existsByUserIdAndItemId(user.getId(), item.getId());
 
@@ -83,7 +88,7 @@ public class ItemServiceImpl implements ItemService {
             }
         }
 
-        return ItemFindByItemIdResponse.fromEntity(item, totalScrapCount, isScrapped, isOwner);
+        return ItemFindByItemIdResponse.fromEntity(item, totalScrapCount, isScrapped, isFollowing, isOwner);
     }
 
     @Override

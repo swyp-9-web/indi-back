@@ -46,6 +46,7 @@ public class ItemFindByItemIdResponse {
     @Builder
     public static class Viewer {
         private Boolean isScrapped;
+        private Boolean isFollowing;
         private Boolean isOwner;
     }
 
@@ -70,7 +71,7 @@ public class ItemFindByItemIdResponse {
     }
 
 
-    public static ItemFindByItemIdResponse fromEntity(Item item, Long totalScrapCount, Boolean isScrapped, boolean isOwner) {
+    public static ItemFindByItemIdResponse fromEntity(Item item, Long totalScrapCount, Boolean isScrapped, Boolean isFollowing, boolean isOwner) {
         User artist = item.getUser();
 
         int likes = item.getLikeCount();
@@ -97,6 +98,7 @@ public class ItemFindByItemIdResponse {
                 .viewer(
                         Viewer.builder()
                                 .isScrapped(isScrapped)
+                                .isFollowing(isFollowing)
                                 .isOwner(isOwner)
                                 .build()
                 )
