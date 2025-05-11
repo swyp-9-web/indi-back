@@ -21,4 +21,5 @@ public interface FollowRepository extends JpaRepository<Follow, Long>, FollowSea
 
     int countByUser(User user);
 
+    boolean existsByUserIdAndUserArtistId(Long userId, Long userArtistId);
 }
