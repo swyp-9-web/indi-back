@@ -79,13 +79,9 @@ public class ItemServiceImpl implements ItemService {
             User user = userRepository.findByOauthId(authUser.getOauthId())
                     .orElseThrow(() -> new BusinessExceptionHandler("유저가 존재하지 않습니다.", ErrorCode.NOT_FOUND_ERROR));
 
-            isFollowing = followRepository.existsByUserIdAndUserArtistId(user.getId(), item.getUser().getId());
-
             isScrapped = scrapRepository.existsByUserIdAndItemId(user.getId(), item.getId());
-
-            if (Objects.equals(item.getUser().getId(), user.getId())) {
-                isOwner = true;
-            }
+            isFollowing = followRepository.existsByUserIdAndUserArtistId(user.getId(), item.getUser().getId());
+            isOwner = user.getId().equals(item.getUser().getId());
         }
 
         return ItemFindByItemIdResponse.fromEntity(item, totalScrapCount, isScrapped, isFollowing, isOwner);

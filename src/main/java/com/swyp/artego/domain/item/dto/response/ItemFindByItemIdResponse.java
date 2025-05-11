@@ -26,7 +26,7 @@ public class ItemFindByItemIdResponse {
 
     private Long totalScrapCount;
 
-    private Viewer viewer;
+    private ViewerInfo viewer;
     private Artist artist;
     private Reaction reaction;
 
@@ -44,7 +44,7 @@ public class ItemFindByItemIdResponse {
     @Getter
     @AllArgsConstructor
     @Builder
-    public static class Viewer {
+    public static class ViewerInfo {
         private Boolean isScrapped;
         private Boolean isFollowing;
         private Boolean isOwner;
@@ -96,7 +96,7 @@ public class ItemFindByItemIdResponse {
                 .categoryType(item.getCategoryType())
                 .totalScrapCount(totalScrapCount)
                 .viewer(
-                        Viewer.builder()
+                        ViewerInfo.builder()
                                 .isScrapped(isScrapped)
                                 .isFollowing(isFollowing)
                                 .isOwner(isOwner)
