@@ -64,8 +64,8 @@ public class CommentServiceImpl implements CommentService {
 
     @Override
     @Transactional(readOnly = true)
-    public MyCommentActivityResultResponse getMyCommentActivities(AuthUser user, int page, int limit) {
-        return commentRepository.findMyCommentActivity(user, page, limit);
+    public MyCommentActivityResultResponse getMyCommentActivities(AuthUser authUser, int page, int limit) {
+        return commentRepository.findMyCommentActivity(authUser, page, limit);
     }
 
 
