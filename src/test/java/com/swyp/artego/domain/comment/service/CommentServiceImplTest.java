@@ -2,6 +2,8 @@ package com.swyp.artego.domain.comment.service;
 
 import com.swyp.artego.domain.comment.dto.request.CommentCreateRequest;
 import com.swyp.artego.domain.comment.dto.response.CommentCreateResponse;
+import com.swyp.artego.domain.comment.dto.response.CommentFindByItemIdResponse;
+import com.swyp.artego.domain.comment.dto.response.CommentFindByItemIdWrapperResponse;
 import com.swyp.artego.domain.comment.entity.Comment;
 import com.swyp.artego.domain.comment.repository.CommentRepository;
 import com.swyp.artego.domain.item.entity.Item;
@@ -22,9 +24,11 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -64,6 +68,175 @@ class CommentServiceImplTest {
 
         item1 = Item.builder().user(creator1).title("title").build();
         ReflectionTestUtils.setField(item1, "id", 1L);
+    }
+
+    @Test
+    @DisplayName("[댓글 조회] 로그인 하지 않은 사용자에겐 비밀 댓글이 보이지 않는다.")
+    void getCommentsByItemId_unauthenticatedUser_cannotSeeSecretComments() {
+        // given
+        Comment rootComment = new Comment(user2, item1, "유저2의 첫댓", true, null);
+        ReflectionTestUtils.setField(rootComment, "id", 1L);
+
+        Comment replyComment = new Comment(creator1, item1, "작가의 대댓", true, rootComment);
+        ReflectionTestUtils.setField(replyComment, "id", 2L);
+
+        Comment replyComment2 = new Comment(user2, item1, "유저2의 대대댓", true, null);
+        ReflectionTestUtils.setField(rootComment, "id", 3L);
+
+        given(itemRepository.findById(item1.getId())
+        ).willReturn(Optional.of(item1));
+
+        given(commentRepository.findByItemIdOrderByCreatedAtDesc(item1.getId())
+        ).willReturn(List.of(rootComment, replyComment, replyComment2));
+
+        // when
+        CommentFindByItemIdWrapperResponse response = commentServiceImpl.getCommentsByItemId(null, item1.getId());
+
+        // then
+        List<CommentFindByItemIdResponse> comments = response.getComments();
+
+        // 루트 댓글과 replies 모두의 comment 내용이 "비밀 댓글입니다." 인지 확인
+        for (CommentFindByItemIdResponse commentResponse : comments) {
+            assertThat(commentResponse.getComment().getComment())
+                    .isEqualTo("비밀 댓글입니다.");
+
+            if (commentResponse.getReplies() != null) {
+                for (CommentFindByItemIdResponse.CommentInfo reply : commentResponse.getReplies()) {
+                    assertThat(reply.getComment())
+                            .isEqualTo("비밀 댓글입니다.");
+                }
+            }
+        }
+    }
+
+    @Test
+    @DisplayName("[댓글 조회] 작가는 비밀 댓글이 모두 보인다")
+    void getCommentsByItemId_itemOwner_canSeeAllSecretComments() {
+        // given
+        Comment rootComment = new Comment(user2, item1, "유저2의 첫댓", true, null);
+        ReflectionTestUtils.setField(rootComment, "id", 1L);
+
+        Comment replyComment = new Comment(creator1, item1, "작가의 대댓", true, rootComment);
+        ReflectionTestUtils.setField(replyComment, "id", 2L);
+
+        Comment replyComment2 = new Comment(user2, item1, "유저2의 대대댓", true, null);
+        ReflectionTestUtils.setField(rootComment, "id", 3L);
+
+        given(userRepository.findByOauthId(authCreator1.getOauthId())
+        ).willReturn(Optional.of(creator1));
+
+        given(itemRepository.findById(item1.getId())
+        ).willReturn(Optional.of(item1));
+
+        given(commentRepository.findByItemIdOrderByCreatedAtDesc(item1.getId())
+        ).willReturn(List.of(rootComment, replyComment, replyComment2));
+
+        // when
+        CommentFindByItemIdWrapperResponse response = commentServiceImpl.getCommentsByItemId(authCreator1, item1.getId());
+
+        // then
+        List<CommentFindByItemIdResponse> comments = response.getComments();
+
+        // 루트 댓글과 replies 모두의 comment 내용이 "비밀 댓글입니다." 이 아닌지 확인
+        for (CommentFindByItemIdResponse commentResponse : comments) {
+            assertThat(commentResponse.getComment().getComment())
+                    .isNotEqualTo("비밀 댓글입니다.");
+
+            if (commentResponse.getReplies() != null) {
+                for (CommentFindByItemIdResponse.CommentInfo reply : commentResponse.getReplies()) {
+                    assertThat(reply.getComment())
+                            .isNotEqualTo("비밀 댓글입니다.");
+                }
+            }
+        }
+    }
+
+    @Test
+    @DisplayName("[댓글 조회] 대화에 참여하고 있는 사용자는 해당 대화의 비밀 댓글이 모두 보인다.")
+    void getCommentsByItemId_commentWriter_canSeeSecretCommentThreads() {
+        // given
+        Comment rootComment = new Comment(user2, item1, "유저2의 첫댓", true, null);
+        ReflectionTestUtils.setField(rootComment, "id", 1L);
+
+        Comment replyComment = new Comment(creator1, item1, "작가의 대댓", true, rootComment);
+        ReflectionTestUtils.setField(replyComment, "id", 2L);
+
+        Comment replyComment2 = new Comment(user2, item1, "유저2의 대대댓", true, null);
+        ReflectionTestUtils.setField(rootComment, "id", 3L);
+
+        given(userRepository.findByOauthId(authUser2.getOauthId())
+        ).willReturn(Optional.of(user2));
+
+        given(itemRepository.findById(item1.getId())
+        ).willReturn(Optional.of(item1));
+
+        given(commentRepository.findByItemIdOrderByCreatedAtDesc(item1.getId())
+        ).willReturn(List.of(rootComment, replyComment, replyComment2));
+
+        // when
+        CommentFindByItemIdWrapperResponse response = commentServiceImpl.getCommentsByItemId(authUser2, item1.getId());
+
+        // then
+        List<CommentFindByItemIdResponse> comments = response.getComments();
+
+        // 루트 댓글과 replies 모두의 comment 내용이 "비밀 댓글입니다." 이 아닌지 확인
+        for (CommentFindByItemIdResponse commentResponse : comments) {
+            assertThat(commentResponse.getComment().getComment())
+                    .isNotEqualTo("비밀 댓글입니다.");
+
+            if (commentResponse.getReplies() != null) {
+                for (CommentFindByItemIdResponse.CommentInfo reply : commentResponse.getReplies()) {
+                    assertThat(reply.getComment())
+                            .isNotEqualTo("비밀 댓글입니다.");
+                }
+            }
+        }
+    }
+
+    @Test
+    @DisplayName("[댓글 조회] 대화에 참여하지 않은 사용자는 해당 대화의 비밀 댓글이 보이지 않는다.")
+    void getCommentsByItemId_commentWriter_cannotSeeSecretCommentThreads() {
+        // given
+        AuthUser authUser3 = createAuthUser();
+        User user3 = User.builder().oauthId(authUser3.getOauthId()).build();
+        ReflectionTestUtils.setField(user3, "id", 3L);
+
+        Comment rootComment = new Comment(user2, item1, "유저2의 첫댓", true, null);
+        ReflectionTestUtils.setField(rootComment, "id", 1L);
+
+        Comment replyComment = new Comment(creator1, item1, "작가의 대댓", true, rootComment);
+        ReflectionTestUtils.setField(replyComment, "id", 2L);
+
+        Comment replyComment2 = new Comment(user2, item1, "유저2의 대대댓", true, null);
+        ReflectionTestUtils.setField(rootComment, "id", 3L);
+
+        given(userRepository.findByOauthId(authUser3.getOauthId())
+        ).willReturn(Optional.of(user3));
+
+        given(itemRepository.findById(item1.getId())
+        ).willReturn(Optional.of(item1));
+
+        given(commentRepository.findByItemIdOrderByCreatedAtDesc(item1.getId())
+        ).willReturn(List.of(rootComment, replyComment, replyComment2));
+
+        // when
+        CommentFindByItemIdWrapperResponse response = commentServiceImpl.getCommentsByItemId(authUser3, item1.getId());
+
+        // then
+        List<CommentFindByItemIdResponse> comments = response.getComments();
+
+        // 루트 댓글과 replies 모두의 comment 내용이 "비밀 댓글입니다." 인지 확인
+        for (CommentFindByItemIdResponse commentResponse : comments) {
+            assertThat(commentResponse.getComment().getComment())
+                    .isEqualTo("비밀 댓글입니다.");
+
+            if (commentResponse.getReplies() != null) {
+                for (CommentFindByItemIdResponse.CommentInfo reply : commentResponse.getReplies()) {
+                    assertThat(reply.getComment())
+                            .isEqualTo("비밀 댓글입니다.");
+                }
+            }
+        }
     }
 
     @Test

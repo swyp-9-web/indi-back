@@ -15,7 +15,6 @@ public class CommentFindByItemIdResponse {
 
     private UserInfo user;
     private CommentInfo comment;
-    // TODO: private boolean canSee;
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private List<CommentInfo> replies;

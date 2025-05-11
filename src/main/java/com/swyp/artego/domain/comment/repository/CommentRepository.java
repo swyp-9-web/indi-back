@@ -9,6 +9,7 @@ import java.util.List;
 
 public interface CommentRepository extends JpaRepository<Comment, Long>, CommentQueryRepository {
 
+    // TODO: line 22, c.createdAt ASC 를 사용하면 정렬이 제대로 안되는 문제가 있음.
     @Query("""
             SELECT c
             FROM Comment c
@@ -19,7 +20,7 @@ public interface CommentRepository extends JpaRepository<Comment, Long>, Comment
                     WHEN c.parent IS NULL THEN 0
                     ELSE 1
                 END,
-                c.createdAt ASC
+                c.id ASC
             """)
     List<Comment> findByItemIdOrderByCreatedAtDesc(@Param("itemId") Long itemId);
 

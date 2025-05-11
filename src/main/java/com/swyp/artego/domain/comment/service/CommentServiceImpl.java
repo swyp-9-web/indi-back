@@ -41,7 +41,7 @@ public class CommentServiceImpl implements CommentService {
             rootComment = commentRepository.findById(request.getRootCommentId())
                     .orElseThrow(() -> new BusinessExceptionHandler("존재하지 않는 parentId 입니다.", ErrorCode.NOT_FOUND_ERROR));
             if (rootComment.getParent() != null) {
-                throw new BusinessExceptionHandler("루트 댓글의 id가 아닙니다.", ErrorCode.FORBIDDEN_ERROR);
+                throw new BusinessExceptionHandler("루트 댓글의 id가 아닙니다.", ErrorCode.NOT_VALID_ERROR);
             }
 
             validateReplyCommentPermission(user, rootComment, item);
@@ -54,11 +54,22 @@ public class CommentServiceImpl implements CommentService {
 
     @Override
     @Transactional(readOnly = true)
-    public CommentFindByItemIdWrapperResponse getCommentsByItemId(Long itemId) {
+    public CommentFindByItemIdWrapperResponse getCommentsByItemId(AuthUser authUser, Long itemId) {
+        Long viewerId = null;
+        if (authUser != null) {
+            User user = userRepository.findByOauthId(authUser.getOauthId())
+                    .orElseThrow(() -> new BusinessExceptionHandler("유저가 존재하지 않습니다.", ErrorCode.NOT_FOUND_ERROR));
+
+            viewerId = user.getId();
+        }
+
         Item item = itemRepository.findById(itemId)
                 .orElseThrow(() -> new BusinessExceptionHandler("존재하지 않는 작품입니다.", ErrorCode.NOT_FOUND_ERROR));
+        long itemOwnerId = item.getUser().getId();
 
         List<Comment> comments = commentRepository.findByItemIdOrderByCreatedAtDesc(itemId);
+
+        applySecretPolicy(comments, viewerId, itemOwnerId);
 
         return CommentFindByItemIdWrapperResponse.from(item.getUser(), comments);
     }
@@ -137,5 +148,39 @@ public class CommentServiceImpl implements CommentService {
         }
     }
 
+    /**
+     * 비밀 댓글인 경우 아래 정책에 따라 댓글을 가린다.
+     * <p>
+     * 루트 댓글의 작성자는 해당 스레드를 모두 열람할 수 있다.
+     * 작가는 모든 댓글을 열람할 수 있다.
+     * 로그인한 제 3자나 로그인하지 않은 유저는 비밀 댓글을 볼 수 없다.
+     *
+     * @param comments
+     * @param viewerId    댓글 조회 요청을 한 사람의 id. 로그인하지 않은 사용자는 null.
+     * @param itemOwnerId 작가 id
+     */
+    private void applySecretPolicy(List<Comment> comments, Long viewerId, long itemOwnerId) {
+        Long currentRootCommmentWriterId = null;
 
+        for (Comment comment : comments) {
+            if (comment.getParent() == null) {
+                // 루트 댓글 진입 시 현재 스레드 기준 변경
+                currentRootCommmentWriterId = comment.getUser().getId();
+            }
+
+            if (!comment.isSecret()) {
+                // 공개 댓글은 항상 보여진다.
+                continue;
+            }
+
+            boolean isItemOwner
+                    = viewerId != null && viewerId.equals(itemOwnerId);
+            boolean isRootCommentWriter
+                    = viewerId != null && viewerId.equals(currentRootCommmentWriterId);
+
+            if (!(isItemOwner || isRootCommentWriter)) {
+                comment.setComment("비밀 댓글입니다.");
+            }
+        }
+    }
 }

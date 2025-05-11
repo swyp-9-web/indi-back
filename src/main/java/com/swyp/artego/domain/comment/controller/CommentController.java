@@ -44,14 +44,14 @@ public class CommentController {
 
     /**
      * 작품 별 전체 댓글 조회 API
-     * TODO: 프런트 연동 이후 @AuthenticationPrincipal AuthUser user 를 추가, 볼 수 있는/없는 댓글을 응답에 적용한다.
      */
     @GetMapping("/item/{itemId}")
     @Operation(summary = "작품 별 댓글/대댓글 전체 조회")
     public ResponseEntity<ApiResponse<CommentFindByItemIdWrapperResponse>> getCommentsByItemId(
+            @AuthenticationPrincipal AuthUser authUser,
             @PathVariable Long itemId) {
 
-        CommentFindByItemIdWrapperResponse res = commentService.getCommentsByItemId(itemId);
+        CommentFindByItemIdWrapperResponse res = commentService.getCommentsByItemId(authUser, itemId);
 
         return ResponseEntity.status(SuccessCode.SELECT_SUCCESS.getStatus())
                 .body(ApiResponse.<CommentFindByItemIdWrapperResponse>builder()

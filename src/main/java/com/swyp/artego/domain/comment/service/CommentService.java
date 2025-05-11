@@ -22,7 +22,7 @@ public interface CommentService {
      * @param itemId 댓글을 조회할 작품 Id
      * @return CommentFindByItemIdWrapperResponse
      */
-    CommentFindByItemIdWrapperResponse getCommentsByItemId(Long itemId);
+    CommentFindByItemIdWrapperResponse getCommentsByItemId(AuthUser authUser, Long itemId);
 
 
     /**
