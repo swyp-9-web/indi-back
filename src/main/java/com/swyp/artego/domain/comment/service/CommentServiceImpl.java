@@ -36,17 +36,19 @@ public class CommentServiceImpl implements CommentService {
         Item item = itemRepository.findById(request.getItemId())
                 .orElseThrow(() -> new BusinessExceptionHandler("작품이 존재하지 않습니다.", ErrorCode.NOT_FOUND_ERROR));
 
-        Comment parentComment = null;
-        if (request.getParentCommentId() != null) {
-            parentComment = commentRepository.findById(request.getParentCommentId())
+        Comment rootComment = null;
+        if (request.getRootCommentId() != null) {
+            rootComment = commentRepository.findById(request.getRootCommentId())
                     .orElseThrow(() -> new BusinessExceptionHandler("존재하지 않는 parentId 입니다.", ErrorCode.NOT_FOUND_ERROR));
-            if (parentComment != null) {
-                validateReplyCommentPermission(user, parentComment, item);
+            if (rootComment.getParent() != null) {
+                throw new BusinessExceptionHandler("루트 댓글의 id가 아닙니다.", ErrorCode.FORBIDDEN_ERROR);
             }
+
+            validateReplyCommentPermission(user, rootComment, item);
         }
 
         return CommentCreateResponse.fromEntity(
-                commentRepository.save(request.toEntity(user, item, parentComment))
+                commentRepository.save(request.toEntity(user, item, rootComment))
         );
     }
 
@@ -121,16 +123,16 @@ public class CommentServiceImpl implements CommentService {
      * 대댓글 생성의 경우, 최초 댓글의 작성자와 작가 본인만 대댓글을 작성할 수 있다.
      * 두 경우가 아닌 사용자가 대댓글을 작성할 때 에러를 던진다.
      *
-     * @param user          대댓글을 작성하는 유저
-     * @param parentComment 대댓글이 작성되는 원댓글
-     * @param item          대댓글이 작성되는 작품
+     * @param user        대댓글을 작성하는 유저
+     * @param rootComment 대댓글이 작성되는 원댓글
+     * @param item        대댓글이 작성되는 작품
      */
-    private static void validateReplyCommentPermission(User user, Comment parentComment, Item item) {
+    private static void validateReplyCommentPermission(User user, Comment rootComment, Item item) {
         Long replyAuthorId = user.getId();
-        Long parentCommentAuthorId = parentComment.getUser().getId();
+        Long rootCommentAuthorId = rootComment.getUser().getId();
         Long itemCreatorId = item.getUser().getId();
 
-        if (!Objects.equals(parentCommentAuthorId, replyAuthorId) && !Objects.equals(itemCreatorId, replyAuthorId)) {
+        if (!Objects.equals(rootCommentAuthorId, replyAuthorId) && !Objects.equals(itemCreatorId, replyAuthorId)) {
             throw new BusinessExceptionHandler("대댓글 작성 권한이 없습니다.", ErrorCode.FORBIDDEN_ERROR);
         }
     }

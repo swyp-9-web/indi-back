@@ -24,15 +24,15 @@ public class CommentCreateRequest {
     @Schema(example = "false", nullable = true)
     private Boolean secret;
 
-    private Long parentCommentId;
+    private Long rootCommentId;
 
-    public Comment toEntity(User user, Item item, Comment parentComment){
+    public Comment toEntity(User user, Item item, Comment rootComment) {
         return Comment.builder()
                 .user(user)
                 .item(item)
                 .comment(this.comment)
                 .secret(this.secret != null ? secret : false)
-                .parent(parentComment)
+                .parent(rootComment)
                 .build();
     }
 
