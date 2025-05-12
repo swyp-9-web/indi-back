@@ -18,12 +18,8 @@ public interface CommentService {
 
     /**
      * 작품 별 댓글 전체 조회 (최신순)
-     *
-     * @param itemId 댓글을 조회할 작품 Id
-     * @return CommentFindByItemIdWrapperResponse
      */
-    CommentFindByItemIdWrapperResponse getCommentsByItemId(AuthUser authUser, Long itemId);
-
+    CommentFindByItemIdWrapperResponse getCommentsByItemId(AuthUser authUser, Long itemId, Integer page, Integer limit);
 
     /**
      * 유저 페이지 댓글 목록 (최신순)

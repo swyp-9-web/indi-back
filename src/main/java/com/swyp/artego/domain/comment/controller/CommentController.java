@@ -49,9 +49,11 @@ public class CommentController {
     @Operation(summary = "작품 별 댓글/대댓글 전체 조회")
     public ResponseEntity<ApiResponse<CommentFindByItemIdWrapperResponse>> getCommentsByItemId(
             @AuthenticationPrincipal AuthUser authUser,
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer limit,
             @PathVariable Long itemId) {
 
-        CommentFindByItemIdWrapperResponse res = commentService.getCommentsByItemId(authUser, itemId);
+        CommentFindByItemIdWrapperResponse res = commentService.getCommentsByItemId(authUser, itemId, page, limit);
 
         return ResponseEntity.status(SuccessCode.SELECT_SUCCESS.getStatus())
                 .body(ApiResponse.<CommentFindByItemIdWrapperResponse>builder()

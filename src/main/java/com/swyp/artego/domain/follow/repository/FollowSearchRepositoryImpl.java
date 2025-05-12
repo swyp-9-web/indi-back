@@ -6,19 +6,22 @@ import com.swyp.artego.domain.follow.dto.response.FollowedArtistResponse;
 import com.swyp.artego.domain.follow.dto.response.FollowedArtistsResponse;
 import com.swyp.artego.domain.follow.entity.QFollow;
 import com.swyp.artego.domain.item.dto.response.ItemSearchResponse;
-import com.swyp.artego.domain.item.dto.response.MetaResponse;
 import com.swyp.artego.domain.item.entity.Item;
 import com.swyp.artego.domain.item.entity.QItem;
 import com.swyp.artego.domain.scrap.entity.QScrap;
 import com.swyp.artego.domain.user.entity.QUser;
 import com.swyp.artego.domain.user.entity.User;
+import com.swyp.artego.global.common.dto.response.MetaResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Repository
@@ -29,7 +32,7 @@ public class FollowSearchRepositoryImpl implements FollowSearchRepository {
 
     @Override
     public FollowedArtistsResponse findFollowedArtistsWithItems(Long userId, Integer page, Integer size) {
-        if (userId== null) {
+        if (userId == null) {
             throw new IllegalArgumentException("로그인한 유저만 사용 가능합니다.");
         }
 
@@ -128,7 +131,6 @@ public class FollowSearchRepositoryImpl implements FollowSearchRepository {
                 .meta(meta)
                 .build();
     }
-
 
 
 }

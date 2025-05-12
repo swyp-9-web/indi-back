@@ -1,4 +1,4 @@
-package com.swyp.artego.domain.item.dto.response;
+package com.swyp.artego.global.common.dto.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -12,6 +12,6 @@ import lombok.NoArgsConstructor;
 public class MetaResponse {
     private int currentPage;
     private int pageSize;
-    private long totalItems;
+    private long totalItems; //TODO: totalCount 로 수정하기 ([댓글]에서도 사용함)
     private boolean hasNextPage;
 }

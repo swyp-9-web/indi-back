@@ -1,19 +1,17 @@
 package com.swyp.artego.domain.comment.repository;
 
 import com.querydsl.core.Tuple;
-import com.querydsl.core.types.Projections;
-import com.querydsl.core.types.dsl.CaseBuilder;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.swyp.artego.domain.comment.dto.response.MyCommentActivityResponse;
 import com.swyp.artego.domain.comment.dto.response.MyCommentActivityResultResponse;
 import com.swyp.artego.domain.comment.entity.QComment;
-import com.swyp.artego.domain.item.dto.response.MetaResponse;
 import com.swyp.artego.domain.item.entity.QItem;
 import com.swyp.artego.domain.user.entity.QUser;
 import com.swyp.artego.domain.user.entity.User;
 import com.swyp.artego.domain.user.repository.UserRepository;
 import com.swyp.artego.global.auth.oauth.model.AuthUser;
+import com.swyp.artego.global.common.dto.response.MetaResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -184,8 +182,6 @@ public class CommentQueryRepositoryImpl implements CommentQueryRepository {
                 .meta(meta)
                 .build();
     }
-
-
 
 
     // 로그인 유저 조회
