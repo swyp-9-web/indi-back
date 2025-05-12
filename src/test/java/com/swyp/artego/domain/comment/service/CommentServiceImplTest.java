@@ -21,6 +21,8 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.HashMap;
@@ -86,23 +88,25 @@ class CommentServiceImplTest {
         given(itemRepository.findById(item1.getId())
         ).willReturn(Optional.of(item1));
 
-        given(commentRepository.findByItemIdOrderByCreatedAtDesc(item1.getId())
-        ).willReturn(List.of(rootComment, replyComment, replyComment2));
+        given(commentRepository.findRootCommentsByItemId(eq(item1.getId()), any(Pageable.class)))
+                .willReturn(new PageImpl<>(List.of(rootComment)));
+        given(commentRepository.findChildCommentsByParentIds(List.of(1L)))
+                .willReturn(List.of(replyComment, replyComment2));
 
         // when
-        CommentFindByItemIdWrapperResponse response = commentServiceImpl.getCommentsByItemId(null, item1.getId());
+        CommentFindByItemIdWrapperResponse response = commentServiceImpl.getCommentsByItemId(null, item1.getId(), null, null);
 
         // then
         List<CommentFindByItemIdResponse> comments = response.getComments();
 
         // 루트 댓글과 replies 모두의 comment 내용이 "비밀 댓글입니다." 인지 확인
         for (CommentFindByItemIdResponse commentResponse : comments) {
-            assertThat(commentResponse.getComment().getComment())
+            assertThat(commentResponse.getContent())
                     .isEqualTo("비밀 댓글입니다.");
 
             if (commentResponse.getReplies() != null) {
-                for (CommentFindByItemIdResponse.CommentInfo reply : commentResponse.getReplies()) {
-                    assertThat(reply.getComment())
+                for (CommentFindByItemIdResponse reply : commentResponse.getReplies()) {
+                    assertThat(reply.getContent())
                             .isEqualTo("비밀 댓글입니다.");
                 }
             }
@@ -128,23 +132,25 @@ class CommentServiceImplTest {
         given(itemRepository.findById(item1.getId())
         ).willReturn(Optional.of(item1));
 
-        given(commentRepository.findByItemIdOrderByCreatedAtDesc(item1.getId())
-        ).willReturn(List.of(rootComment, replyComment, replyComment2));
+        given(commentRepository.findRootCommentsByItemId(eq(item1.getId()), any(Pageable.class)))
+                .willReturn(new PageImpl<>(List.of(rootComment)));
+        given(commentRepository.findChildCommentsByParentIds(List.of(1L)))
+                .willReturn(List.of(replyComment, replyComment2));
 
         // when
-        CommentFindByItemIdWrapperResponse response = commentServiceImpl.getCommentsByItemId(authCreator1, item1.getId());
+        CommentFindByItemIdWrapperResponse response = commentServiceImpl.getCommentsByItemId(authCreator1, item1.getId(), null, null);
 
         // then
         List<CommentFindByItemIdResponse> comments = response.getComments();
 
         // 루트 댓글과 replies 모두의 comment 내용이 "비밀 댓글입니다." 이 아닌지 확인
         for (CommentFindByItemIdResponse commentResponse : comments) {
-            assertThat(commentResponse.getComment().getComment())
+            assertThat(commentResponse.getContent())
                     .isNotEqualTo("비밀 댓글입니다.");
 
             if (commentResponse.getReplies() != null) {
-                for (CommentFindByItemIdResponse.CommentInfo reply : commentResponse.getReplies()) {
-                    assertThat(reply.getComment())
+                for (CommentFindByItemIdResponse reply : commentResponse.getReplies()) {
+                    assertThat(reply.getContent())
                             .isNotEqualTo("비밀 댓글입니다.");
                 }
             }
@@ -170,23 +176,25 @@ class CommentServiceImplTest {
         given(itemRepository.findById(item1.getId())
         ).willReturn(Optional.of(item1));
 
-        given(commentRepository.findByItemIdOrderByCreatedAtDesc(item1.getId())
-        ).willReturn(List.of(rootComment, replyComment, replyComment2));
+        given(commentRepository.findRootCommentsByItemId(eq(item1.getId()), any(Pageable.class)))
+                .willReturn(new PageImpl<>(List.of(rootComment)));
+        given(commentRepository.findChildCommentsByParentIds(List.of(1L)))
+                .willReturn(List.of(replyComment, replyComment2));
 
         // when
-        CommentFindByItemIdWrapperResponse response = commentServiceImpl.getCommentsByItemId(authUser2, item1.getId());
+        CommentFindByItemIdWrapperResponse response = commentServiceImpl.getCommentsByItemId(authUser2, item1.getId(), null, null);
 
         // then
         List<CommentFindByItemIdResponse> comments = response.getComments();
 
         // 루트 댓글과 replies 모두의 comment 내용이 "비밀 댓글입니다." 이 아닌지 확인
         for (CommentFindByItemIdResponse commentResponse : comments) {
-            assertThat(commentResponse.getComment().getComment())
+            assertThat(commentResponse.getContent())
                     .isNotEqualTo("비밀 댓글입니다.");
 
             if (commentResponse.getReplies() != null) {
-                for (CommentFindByItemIdResponse.CommentInfo reply : commentResponse.getReplies()) {
-                    assertThat(reply.getComment())
+                for (CommentFindByItemIdResponse reply : commentResponse.getReplies()) {
+                    assertThat(reply.getContent())
                             .isNotEqualTo("비밀 댓글입니다.");
                 }
             }
@@ -216,23 +224,25 @@ class CommentServiceImplTest {
         given(itemRepository.findById(item1.getId())
         ).willReturn(Optional.of(item1));
 
-        given(commentRepository.findByItemIdOrderByCreatedAtDesc(item1.getId())
-        ).willReturn(List.of(rootComment, replyComment, replyComment2));
+        given(commentRepository.findRootCommentsByItemId(eq(item1.getId()), any(Pageable.class)))
+                .willReturn(new PageImpl<>(List.of(rootComment)));
+        given(commentRepository.findChildCommentsByParentIds(List.of(1L)))
+                .willReturn(List.of(replyComment, replyComment2));
 
         // when
-        CommentFindByItemIdWrapperResponse response = commentServiceImpl.getCommentsByItemId(authUser3, item1.getId());
+        CommentFindByItemIdWrapperResponse response = commentServiceImpl.getCommentsByItemId(authUser3, item1.getId(), null, null);
 
         // then
         List<CommentFindByItemIdResponse> comments = response.getComments();
 
         // 루트 댓글과 replies 모두의 comment 내용이 "비밀 댓글입니다." 인지 확인
         for (CommentFindByItemIdResponse commentResponse : comments) {
-            assertThat(commentResponse.getComment().getComment())
+            assertThat(commentResponse.getContent())
                     .isEqualTo("비밀 댓글입니다.");
 
             if (commentResponse.getReplies() != null) {
-                for (CommentFindByItemIdResponse.CommentInfo reply : commentResponse.getReplies()) {
-                    assertThat(reply.getComment())
+                for (CommentFindByItemIdResponse reply : commentResponse.getReplies()) {
+                    assertThat(reply.getContent())
                             .isEqualTo("비밀 댓글입니다.");
                 }
             }
