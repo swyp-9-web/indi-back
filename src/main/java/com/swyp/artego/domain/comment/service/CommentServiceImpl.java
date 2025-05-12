@@ -95,7 +95,7 @@ public class CommentServiceImpl implements CommentService {
                 .totalItems(totalRootComments) // 전체 아이템 수
                 .hasNextPage((pageIndex + 1) * pageSize < totalComments) // 다음 페이지 존재 여부
                 .build();
-        return CommentFindByItemIdWrapperResponse.from(item.getUser(), combined, totalComments, meta);
+        return CommentFindByItemIdWrapperResponse.from(item.getUser().getId(), combined, totalComments, meta);
     }
 
 
