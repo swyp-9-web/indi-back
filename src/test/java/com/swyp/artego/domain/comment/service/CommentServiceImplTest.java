@@ -76,13 +76,13 @@ class CommentServiceImplTest {
     @DisplayName("[댓글 조회] 로그인 하지 않은 사용자에겐 비밀 댓글이 보이지 않는다.")
     void getCommentsByItemId_unauthenticatedUser_cannotSeeSecretComments() {
         // given
-        Comment rootComment = new Comment(user2, item1, "유저2의 첫댓", true, null);
+        Comment rootComment = new Comment(user2, item1, "유저2의 첫댓", true, false, null);
         ReflectionTestUtils.setField(rootComment, "id", 1L);
 
-        Comment replyComment = new Comment(creator1, item1, "작가의 대댓", true, rootComment);
+        Comment replyComment = new Comment(creator1, item1, "작가의 대댓", true, false, rootComment);
         ReflectionTestUtils.setField(replyComment, "id", 2L);
 
-        Comment replyComment2 = new Comment(user2, item1, "유저2의 대대댓", true, null);
+        Comment replyComment2 = new Comment(user2, item1, "유저2의 대대댓", true, false, null);
         ReflectionTestUtils.setField(rootComment, "id", 3L);
 
         given(itemRepository.findById(item1.getId())
@@ -117,13 +117,13 @@ class CommentServiceImplTest {
     @DisplayName("[댓글 조회] 작가는 비밀 댓글이 모두 보인다")
     void getCommentsByItemId_itemOwner_canSeeAllSecretComments() {
         // given
-        Comment rootComment = new Comment(user2, item1, "유저2의 첫댓", true, null);
+        Comment rootComment = new Comment(user2, item1, "유저2의 첫댓", true, false, null);
         ReflectionTestUtils.setField(rootComment, "id", 1L);
 
-        Comment replyComment = new Comment(creator1, item1, "작가의 대댓", true, rootComment);
+        Comment replyComment = new Comment(creator1, item1, "작가의 대댓", true, false, rootComment);
         ReflectionTestUtils.setField(replyComment, "id", 2L);
 
-        Comment replyComment2 = new Comment(user2, item1, "유저2의 대대댓", true, null);
+        Comment replyComment2 = new Comment(user2, item1, "유저2의 대대댓", true, false, null);
         ReflectionTestUtils.setField(rootComment, "id", 3L);
 
         given(userRepository.findByOauthId(authCreator1.getOauthId())
@@ -161,13 +161,13 @@ class CommentServiceImplTest {
     @DisplayName("[댓글 조회] 대화에 참여하고 있는 사용자는 해당 대화의 비밀 댓글이 모두 보인다.")
     void getCommentsByItemId_commentWriter_canSeeSecretCommentThreads() {
         // given
-        Comment rootComment = new Comment(user2, item1, "유저2의 첫댓", true, null);
+        Comment rootComment = new Comment(user2, item1, "유저2의 첫댓", true, false, null);
         ReflectionTestUtils.setField(rootComment, "id", 1L);
 
-        Comment replyComment = new Comment(creator1, item1, "작가의 대댓", true, rootComment);
+        Comment replyComment = new Comment(creator1, item1, "작가의 대댓", true, false, rootComment);
         ReflectionTestUtils.setField(replyComment, "id", 2L);
 
-        Comment replyComment2 = new Comment(user2, item1, "유저2의 대대댓", true, null);
+        Comment replyComment2 = new Comment(user2, item1, "유저2의 대대댓", true, false, null);
         ReflectionTestUtils.setField(rootComment, "id", 3L);
 
         given(userRepository.findByOauthId(authUser2.getOauthId())
@@ -209,13 +209,13 @@ class CommentServiceImplTest {
         User user3 = User.builder().oauthId(authUser3.getOauthId()).build();
         ReflectionTestUtils.setField(user3, "id", 3L);
 
-        Comment rootComment = new Comment(user2, item1, "유저2의 첫댓", true, null);
+        Comment rootComment = new Comment(user2, item1, "유저2의 첫댓", true, false, null);
         ReflectionTestUtils.setField(rootComment, "id", 1L);
 
-        Comment replyComment = new Comment(creator1, item1, "작가의 대댓", true, rootComment);
+        Comment replyComment = new Comment(creator1, item1, "작가의 대댓", true, false, rootComment);
         ReflectionTestUtils.setField(replyComment, "id", 2L);
 
-        Comment replyComment2 = new Comment(user2, item1, "유저2의 대대댓", true, null);
+        Comment replyComment2 = new Comment(user2, item1, "유저2의 대대댓", true, false, null);
         ReflectionTestUtils.setField(rootComment, "id", 3L);
 
         given(userRepository.findByOauthId(authUser3.getOauthId())
@@ -253,10 +253,10 @@ class CommentServiceImplTest {
     @DisplayName("[대댓글 작성] 성공 - 사용자2 댓글에 대댓을 다는 크리에이터1")
     void createComment_createReply_shouldWorkSuccessfully_whenReplyCreatedByCreator() {
         // given
-        Comment rootComment = new Comment(user2, item1, "", false, null);
+        Comment rootComment = new Comment(user2, item1, "", false, false, null);
         ReflectionTestUtils.setField(rootComment, "id", 1L);
 
-        Comment replyComment = new Comment(creator1, item1, "대댓글 내용", false, rootComment);
+        Comment replyComment = new Comment(creator1, item1, "대댓글 내용", false, false, rootComment);
         ReflectionTestUtils.setField(replyComment, "id", 2L);
 
         CommentCreateRequest request = CommentCreateRequest.builder()
@@ -293,7 +293,7 @@ class CommentServiceImplTest {
         User anotherUser3 = User.builder().oauthId(anotherAuthUser3.getOauthId()).build();
         ReflectionTestUtils.setField(anotherUser3, "id", 3L);
 
-        Comment rootComment = new Comment(user2, item1, "", false, null);
+        Comment rootComment = new Comment(user2, item1, "", false, false, null);
         ReflectionTestUtils.setField(rootComment, "id", 1L);
 
         CommentCreateRequest request = CommentCreateRequest.builder()
@@ -325,7 +325,7 @@ class CommentServiceImplTest {
     @DisplayName("[대댓글 작성] 예외 발생 - 크리에이터1 댓글에 대댓을 다는 사용자2")
     void createComment_createReply_shouldThrowBusinessException_whenReplyCreatedByNonCreator() {
         // given
-        Comment rootComment = new Comment(creator1, item1, "", false, null);
+        Comment rootComment = new Comment(creator1, item1, "", false, false, null);
         ReflectionTestUtils.setField(rootComment, "id", 1L);
 
         CommentCreateRequest request = CommentCreateRequest.builder()
@@ -356,7 +356,7 @@ class CommentServiceImplTest {
     @Test
     @DisplayName("[댓글 삭제] 예외 발생 - 다른 사용자가 댓글을 삭제 시도")
     void deleteComment_shouldThrowBusinessException_whenInvalidUserRequest() {
-        Comment rootComment = new Comment(user2, item1, "", false, null);
+        Comment rootComment = new Comment(user2, item1, "", false, false, null);
         ReflectionTestUtils.setField(rootComment, "id", 1L);
 
         AuthUser anotherAuthUser3 = createAuthUser();
