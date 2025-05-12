@@ -1,6 +1,6 @@
 package com.swyp.artego.domain.follow.dto.response;
 
-import com.swyp.artego.domain.item.dto.response.MetaResponse;
+import com.swyp.artego.global.common.dto.response.MetaResponse;
 import lombok.Builder;
 import lombok.Getter;
 

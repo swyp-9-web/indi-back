@@ -11,11 +11,16 @@ import com.swyp.artego.domain.user.entity.User;
 import com.swyp.artego.domain.user.repository.UserRepository;
 import com.swyp.artego.global.auth.oauth.model.AuthUser;
 import com.swyp.artego.global.common.code.ErrorCode;
+import com.swyp.artego.global.common.dto.response.MetaResponse;
 import com.swyp.artego.global.excpetion.BusinessExceptionHandler;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -54,7 +59,7 @@ public class CommentServiceImpl implements CommentService {
 
     @Override
     @Transactional(readOnly = true)
-    public CommentFindByItemIdWrapperResponse getCommentsByItemId(AuthUser authUser, Long itemId) {
+    public CommentFindByItemIdWrapperResponse getCommentsByItemId(AuthUser authUser, Long itemId, Integer page, Integer limit) {
         Long viewerId = null;
         if (authUser != null) {
             User user = userRepository.findByOauthId(authUser.getOauthId())
@@ -65,13 +70,32 @@ public class CommentServiceImpl implements CommentService {
 
         Item item = itemRepository.findById(itemId)
                 .orElseThrow(() -> new BusinessExceptionHandler("존재하지 않는 작품입니다.", ErrorCode.NOT_FOUND_ERROR));
-        long itemOwnerId = item.getUser().getId();
 
-        List<Comment> comments = commentRepository.findByItemIdOrderByCreatedAtDesc(itemId);
+        int pageInput = page != null ? page : 1;
+        int pageIndex = Math.max(pageInput - 1, 0);
+        int pageSize = limit != null ? limit : 10;
 
-        applySecretPolicy(comments, viewerId, itemOwnerId);
+        Pageable pageable = PageRequest.of(pageIndex, pageSize, Sort.by(Sort.Direction.DESC, "id"));
+        List<Comment> rootComments = commentRepository.findRootCommentsByItemId(itemId, pageable).getContent();
 
-        return CommentFindByItemIdWrapperResponse.from(item.getUser(), comments);
+        List<Long> rootIds = rootComments.stream().map(Comment::getId).toList();
+        List<Comment> childComments = rootIds.isEmpty() ? List.of() : commentRepository.findChildCommentsByParentIds(rootIds);
+
+        List<Comment> combined = new ArrayList<>(rootComments);
+        combined.addAll(childComments);
+
+        applySecretPolicy(combined, viewerId, item.getUser().getId());
+
+        long totalComments = commentRepository.countAllByItemId(item.getId());
+        long totalRootComments = commentRepository.countRootCommentsByItemId(item.getId());
+
+        MetaResponse meta = MetaResponse.builder()
+                .currentPage(pageIndex + 1) // 프론트 기준으로 1-based
+                .pageSize(pageSize) // 페이지당 개수
+                .totalItems(totalRootComments) // 전체 아이템 수
+                .hasNextPage((pageIndex + 1) * pageSize < totalComments) // 다음 페이지 존재 여부
+                .build();
+        return CommentFindByItemIdWrapperResponse.from(item.getUser().getId(), combined, totalComments, meta);
     }
 
 

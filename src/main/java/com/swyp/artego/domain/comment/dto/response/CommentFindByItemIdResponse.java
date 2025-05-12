@@ -13,11 +13,19 @@ import java.util.*;
 @Builder
 public class CommentFindByItemIdResponse {
 
+    private Long rootCommentId;
+
+    private Long id;
+    private String content;
+    private Boolean isSecret;
+    private Boolean isDeleted;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
+
     private UserInfo user;
-    private CommentInfo comment;
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
-    private List<CommentInfo> replies;
+    private List<CommentFindByItemIdResponse> replies;
 
 
     @Getter
@@ -25,22 +33,9 @@ public class CommentFindByItemIdResponse {
     @Builder
     public static class UserInfo {
         private Long id;
-        private String name;
-        private String imgUrl;
-    }
-
-    @Getter
-    @AllArgsConstructor
-    @Builder
-    public static class CommentInfo {
-        private Long rootCommentId;
-
-        private Long id;
-        private Long writerId;
-        private String comment;
-        private boolean secret;
-        private boolean deleted;
-        private LocalDateTime createdAt;
+        private String nickname;
+        private String profileImgUrl;
+        private Boolean isOwner;
     }
 
     /**
@@ -54,7 +49,7 @@ public class CommentFindByItemIdResponse {
      * @param flatList 계층 구조 없이 정렬된 Comment 엔티티 리스트
      * @return List<CommentFindByItemIdResponse> 루트 댓글과 그에 속한 대댓글을 포함하는 응답 DTO 리스트
      */
-    public static List<CommentFindByItemIdResponse> convertFlatToDepth1Tree(List<Comment> flatList) {
+    public static List<CommentFindByItemIdResponse> convertFlatToDepth1Tree(List<Comment> flatList, Long itemOwnerId) {
         Map<Long, List<Comment>> repliesGroupedByParentId = new HashMap<>();
         List<Comment> parents = new ArrayList<>();
 
@@ -74,33 +69,40 @@ public class CommentFindByItemIdResponse {
         for (Comment parent : parents) {
             List<Comment> replies = repliesGroupedByParentId.getOrDefault(parent.getId(), Collections.emptyList());
 
-            List<CommentInfo> replyResponses = replies.stream()
-                    .map(reply -> CommentInfo.builder()
+            List<CommentFindByItemIdResponse> replyResponses = replies.stream()
+                    .map(reply -> CommentFindByItemIdResponse.builder()
                             .rootCommentId(reply.getParent().getId())
                             .id(reply.getId())
-                            .writerId(reply.getUser().getId())
-                            .comment(reply.getComment())
-                            .secret(reply.isSecret())
-                            .deleted(reply.isDeleted())
+                            .content(reply.getComment())
+                            .isSecret(reply.isSecret())
+                            .isDeleted(reply.isDeleted())
                             .createdAt(reply.getCreatedAt())
+                            .updatedAt(reply.getUpdatedAt())
+                            .user(UserInfo.builder()
+                                    .id(reply.getUser().getId())
+                                    .nickname(reply.getUser().getName())
+                                    .profileImgUrl(reply.getUser().getImgUrl())
+                                    .isOwner(Objects.equals(reply.getUser().getId(), itemOwnerId))
+                                    .build()
+                            )
                             .build())
                     .toList();
 
             CommentFindByItemIdResponse response = CommentFindByItemIdResponse.builder()
+                    .rootCommentId(parent.getId())
+                    .id(parent.getId())
+                    .content(parent.getComment())
+                    .isSecret(parent.isSecret())
+                    .isDeleted(parent.isDeleted())
+                    .createdAt(parent.getCreatedAt())
+                    .updatedAt(parent.getUpdatedAt())
                     .user(UserInfo.builder()
                             .id(parent.getUser().getId())
-                            .name(parent.getUser().getName())
-                            .imgUrl(parent.getUser().getImgUrl())
-                            .build())
-                    .comment(CommentInfo.builder()
-                            .rootCommentId(null)
-                            .id(parent.getId())
-                            .writerId(parent.getUser().getId())
-                            .comment(parent.getComment())
-                            .secret(parent.isSecret())
-                            .deleted(parent.isDeleted())
-                            .createdAt(parent.getCreatedAt())
-                            .build())
+                            .nickname(parent.getUser().getName())
+                            .profileImgUrl(parent.getUser().getImgUrl())
+                            .isOwner(Objects.equals(parent.getUser().getId(), itemOwnerId))
+                            .build()
+                    )
                     .replies(replyResponses.isEmpty() ? null : replyResponses)
                     .build();
 

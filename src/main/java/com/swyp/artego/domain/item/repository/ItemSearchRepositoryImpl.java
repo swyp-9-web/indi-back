@@ -16,6 +16,7 @@ import com.swyp.artego.domain.user.entity.QUser;
 import com.swyp.artego.domain.user.entity.User;
 import com.swyp.artego.domain.user.repository.UserRepository;
 import com.swyp.artego.global.auth.oauth.model.AuthUser;
+import com.swyp.artego.global.common.dto.response.MetaResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
