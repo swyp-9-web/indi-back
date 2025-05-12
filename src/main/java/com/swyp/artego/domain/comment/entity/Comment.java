@@ -51,11 +51,12 @@ public class Comment extends BaseTimeEntity {
     private List<Comment> replies = new ArrayList<>();
 
     @Builder
-    public Comment(User user, Item item, String comment, boolean secret, Comment parent) {
+    public Comment(User user, Item item, String comment, boolean secret, boolean deleted, Comment parent) {
         this.user = user;
         this.item = item;
         this.comment = comment;
         this.secret = secret;
+        this.deleted = deleted;
         this.parent = parent;
     }
 }
