@@ -25,7 +25,7 @@ public class CommentFindByItemIdResponse {
     private UserInfo user;
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
-    private List<CommentInfo> replies;
+    private List<CommentFindByItemIdResponse> replies;
 
 
     @Getter
@@ -36,22 +36,6 @@ public class CommentFindByItemIdResponse {
         private String nickname;
         private String profileImgUrl;
         private Boolean isOwner;
-    }
-
-    @Getter
-    @AllArgsConstructor
-    @Builder
-    public static class CommentInfo {
-        private Long rootCommentId;
-
-        private Long id;
-        private String content;
-        private Boolean isSecret;
-        private Boolean isDeleted;
-        private LocalDateTime createdAt;
-        private LocalDateTime updatedAt;
-
-        private UserInfo user;
     }
 
     /**
@@ -85,8 +69,8 @@ public class CommentFindByItemIdResponse {
         for (Comment parent : parents) {
             List<Comment> replies = repliesGroupedByParentId.getOrDefault(parent.getId(), Collections.emptyList());
 
-            List<CommentInfo> replyResponses = replies.stream()
-                    .map(reply -> CommentInfo.builder()
+            List<CommentFindByItemIdResponse> replyResponses = replies.stream()
+                    .map(reply -> CommentFindByItemIdResponse.builder()
                             .rootCommentId(reply.getParent().getId())
                             .id(reply.getId())
                             .content(reply.getComment())
