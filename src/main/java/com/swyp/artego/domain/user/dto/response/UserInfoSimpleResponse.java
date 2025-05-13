@@ -22,6 +22,8 @@ public class UserInfoSimpleResponse {
     private Role role;
     private String telNumber;
     private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
+
 
 
     public static UserInfoSimpleResponse fromEntity(User user) {
@@ -32,6 +34,7 @@ public class UserInfoSimpleResponse {
                 .role(user.getRole())
                 .nickname(user.getNickname())
                 .createdAt(user.getCreatedAt())
+                .updatedAt(user.getUpdatedAt())
                 .telNumber(user.getTelNumber())
                 .build();
     }
