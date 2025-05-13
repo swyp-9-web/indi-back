@@ -13,4 +13,6 @@ public interface ItemEmojiRepository extends JpaRepository<ItemEmoji, Long> {
     List<ItemEmoji> findAllByOrderByCreatedAtDesc();
 
     Optional<ItemEmoji> findByUserAndItemAndEmojiType(User user, Item item, EmojiType emojiType);
+
+    List<ItemEmoji> findAllByUserIdAndItemId(Long userId, Long itemId);
 }
