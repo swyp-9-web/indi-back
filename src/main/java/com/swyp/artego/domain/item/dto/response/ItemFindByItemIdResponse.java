@@ -78,17 +78,9 @@ public class ItemFindByItemIdResponse {
     }
 
     public static ItemFindByItemIdResponse fromEntity(
-            Item item,
-            Long totalScrapCount,
-            boolean isScrapped,
-            boolean isFollowing,
-            boolean isOwner,
-            boolean isLiked,
-            boolean isWanted,
-            boolean isRevisited,
-            Long likedEmojiId,
-            Long wantedEmojiId,
-            Long revisitedEmojiId
+            Item item, Long totalScrapCount, boolean isScrapped, boolean isFollowing,
+            boolean isOwner, boolean isLiked, boolean isWanted, boolean isRevisited,
+            Long likedEmojiId, Long wantedEmojiId, Long revisitedEmojiId
     ) {
         User artist = item.getUser();
 
@@ -111,18 +103,24 @@ public class ItemFindByItemIdResponse {
                 .material(item.getMaterial())
                 .categoryType(item.getCategoryType())
                 .totalScrapCount(totalScrapCount)
-                .viewer(ViewerInfo.builder()
+                .viewer(
+                        ViewerInfo.builder()
                         .isScrapped(isScrapped)
                         .isFollowing(isFollowing)
                         .isOwner(isOwner)
-                        .build())
-                .artist(Artist.builder()
+                        .build()
+                )
+                .artist(
+                        Artist.builder()
                         .id(artist.getId())
                         .nickname(artist.getNickname())
                         .profileImgUrl(artist.getImgUrl())
                         .description(artist.getArtistAboutMe())
-                        .build())
-                .reaction(Reaction.builder()
+                        .build()
+                )
+
+                .reaction(
+                        Reaction.builder()
                         .totalCount(likes + wants + revisits)
                         .likes(likes)
                         .wants(wants)
@@ -133,7 +131,8 @@ public class ItemFindByItemIdResponse {
                         .likedEmojiId(likedEmojiId)
                         .wantedEmojiId(wantedEmojiId)
                         .revisitedEmojiId(revisitedEmojiId)
-                        .build())
+                        .build()
+                )
                 .build();
     }
 }
