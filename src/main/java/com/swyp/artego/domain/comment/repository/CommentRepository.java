@@ -39,5 +39,5 @@ public interface CommentRepository extends JpaRepository<Comment, Long>, Comment
 
     Comment findByParentId(@Param("parentId") Long parentId);
 
-    List<Comment> findAllByOrderByCreatedAtDesc();
+
 }

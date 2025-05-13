@@ -26,6 +26,8 @@ public class CommentQueryRepositoryImpl implements CommentQueryRepository {
     private final JPAQueryFactory queryFactory;
     private final UserRepository userRepository;
 
+    private final CommentRepository commentRepository; //
+
     @Override
     public MyCommentActivityResultResponse findMyCommentActivity(AuthUser authUser, int pageInput, int limitInput) {
         QComment comment = QComment.comment1;
@@ -103,20 +105,28 @@ public class CommentQueryRepositoryImpl implements CommentQueryRepository {
                 .join(comment.item, item)
                 .join(item.user, artist)
                 .join(comment.user, commenter)
-                .leftJoin(reply)
-                .on(reply.parent.eq(comment)
-                        .and(reply.user.eq(artist))
-                        .and(reply.deleted.isFalse()))
+                .leftJoin(reply).on(
+                        reply.id.eq(
+                                JPAExpressions
+                                        .select(reply.id)
+                                        .from(reply)
+                                        .where(
+                                                reply.parent.id.eq(comment.parent.id.coalesce(comment.id)),
+                                                reply.user.id.ne(userId),
+                                                reply.createdAt.gt(comment.createdAt)
+                                        )
+                                        .orderBy(reply.createdAt.asc())
+                                        .limit(1)
+                        )
+                )
                 .where(comment.id.in(latestCommentIds))
                 .orderBy(comment.createdAt.desc())
                 .fetch();
 
         List<MyCommentActivityResponse> responses = tuples.stream().map(t -> {
-            // 이미지
             List<String> imgUrls = t.get(item.imgUrls);
             String thumbnail = (imgUrls != null && !imgUrls.isEmpty()) ? imgUrls.get(0) : null;
 
-            // 아이템
             MyCommentActivityResponse.ItemDTO.ArtistDTO artistDTO = MyCommentActivityResponse.ItemDTO.ArtistDTO.builder()
                     .id(t.get(artist.id))
                     .nickname(t.get(artist.nickname))
@@ -130,14 +140,12 @@ public class CommentQueryRepositoryImpl implements CommentQueryRepository {
                     .thumbnailImgUrl(thumbnail)
                     .build();
 
-            // 내 댓글 작성자
             MyCommentActivityResponse.UserDTO myUser = MyCommentActivityResponse.UserDTO.builder()
                     .id(t.get(commenter.id))
                     .nickname(t.get(commenter.nickname))
                     .profileImgUrl(t.get(commenter.imgUrl))
                     .build();
 
-            // 내 댓글
             MyCommentActivityResponse.CommentDTO myComment = MyCommentActivityResponse.CommentDTO.builder()
                     .id(t.get(comment.id))
                     .content(t.get(comment.comment))
@@ -145,11 +153,10 @@ public class CommentQueryRepositoryImpl implements CommentQueryRepository {
                     .user(myUser)
                     .build();
 
-            // 작가 답글
             MyCommentActivityResponse.CommentDTO replyComment = null;
             if (t.get(reply.id) != null) {
                 MyCommentActivityResponse.UserDTO replyUser = MyCommentActivityResponse.UserDTO.builder()
-                        .id(t.get(artist.id))
+                        .id(t.get(artist.id)) // 상대 유저 정보를 여기 artist 변수로 가져옴
                         .nickname(t.get(artist.nickname))
                         .profileImgUrl(t.get(artist.imgUrl))
                         .build();
@@ -166,10 +173,10 @@ public class CommentQueryRepositoryImpl implements CommentQueryRepository {
                     .item(itemDTO)
                     .myComment(myComment)
                     .replyComment(replyComment)
+                    .totalReplies(commentRepository.countAllByItemId(t.get(item.id)).intValue())
                     .build();
         }).toList();
 
-        // 4. 메타 정보
         MetaResponse meta = MetaResponse.builder()
                 .currentPage(page + 1)
                 .pageSize(limit)
@@ -182,6 +189,7 @@ public class CommentQueryRepositoryImpl implements CommentQueryRepository {
                 .meta(meta)
                 .build();
     }
+
 
 
     // 로그인 유저 조회
