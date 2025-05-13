@@ -32,6 +32,7 @@ public class MyCommentActivityResponse {
         private int price;
         private ArtistDTO artist;
         private String thumbnailImgUrl;
+        private Long commentCount;
 
         @Getter
         @Builder

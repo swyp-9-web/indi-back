@@ -99,7 +99,11 @@ public class CommentQueryRepositoryImpl implements CommentQueryRepository {
 
                         reply.id,
                         reply.comment,
-                        reply.createdAt
+                        reply.createdAt,
+
+                        JPAExpressions.select(QComment.comment1.count())
+                                .from(QComment.comment1)
+                                .where(QComment.comment1.item.id.eq(item.id))
                 )
                 .from(comment)
                 .join(comment.item, item)
@@ -132,12 +136,15 @@ public class CommentQueryRepositoryImpl implements CommentQueryRepository {
                     .nickname(t.get(artist.nickname))
                     .build();
 
+            Long commentCount = t.get(16, Long.class); // index는 select 순서 기준
+
             MyCommentActivityResponse.ItemDTO itemDTO = MyCommentActivityResponse.ItemDTO.builder()
                     .id(t.get(item.id))
                     .title(t.get(item.title))
                     .price(t.get(item.price))
                     .artist(artistDTO)
                     .thumbnailImgUrl(thumbnail)
+                    .commentCount(commentCount)
                     .build();
 
             MyCommentActivityResponse.UserDTO myUser = MyCommentActivityResponse.UserDTO.builder()
