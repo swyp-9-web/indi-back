@@ -26,7 +26,7 @@ public class CommentQueryRepositoryImpl implements CommentQueryRepository {
     private final JPAQueryFactory queryFactory;
     private final UserRepository userRepository;
 
-    private final CommentRepository commentRepository; //
+
 
     @Override
     public MyCommentActivityResultResponse findMyCommentActivity(AuthUser authUser, int pageInput, int limitInput) {
