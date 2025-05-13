@@ -55,7 +55,7 @@ public class ItemFindByItemIdResponse {
     @Builder
     public static class Artist {
         private Long id;
-        private String name;
+        private String nickname;
         private String profileImgUrl;
         private String description;
     }
@@ -105,7 +105,7 @@ public class ItemFindByItemIdResponse {
                 .artist(
                         Artist.builder()
                                 .id(artist.getId())
-                                .name(artist.getName())
+                                .nickname(artist.getNickname())
                                 .profileImgUrl(artist.getImgUrl())
                                 .description(artist.getArtistAboutMe())
                                 .build()
