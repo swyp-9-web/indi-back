@@ -30,7 +30,6 @@ public class ItemFindByItemIdResponse {
     private Artist artist;
     private Reaction reaction;
 
-
     @Getter
     @AllArgsConstructor
     @Builder
@@ -68,10 +67,21 @@ public class ItemFindByItemIdResponse {
         private int likes;
         private int wants;
         private int revisits;
+
+        private Boolean isLiked;
+        private Boolean isWanted;
+        private Boolean isRevisited;
+
+        private Long likedEmojiId;
+        private Long wantedEmojiId;
+        private Long revisitedEmojiId;
     }
 
-
-    public static ItemFindByItemIdResponse fromEntity(Item item, Long totalScrapCount, boolean isScrapped, boolean isFollowing, boolean isOwner) {
+    public static ItemFindByItemIdResponse fromEntity(
+            Item item, Long totalScrapCount, boolean isScrapped, boolean isFollowing,
+            boolean isOwner, boolean isLiked, boolean isWanted, boolean isRevisited,
+            Long likedEmojiId, Long wantedEmojiId, Long revisitedEmojiId
+    ) {
         User artist = item.getUser();
 
         int likes = item.getLikeCount();
@@ -84,39 +94,44 @@ public class ItemFindByItemIdResponse {
                 .description(item.getDescription())
                 .imgUrls(item.getImgUrls())
                 .price(item.getPrice())
-                .size(
-                        ItemSize.builder()
-                                .sizeType(item.getSizeType())
-                                .width(item.getSizeWidth())
-                                .height(item.getSizeHeight())
-                                .depth(item.getSizeDepth())
-                                .build()
-                )
+                .size(ItemSize.builder()
+                        .sizeType(item.getSizeType())
+                        .width(item.getSizeWidth())
+                        .height(item.getSizeHeight())
+                        .depth(item.getSizeDepth())
+                        .build())
                 .material(item.getMaterial())
                 .categoryType(item.getCategoryType())
                 .totalScrapCount(totalScrapCount)
                 .viewer(
                         ViewerInfo.builder()
-                                .isScrapped(isScrapped)
-                                .isFollowing(isFollowing)
-                                .isOwner(isOwner)
-                                .build()
+                        .isScrapped(isScrapped)
+                        .isFollowing(isFollowing)
+                        .isOwner(isOwner)
+                        .build()
                 )
                 .artist(
                         Artist.builder()
-                                .id(artist.getId())
-                                .nickname(artist.getNickname())
-                                .profileImgUrl(artist.getImgUrl())
-                                .description(artist.getArtistAboutMe())
-                                .build()
+                        .id(artist.getId())
+                        .nickname(artist.getNickname())
+                        .profileImgUrl(artist.getImgUrl())
+                        .description(artist.getArtistAboutMe())
+                        .build()
                 )
+
                 .reaction(
                         Reaction.builder()
-                                .totalCount(likes + wants + revisits)
-                                .likes(likes)
-                                .wants(wants)
-                                .revisits(revisits)
-                                .build()
+                        .totalCount(likes + wants + revisits)
+                        .likes(likes)
+                        .wants(wants)
+                        .revisits(revisits)
+                        .isLiked(isLiked)
+                        .isWanted(isWanted)
+                        .isRevisited(isRevisited)
+                        .likedEmojiId(likedEmojiId)
+                        .wantedEmojiId(wantedEmojiId)
+                        .revisitedEmojiId(revisitedEmojiId)
+                        .build()
                 )
                 .build();
     }

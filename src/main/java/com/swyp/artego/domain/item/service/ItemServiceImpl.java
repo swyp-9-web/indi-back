@@ -9,6 +9,8 @@ import com.swyp.artego.domain.item.entity.Item;
 import com.swyp.artego.domain.item.enums.SizeType;
 import com.swyp.artego.domain.item.enums.StatusType;
 import com.swyp.artego.domain.item.repository.ItemRepository;
+import com.swyp.artego.domain.itemEmoji.entity.ItemEmoji;
+import com.swyp.artego.domain.itemEmoji.repository.ItemEmojiRepository;
 import com.swyp.artego.domain.scrap.repository.ScrapRepository;
 import com.swyp.artego.domain.user.entity.User;
 import com.swyp.artego.domain.user.enums.Role;
@@ -36,6 +38,8 @@ public class ItemServiceImpl implements ItemService {
     private final UserRepository userRepository;
     private final ScrapRepository scrapRepository;
     private final FollowRepository followRepository;
+
+    private final ItemEmojiRepository itemEmojiRepository;
 
     private final FileService fileService;
 
@@ -75,17 +79,62 @@ public class ItemServiceImpl implements ItemService {
         boolean isScrapped = false;
         boolean isFollowing = false;
         boolean isOwner = false;
+
+        // 이모지 관련
+        boolean isLiked = false;
+        boolean isWanted = false;
+        boolean isRevisited = false;
+
+        Long likedEmojiId = null;
+        Long wantedEmojiId = null;
+        Long revisitedEmojiId = null;
+
         if (authUser != null) {
             User user = userRepository.findByOauthId(authUser.getOauthId())
                     .orElseThrow(() -> new BusinessExceptionHandler("유저가 존재하지 않습니다.", ErrorCode.NOT_FOUND_ERROR));
 
-            isScrapped = scrapRepository.existsByUserIdAndItemId(user.getId(), item.getId());
-            isFollowing = followRepository.existsByUserIdAndUserArtistId(user.getId(), item.getUser().getId());
-            isOwner = user.getId().equals(item.getUser().getId());
+            Long userId = user.getId();
+            Long artistId = item.getUser().getId();
+
+            isScrapped = scrapRepository.existsByUserIdAndItemId(userId, itemId);
+            isFollowing = followRepository.existsByUserIdAndUserArtistId(userId, artistId);
+            isOwner = userId.equals(artistId);
+
+
+            List<ItemEmoji> userEmojis = itemEmojiRepository.findAllByUserIdAndItemId(userId, itemId);
+            for (ItemEmoji emoji : userEmojis) {
+                switch (emoji.getEmojiType()) {
+                    case LIKES -> {
+                        isLiked = true;
+                        likedEmojiId = emoji.getId();
+                    }
+                    case WANTS -> {
+                        isWanted = true;
+                        wantedEmojiId = emoji.getId();
+                    }
+                    case REVISITS -> {
+                        isRevisited = true;
+                        revisitedEmojiId = emoji.getId();
+                    }
+                }
+            }
         }
 
-        return ItemFindByItemIdResponse.fromEntity(item, totalScrapCount, isScrapped, isFollowing, isOwner);
+        return ItemFindByItemIdResponse.fromEntity(
+                item,
+                totalScrapCount,
+                isScrapped,
+                isFollowing,
+                isOwner,
+                isLiked,
+                isWanted,
+                isRevisited,
+                likedEmojiId,
+                wantedEmojiId,
+                revisitedEmojiId
+        );
     }
+
 
     @Override
     @Transactional(readOnly = true)
