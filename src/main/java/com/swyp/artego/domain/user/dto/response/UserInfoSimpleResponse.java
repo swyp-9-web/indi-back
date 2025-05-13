@@ -16,6 +16,7 @@ import java.time.LocalDateTime;
 public class UserInfoSimpleResponse {
 
     private Long id;
+    private String name;
     private String nickname;
     private String profileImgUrl;
     private String email;
@@ -36,6 +37,7 @@ public class UserInfoSimpleResponse {
                 .createdAt(user.getCreatedAt())
                 .updatedAt(user.getUpdatedAt())
                 .telNumber(user.getTelNumber())
+                .name(user.getName())
                 .build();
     }
 
