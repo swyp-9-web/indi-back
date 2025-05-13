@@ -173,7 +173,6 @@ public class CommentQueryRepositoryImpl implements CommentQueryRepository {
                     .item(itemDTO)
                     .myComment(myComment)
                     .replyComment(replyComment)
-                    .totalReplies(commentRepository.countAllByItemId(t.get(item.id)).intValue())
                     .build();
         }).toList();
 
