@@ -21,7 +21,6 @@ public class MyCommentActivityResponse {
 
     private CommentDTO replyComment;
 
-    private int totalReplies;
 
     @Getter
     @Builder
