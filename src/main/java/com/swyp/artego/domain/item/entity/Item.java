@@ -36,7 +36,7 @@ public class Item extends BaseTimeEntity {
 
     @Setter
     @Convert(converter = StringListConverter.class)
-    @Column(name = "img_urls", nullable = false)
+    @Column(name = "img_urls", nullable = false, length = 1000) // 한 url당 약 110바이트 내외 * 최대 8장
     private List<String> imgUrls;
 
     @Setter
