@@ -30,7 +30,7 @@ public class Comment extends BaseTimeEntity {
     private Item item;
 
     @Setter
-    @Column(name = "comment", nullable = false)
+    @Column(name = "comment", nullable = false, length = 810) // 공백 제외 400자 제한이므로 *2 +@
     private String comment;
 
     @Setter
