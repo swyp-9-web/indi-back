@@ -31,7 +31,7 @@ public class Item extends BaseTimeEntity {
     private String title;
 
     @Setter
-    @Column(name = "description", nullable = false)
+    @Column(name = "description", nullable = false, length = 810) // 공백 제외 400자 제한이므로 *2 +@
     private String description;
 
     @Setter
