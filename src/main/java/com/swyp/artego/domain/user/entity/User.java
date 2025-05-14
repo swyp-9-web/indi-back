@@ -5,7 +5,10 @@ import com.swyp.artego.global.common.entity.BaseTimeEntity;
 import com.swyp.artego.global.converter.BooleanToYNConverter;
 import com.swyp.artego.global.converter.StringListConverter;
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AccessLevel;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -51,7 +54,7 @@ public class User extends BaseTimeEntity {
 
 
     @Convert(converter = StringListConverter.class)
-    @Column(name = "artist_sns_info")
+    @Column(name = "artist_sns_info", length = 600) // 최대 사이트 6개 등록, 이미지url보다 개인 SNS 링크가 평균적으로 더 짧다는 점 고려.
     // '종류_링크' 형식으로 저장. 예시) insta_https://blahblah, youtube_https://blahblah
     private List<String> artistSnsInfo = new ArrayList<>(); // Nullable
 
@@ -80,14 +83,13 @@ public class User extends BaseTimeEntity {
 
 
     @Builder
-    public User(String oauthId, String name, String email,String nickname, String telNumber) {
+    public User(String oauthId, String name, String email, String nickname, String telNumber) {
         this.oauthId = oauthId;
         this.name = name;
         this.email = email;
         this.nickname = nickname;
         this.telNumber = telNumber;
     }
-
 
 
     public void changeImgUrl(String newImgUrl) {
@@ -99,24 +101,37 @@ public class User extends BaseTimeEntity {
         this.role = role;
     }
 
-    public void changeNickname(String nickname) { this.nickname = nickname; }
-    public void changeAboutMe(String aboutMe) { this.artistAboutMe = aboutMe; }
-    public void changeHomeLink(String homeLink) { this.artistHomeSnsInfo = homeLink; }
-    public void changeSnsLinks(List<String> snsLinks) { this.artistSnsInfo = snsLinks; }
+    public void changeNickname(String nickname) {
+        this.nickname = nickname;
+    }
+
+    public void changeAboutMe(String aboutMe) {
+        this.artistAboutMe = aboutMe;
+    }
+
+    public void changeHomeLink(String homeLink) {
+        this.artistHomeSnsInfo = homeLink;
+    }
+
+    public void changeSnsLinks(List<String> snsLinks) {
+        this.artistSnsInfo = snsLinks;
+    }
 
     public void setItemCount(int itemCount) {
         this.itemCount = itemCount;
     }
+
     public void setScrapCount(int scrapCount) {
         this.scrapCount = scrapCount;
     }
+
     public void setReactionCount(int reactionCount) {
         this.reactionCount = reactionCount;
     }
+
     public void setFollowerCount(int followerCount) {
         this.followerCount = followerCount;
     }
-
 
 
 }
