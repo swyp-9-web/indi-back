@@ -68,6 +68,10 @@ public class SecurityConfig {
                         // 9. swagger - 모두 허용
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-resources/**", "/webjars/**").permitAll()
 
+                        // 10. 로그인
+                        .requestMatchers("/login/**", "/oauth2/**").permitAll()
+                        .requestMatchers("/login/naver").permitAll()
+
                         // 기타 요청은 전부 거부
                         .anyRequest().denyAll()
 
