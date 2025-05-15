@@ -83,12 +83,13 @@ public class User extends BaseTimeEntity {
 
 
     @Builder
-    public User(String oauthId, String name, String email, String nickname, String telNumber) {
+    public User(String oauthId, String name, String email, String nickname, String telNumber, Role role) {
         this.oauthId = oauthId;
         this.name = name;
         this.email = email;
         this.nickname = nickname;
         this.telNumber = telNumber;
+        this.role = role;
     }
 
 
