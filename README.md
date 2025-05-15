@@ -1,8 +1,9 @@
 <div align="center">
   <h1 style="display: flex; align-items: center; justify-content: center; width: 100%;">
-    <img src="./resources/img/logo.png" width="22px" style="margin-right: 15px"/> 신인 작가들을 위한 커뮤니티, Artego
-  </h1>
-  <img src="./resources/img/main.png"/>
+     신인 작가들을 위한 커뮤니티, Artego
+  
+
+  </h1><img src="https://github.com/user-attachments/assets/47b3e0a3-d309-4003-8a89-7d4dc20a23c0"/>
   <h3>소개란</h3>
   <h4>신인 작가들을 위한 커뮤니티, Artego</h4>
   <p>2025.04.01 ~ 2025.05.31</p>  
