@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 @RequiredArgsConstructor
 public class AuthController {
 
-    // 이해 돕기 위한 테스트용! 테스트하고 지워도된다.
+
 
     private final UserRepository userRepository;
 
