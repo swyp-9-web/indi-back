@@ -142,13 +142,7 @@ Artego 서비스 제작 배경
 
 <img width="600px" src="./resources/img/ERD.png">
 
-<br>
 
-### [Artego API 명세서](./resources/img/api_specification.png)
-
-<br/>
-
-### [Artego팀 JIRA](./resources/img/jira)
 
 <br/>
 <br/>
