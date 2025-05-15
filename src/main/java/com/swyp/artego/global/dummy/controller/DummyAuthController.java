@@ -60,7 +60,6 @@ public class DummyAuthController {
         );
 
 
-        //AuthUser authUser = new AuthUser(dummyResponse, "ROLE_USER");
         AuthUser authUser = new AuthUser(dummyResponse, "ROLE_" + role.name());
 
         // 3. Spring Security Context에 인증 정보 등록

@@ -51,7 +51,7 @@ public enum ErrorCode {
     /*
      403 Forbidden
      */
-    FORBIDDEN_ERROR(403, "G008", "권한이 없음"),
+    FORBIDDEN_ERROR(403, "G008", "Forbidden – 해당 기능을 사용할 권한이 없습니다."),
 
     /*
      404 Not Found
