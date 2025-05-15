@@ -84,6 +84,7 @@ public class AuthService extends DefaultOAuth2UserService {
                         .email(oAuth2Response.getEmail())
                         .telNumber(oAuth2Response.getPhoneNumber())
                         .nickname(nickname)
+                        .role(Role.USER)
                         .build();
 
                 userRepository.save(newUser);
