@@ -158,18 +158,24 @@ public class ItemServiceImpl implements ItemService {
             throw new BusinessExceptionHandler("작품을 수정할 권한이 없습니다.", ErrorCode.FORBIDDEN_ERROR);
         }
 
-        // 이미지 요소 검증 및 imgUrls 반환, 사용하지 않는 사진은 삭제
         List<String> imageOrder = request.getImageOrder();
-        validateFileSizeAndNameMatch(multipartFiles, imageOrder);
 
-        List<String> updatedImageUrls = fileService.uploadNewFilesInOrder(multipartFiles, imageOrder, folderName);
+        List<String> updateImgUrls;
+        if (multipartFiles != null) {
+            validateFileSizeAndNameMatch(multipartFiles, imageOrder);
+            updateImgUrls = fileService.uploadNewFilesInOrder(multipartFiles, imageOrder, folderName);
+        } else {
+            updateImgUrls = imageOrder;
+        }
 
-        deleteRemovedImages(item.getImgUrls(), updatedImageUrls);
+        if (!item.getImgUrls().equals(updateImgUrls)) {
+            deleteRemovedImages(item.getImgUrls(), updateImgUrls);
+        }
 
         // 이미지 외 나머지 요소 수정
         ItemCreateRequest.ItemSize requestSize = request.getSize();
         SizeType sizeType = calculateSizeType(requestSize.getWidth(), requestSize.getHeight(), requestSize.getDepth());
-        request.applyToEntity(item, updatedImageUrls, sizeType);
+        request.applyToEntity(item, updateImgUrls, sizeType);
 
         return ItemUpdateResponse.fromEntity(item);
     }
@@ -249,15 +255,15 @@ public class ItemServiceImpl implements ItemService {
     }
 
     /**
-     * [수정 API] 삭제할 이미지 추출, S3에서 삭제 실행
+     * [수정 API] DB에 저장되어있는 이전 이미지 url 리스트에서 더이상 등록하지 않을 이미지를 추출하고, S3에서 삭제 실행
      *
-     * @param originalUrls   기존 게시글의 이미지 URLs
-     * @param updatedImgUrls 수정한 결과 이미지 Urls
+     * @param previousImgUrls 기존 게시글의 이미지 URLs
+     * @param updateImgUrls   수정한 결과 이미지 Urls
      */
-    private void deleteRemovedImages(List<String> originalUrls, List<String> updatedImgUrls) {
+    private void deleteRemovedImages(List<String> previousImgUrls, List<String> updateImgUrls) {
 
-        List<String> deletedUrls = originalUrls.stream()
-                .filter(url -> !updatedImgUrls.contains(url))
+        List<String> deletedUrls = previousImgUrls.stream()
+                .filter(url -> !updateImgUrls.contains(url))
                 .toList();
 
         List<String> deletedKeys = deletedUrls.stream()
