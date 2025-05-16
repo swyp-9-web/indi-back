@@ -72,10 +72,14 @@ public class SecurityConfig {
                         .requestMatchers("/login/**", "/oauth2/**").permitAll()
                         .requestMatchers("/login/naver").permitAll()
 
+                        // 11. Prometheus actuator 메트릭 경로 허용
+                        .requestMatchers("/actuator/prometheus").permitAll()
+
                         // 기타 요청은 전부 거부
                         .anyRequest().denyAll()
 
                         // TODO: 그라파나,프로메테우스 모니터링 주소도 나중에 설정해줘야함!
+
                 )
 
                 .exceptionHandling(ex -> ex

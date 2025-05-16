@@ -51,7 +51,7 @@ public class AuthService extends DefaultOAuth2UserService {
 
         if (userOptional.isPresent()) {
             // 유저가 존재하면 DB에서 Role을 가져와서 Prefix 추가
-            Role userRole = userOptional.get().getRole();  // <- User 객체에 getRole()이 있어야 함
+            Role userRole = userOptional.get().getRole();
             role = "ROLE_" + userRole.name();
         } else {
             // 새 유저는 기본적으로 USER
