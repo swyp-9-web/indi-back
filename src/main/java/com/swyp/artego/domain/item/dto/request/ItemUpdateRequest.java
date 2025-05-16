@@ -40,6 +40,9 @@ public class ItemUpdateRequest {
 
     private StatusType statusType;
 
+    @Schema(description = "이미지 (+이미지 순서)")
+    @NotNull(message = "이미지 리스트는 null일 수 없습니다.")
+    @Size(min = 1, max = 8, message = "이미지는 1개 이상 8개 이하여야 합니다.")
     private List<String> imageOrder;
 
     @Getter
