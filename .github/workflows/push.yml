@@ -45,4 +45,4 @@ jobs:
             cd artego-server
             echo "${{ secrets.SPRING_ENV }}" > .env
             docker run -d --name artego -p ${{ secrets.APP_PORT_EXTERNAL_INTERNAL }} --env-file .env ${{ secrets.DOCKER_REPO }}:$SHORT_SHA
-            docker image prune -f --filter "until=36h"
+            docker image prune -a -f --filter "until=48h"
