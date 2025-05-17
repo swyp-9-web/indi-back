@@ -101,7 +101,7 @@ public class FollowSearchRepositoryImpl implements FollowSearchRepository {
                     return FollowedArtistResponse.builder()
                             .id(artistId)
                             .profileImgUrl(artistEntity.getImgUrl())
-                            .nickname(artistEntity.getName())
+                            .nickname(artistEntity.getNickname())
                             .totalFollower(artistEntity.getFollowerCount()) // DB 필드에서 직접 가져옴
                             .totalItems(artistEntity.getItemCount())       // DB 필드에서 직접 가져옴
                             .isFollowing(true)
