@@ -41,6 +41,9 @@ public class ScrapServiceImpl implements ScrapService {
                 .build();
 
         scrapRepository.save(scrap);
+
+        itemRepository.incrementScrapCount(item.getId(), 1); // count
+        userRepository.incrementUserScrapCount(item.getUser().getId(), 1); //count
     }
 
     @Override
@@ -56,5 +59,10 @@ public class ScrapServiceImpl implements ScrapService {
                 .orElseThrow(() -> new BusinessExceptionHandler("스크랩 정보가 존재하지 않습니다.", ErrorCode.NOT_FOUND_ERROR));
 
         scrapRepository.delete(scrap);
+
+        scrapRepository.delete(scrap);
+        itemRepository.incrementScrapCount(item.getId(), -1);
+        userRepository.incrementUserScrapCount(item.getUser().getId(), -1);
+
     }
 }

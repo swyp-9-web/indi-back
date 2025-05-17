@@ -31,7 +31,8 @@ public class ItemBatchService {
 
     @Transactional
     //@Scheduled(initialDelay = 10000, fixedRate = 1000 * 60 * 120) // 앱 시작 후 10초 뒤, 2시간마다 실행
-    @Scheduled(initialDelay = 5000, fixedRate = 1000 * 60) // 앱 시작 후 10초 뒤, 1분마다 실행 => 테스트용
+    //@Scheduled(initialDelay = 5000, fixedRate = 1000 * 60) // 앱 시작 후 10초 뒤, 1분마다 실행 => 테스트용
+    @Scheduled(initialDelay = 5000,fixedRate = 1000 * 60 * 10) // 10분 간격
     public void updateItemStatistics() {
 
 

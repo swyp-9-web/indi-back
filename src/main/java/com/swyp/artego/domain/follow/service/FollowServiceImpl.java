@@ -47,6 +47,8 @@ public class FollowServiceImpl implements FollowService {
                 .build();
 
         followRepository.save(follow);
+
+        userRepository.incrementFollowerCount(artist.getId(), 1);
     }
 
 
@@ -102,6 +104,8 @@ public class FollowServiceImpl implements FollowService {
                 .orElseThrow(() -> new BusinessExceptionHandler("팔로우 관계가 존재하지 않습니다.", ErrorCode.NOT_FOUND_ERROR));
 
         followRepository.delete(follow);
+
+        userRepository.incrementFollowerCount(artist.getId(), -1);
     }
 
 

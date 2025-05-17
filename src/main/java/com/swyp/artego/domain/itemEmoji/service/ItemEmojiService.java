@@ -17,12 +17,7 @@ public interface ItemEmojiService {
      */
     Long createItemEmoji(AuthUser user, ItemEmojiCreateRequest request);
 
-    /**
-     * 전체 아이템 이모지 조회 (최신순)
-     *
-     * @return 이모지 목록
-     */
-    List<ItemEmojiInfoResponse> getAllItemEmojis();
+
 
 
 

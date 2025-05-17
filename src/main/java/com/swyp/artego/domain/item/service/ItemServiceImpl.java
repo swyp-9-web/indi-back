@@ -63,6 +63,8 @@ public class ItemServiceImpl implements ItemService {
         ItemCreateRequest.ItemSize requestSize = request.getSize();
         SizeType sizeType = calculateSizeType(requestSize.getWidth(), requestSize.getHeight(), requestSize.getDepth());
 
+        userRepository.incrementItemCount(user.getId(), 1);
+
         return ItemCreateResponse.fromEntity(
                 itemRepository.save(request.toEntity(user, imgUrls, sizeType))
         );
@@ -74,6 +76,12 @@ public class ItemServiceImpl implements ItemService {
     public ItemFindByItemIdResponse findItemByItemId(AuthUser authUser, Long itemId) {
         Item item = itemRepository.findById(itemId)
                 .orElseThrow(() -> new BusinessExceptionHandler("작품이 존재하지 않습니다.", ErrorCode.NOT_FOUND_ERROR));
+
+        // 상태가 HIDE인 경우 예외 발생
+        if (item.getStatusType() == StatusType.HIDE) {
+            throw new BusinessExceptionHandler("숨김 처리된 작품입니다.", ErrorCode.FORBIDDEN_ERROR);
+        }
+
         Long totalScrapCount = scrapRepository.countAllByItemId(item.getId());
 
         boolean isScrapped = false;
@@ -194,6 +202,15 @@ public class ItemServiceImpl implements ItemService {
         }
 
         item.setStatusType(StatusType.HIDE);
+
+        userRepository.incrementItemCount(item.getUser().getId(), -1);
+
+
+        // 3. 작가의 scrapCount, reactionCount 감소
+
+        Long artistId = item.getUser().getId();
+        userRepository.incrementUserScrapCount(artistId, -item.getScrapCount());
+        userRepository.incrementUserReactionCount(artistId, -item.getTotalReactionCount());
 
         return ItemDeleteResponse.fromEntity(item);
     }
