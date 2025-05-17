@@ -41,21 +41,7 @@ public class ItemEmojiController {
                         .build());
     }
 
-    /**
-     * 이모지 전체 조회 API (최신순)
-     */
-    @Operation(summary = "전체 이모지 조회", description = "등록된 모든 아이템 이모지를 최신순으로 조회합니다.")
-    @GetMapping
-    public ResponseEntity<ApiResponse<List<ItemEmojiInfoResponse>>> getAllItemEmojis() {
-        List<ItemEmojiInfoResponse> emojis = itemEmojiService.getAllItemEmojis();
-        return ResponseEntity.ok(
-                ApiResponse.<List<ItemEmojiInfoResponse>>builder()
-                        .result(emojis)
-                        .resultCode(Integer.parseInt(SuccessCode.SELECT_SUCCESS.getCode()))
-                        .resultMessage(SuccessCode.SELECT_SUCCESS.getMessage())
-                        .build()
-        );
-    }
+
 
     /**
      * 이모지 삭제 API
