@@ -34,7 +34,8 @@ public class UserBatchService {
     private final QUser user = QUser.user;
 
     @Transactional
-    @Scheduled(initialDelay = 5000,fixedRate = 1000 * 60 * 10) // 10분 간격
+    //@Scheduled(initialDelay = 5000,fixedRate = 1000 * 60 * 10) // 10분 간격
+    @Scheduled(initialDelay = 5000, fixedRate = 1000 * 60)
     public void updateUserStatistics() {
 
         // 1. 작가별 아이템 수
