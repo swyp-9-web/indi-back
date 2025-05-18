@@ -46,8 +46,7 @@ public class User extends BaseTimeEntity {
     private Role role = Role.USER; // ex: "user", "artist"
 
     @Column(name = "img_url", nullable = false)
-    private String imgUrl = "https://kr.object.ncloudstorage.com/artego-bucket/file_domain/b3db25fe-5e0e-485e-b342-91ee1239950d.jpg"; // 기본 프로필 이미지
-
+    private String imgUrl = "https://kr.object.ncloudstorage.com/artego-bucket/userProfile/b3db25fe-5e0e-485e-b342-91ee1239950d.jpg"; // 기본 프로필 이미지
 
     @Column(name = "artist_home_sns_info")
     private String artistHomeSnsInfo = ""; // 개인 홈페이지용
