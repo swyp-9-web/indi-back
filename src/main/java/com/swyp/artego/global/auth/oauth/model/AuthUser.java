@@ -1,0 +1,71 @@
+package com.swyp.artego.global.auth.oauth.model;
+
+import com.swyp.artego.global.auth.oauth.dto.response.OAuth2Response;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.oauth2.core.user.OAuth2User;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Map;
+
+public class AuthUser implements OAuth2User, UserDetails {
+
+    private final OAuth2Response oAuth2Response;
+    private final String role;
+
+    public AuthUser(OAuth2Response oAuth2Response, String role) {
+
+        this.oAuth2Response = oAuth2Response;
+        this.role = role;
+    }
+
+    @Override
+    public Map<String, Object> getAttributes() {
+        return null;
+    }
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+
+        Collection<GrantedAuthority> collection = new ArrayList<>();
+
+        collection.add(new GrantedAuthority() {
+
+            @Override
+            public String getAuthority() {
+
+                return role;
+            }
+        });
+
+        return collection;
+    }
+
+    @Override
+    public String getPassword() {
+        return null;
+    }
+
+    @Override
+    public String getUsername() {
+        return oAuth2Response.getName();
+    }
+
+    @Override public boolean isAccountNonExpired() { return true; }
+    @Override public boolean isAccountNonLocked() { return true; }
+    @Override public boolean isCredentialsNonExpired() { return true; }
+    @Override public boolean isEnabled() { return true; }
+
+    @Override
+    public String getName() {
+        return oAuth2Response.getName();
+    }
+
+    public String getOauthId() {
+        return oAuth2Response.getProvider()+" "+oAuth2Response.getProviderId();
+    }
+
+
+}
+
