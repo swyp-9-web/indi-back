@@ -3,6 +3,7 @@ package com.swyp.artego.domain.artistApply.entity;
 
 import com.swyp.artego.domain.artistApply.enums.Status;
 import com.swyp.artego.domain.user.entity.User;
+import com.swyp.artego.global.common.entity.BaseTimeEntity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -14,7 +15,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "artist_apply")
-public class ArtistApply {
+public class ArtistApply extends BaseTimeEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -36,19 +37,19 @@ public class ArtistApply {
 
     @Column(name = "status", nullable = false)
     @Enumerated(EnumType.STRING)
-    private Status status = Status.PENDING;
+    private Status status;
 
     @Column(name = "rejected_count", nullable = false)
-    private int rejectedCount = 0;
+    private int rejectedCount;
 
     @Builder
-    public ArtistApply(User user, String artistAboutMe, String email, String snsLink) {
+    public ArtistApply(User user, String artistAboutMe, String email, String snsLink, Status applyStatus, int rejectedCount) {
         this.user = user;
         this.artistAboutMe = artistAboutMe;
         this.email = email;
         this.snsLink = snsLink;
-        this.status = Status.PENDING;
-        this.rejectedCount = 0;
+        this.status = applyStatus;
+        this.rejectedCount = rejectedCount;
     }
 
 

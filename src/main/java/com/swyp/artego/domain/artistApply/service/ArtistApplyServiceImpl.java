@@ -3,7 +3,7 @@ package com.swyp.artego.domain.artistApply.service;
 import com.swyp.artego.domain.artistApply.dto.request.ArtistApplyCreateRequest;
 import com.swyp.artego.domain.artistApply.dto.request.ConvertToArtistRequest;
 import com.swyp.artego.domain.artistApply.dto.response.ArtistApplyCreateResponse;
-import com.swyp.artego.domain.artistApply.entity.ArtistApply;
+import com.swyp.artego.domain.artistApply.enums.Status;
 import com.swyp.artego.domain.artistApply.repository.ArtistApplyRepository;
 import com.swyp.artego.domain.user.entity.User;
 import com.swyp.artego.domain.user.enums.Role;
@@ -28,20 +28,21 @@ public class ArtistApplyServiceImpl implements ArtistApplyService {
         User user = userRepository.findByOauthId(authUser.getOauthId())
                 .orElseThrow(() -> new BusinessExceptionHandler("유저가 존재하지 않습니다.", ErrorCode.NOT_FOUND_ERROR));
 
-        ArtistApply apply = new ArtistApply(
-                user,
-                request.getArtistAboutMe(),
-                request.getEmail(),
-                request.getSnsLink()
+        if (user.getRole() != Role.USER) {
+            throw new BusinessExceptionHandler("User 권한만 작가로 신청할 수 있습니다.", ErrorCode.FORBIDDEN_ERROR);
+        }
+
+        // TODO: 해당 기획 사용하는지에 대한 명재님 답변 이후 수정
+//        boolean isPending = artistApplyRepository.existsByUserIdAndStatus(user.getId(), Status.PENDING);
+//        if (isPending) {
+//            throw new BusinessExceptionHandler("'승인 대기중' 상태에서는 중복 지원이 불가능합니다.", ErrorCode.BAD_REQUEST_ERROR);
+//        }
+
+        long rejectedHistoryCounts = artistApplyRepository.countAllByUserIdAndStatus(user.getId(), Status.REJECTED);
+
+        return ArtistApplyCreateResponse.fromEntity(
+                artistApplyRepository.save(request.toEntity(user, rejectedHistoryCounts))
         );
-
-        ArtistApply saved = artistApplyRepository.save(apply);
-
-        return new ArtistApplyCreateResponse(saved.getId());
-
-
-
-
     }
 
     @Transactional
@@ -61,7 +62,6 @@ public class ArtistApplyServiceImpl implements ArtistApplyService {
 
         // 작가 권한 부여
         target.setRole(Role.ARTIST);
-
     }
 
 }
