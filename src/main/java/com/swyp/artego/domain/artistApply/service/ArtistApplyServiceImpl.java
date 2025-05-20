@@ -3,6 +3,7 @@ package com.swyp.artego.domain.artistApply.service;
 import com.swyp.artego.domain.artistApply.dto.request.ArtistApplyCreateRequest;
 import com.swyp.artego.domain.artistApply.dto.request.ConvertToArtistRequest;
 import com.swyp.artego.domain.artistApply.dto.response.ArtistApplyCreateResponse;
+import com.swyp.artego.domain.artistApply.dto.response.ArtistApplyFindAllResponse;
 import com.swyp.artego.domain.artistApply.enums.Status;
 import com.swyp.artego.domain.artistApply.repository.ArtistApplyRepository;
 import com.swyp.artego.domain.user.entity.User;
@@ -14,6 +15,9 @@ import com.swyp.artego.global.excpetion.BusinessExceptionHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -43,6 +47,15 @@ public class ArtistApplyServiceImpl implements ArtistApplyService {
         return ArtistApplyCreateResponse.fromEntity(
                 artistApplyRepository.save(request.toEntity(user, rejectedHistoryCounts))
         );
+    }
+
+    @Transactional(readOnly = true)
+    public List<ArtistApplyFindAllResponse> getArtistApplies() {
+
+        return artistApplyRepository.findAllByOrderByCreatedAtDesc()
+                .stream()
+                .map(ArtistApplyFindAllResponse::fromEntity)
+                .collect(Collectors.toList());
     }
 
     @Transactional

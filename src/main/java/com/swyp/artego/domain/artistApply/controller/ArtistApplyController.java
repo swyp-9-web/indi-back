@@ -3,6 +3,7 @@ package com.swyp.artego.domain.artistApply.controller;
 import com.swyp.artego.domain.artistApply.dto.request.ArtistApplyCreateRequest;
 import com.swyp.artego.domain.artistApply.dto.request.ConvertToArtistRequest;
 import com.swyp.artego.domain.artistApply.dto.response.ArtistApplyCreateResponse;
+import com.swyp.artego.domain.artistApply.dto.response.ArtistApplyFindAllResponse;
 import com.swyp.artego.domain.artistApply.service.ArtistApplyService;
 import com.swyp.artego.global.auth.oauth.model.AuthUser;
 import com.swyp.artego.global.common.code.SuccessCode;
@@ -13,10 +14,9 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @Tag(name = "ArtistApply", description = "작가 신청 API")
 @RestController
@@ -39,6 +39,20 @@ public class ArtistApplyController {
                         .result(res)
                         .resultCode(Integer.parseInt(SuccessCode.INSERT_SUCCESS.getCode()))
                         .resultMessage(SuccessCode.INSERT_SUCCESS.getMessage())
+                        .build());
+    }
+
+    @GetMapping("/admin")
+    @Operation(summary = "작가 신청 전체 조회")
+    public ResponseEntity<ApiResponse<List<ArtistApplyFindAllResponse>>> getArtistApplies() {
+
+        List<ArtistApplyFindAllResponse> res = artistApplyService.getArtistApplies();
+
+        return ResponseEntity.status(SuccessCode.SELECT_SUCCESS.getStatus())
+                .body(ApiResponse.<List<ArtistApplyFindAllResponse>>builder()
+                        .result(res)
+                        .resultCode(Integer.parseInt(SuccessCode.SELECT_SUCCESS.getCode()))
+                        .resultMessage(SuccessCode.SELECT_SUCCESS.getMessage())
                         .build());
     }
 

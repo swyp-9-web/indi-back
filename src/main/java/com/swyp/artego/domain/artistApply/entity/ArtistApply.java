@@ -22,7 +22,7 @@ public class ArtistApply extends BaseTimeEntity {
     @Column(name = "artist_apply_id", nullable = false)
     private Long id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false) // 유저는 반드시 있어야 하므로 nullable = false 권장
     private User user;
 
