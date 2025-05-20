@@ -7,15 +7,17 @@ ncp:
 
 spring:
   datasource:
-    url: jdbc:mysql://localhost:3306/${LOCAL_DB_NAME}?serverTimezone=Asia/Seoul&characterEncoding=UTF-8&rewriteBatchedStatements=true
+    url: jdbc:p6spy:mysql://localhost:3306/${LOCAL_DB_NAME}?serverTimezone=Asia/Seoul&characterEncoding=UTF-8&rewriteBatchedStatements=true
+    ##url: jdbc:mysql://localhost:3306/${LOCAL_DB_NAME}?serverTimezone=Asia/Seoul&characterEncoding=UTF-8&rewriteBatchedStatements=true
     username: ${LOCAL_DB_USERNAME}
     password: ${LOCAL_DB_PASSWORD}
-    driver-class-name: com.mysql.cj.jdbc.Driver
+    driver-class-name: com.p6spy.engine.spy.P6SpyDriver
+    ##driver-class-name: com.mysql.cj.jdbc.Driver
 
   jpa:
     hibernate:
       ddl-auto: update
-    show-sql: true
+    show-sql: false
 
   security:
     oauth2:
@@ -36,5 +38,5 @@ logging:
     root: INFO
     com.swyp.artego: DEBUG
     org.springframework.web: DEBUG
-    org.hibernate.SQL: debug
-    org.hibernate.type.descriptor.sql: TRACE
+    org.hibernate.SQL: OFF
+    org.hibernate.type.descriptor.sql: OFF
