@@ -1,6 +1,7 @@
 package com.swyp.artego.domain.artistApply.controller;
 
 import com.swyp.artego.domain.artistApply.dto.request.ArtistApplyCreateRequest;
+import com.swyp.artego.domain.artistApply.dto.request.ConvertToArtistRequest;
 import com.swyp.artego.domain.artistApply.dto.response.ArtistApplyCreateResponse;
 import com.swyp.artego.domain.artistApply.service.ArtistApplyService;
 import com.swyp.artego.global.auth.oauth.model.AuthUser;
@@ -35,10 +36,28 @@ public class ArtistApplyController {
 
         return ResponseEntity.status(SuccessCode.INSERT_SUCCESS.getStatus())
                 .body(ApiResponse.<ArtistApplyCreateResponse>builder()
-                        .result(res) // 여기 id
+                        .result(res)
                         .resultCode(Integer.parseInt(SuccessCode.INSERT_SUCCESS.getCode()))
                         .resultMessage(SuccessCode.INSERT_SUCCESS.getMessage())
                         .build());
     }
+
+
+    @PostMapping("/grant-artist-role")
+    @Operation(summary = "어드민이 유저에게 ARTIST 권한 부여")
+    public ResponseEntity<ApiResponse<String>> grantArtistRole(
+            @AuthenticationPrincipal AuthUser authUser,
+            @RequestBody @Valid ConvertToArtistRequest request) {
+
+        artistApplyService.convertUserToArtist(authUser, request);
+
+        return ResponseEntity.status(SuccessCode.UPDATE_SUCCESS.getStatus())
+                .body(ApiResponse.<String>builder()
+                        .result("작가 권한이 부여되었습니다.")
+                        .resultCode(Integer.parseInt(SuccessCode.UPDATE_SUCCESS.getCode()))
+                        .resultMessage(SuccessCode.UPDATE_SUCCESS.getMessage())
+                        .build());
+    }
+
 
 }

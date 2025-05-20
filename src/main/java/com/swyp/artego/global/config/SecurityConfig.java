@@ -75,6 +75,11 @@ public class SecurityConfig {
                         // 11. Prometheus actuator 메트릭 경로 허용
                         .requestMatchers("/actuator/prometheus").permitAll()
 
+                        // 12. 작가 신청 API
+                        .requestMatchers("/api/v1/artist-applies").hasRole("USER")
+                        .requestMatchers("/api/v1/artist-applies/grant-artist-role").hasRole("ADMIN")
+                        .requestMatchers("/api/v1/artist-applies/Example").hasRole("ADMIN") // TODO : 서영님 여기요!!
+
                         // 기타 요청은 전부 거부
                         .anyRequest().denyAll()
 
