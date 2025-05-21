@@ -52,5 +52,18 @@ public class ArtistApply extends BaseTimeEntity {
         this.rejectedCount = rejectedCount;
     }
 
+    public void approve() {
+        this.status = Status.APPROVED;
+    }
+
+    public void reject() {
+        this.status = Status.REJECTED;
+        this.rejectedCount += 1;
+    }
+
+    public void resetToPending() {
+        this.status = Status.PENDING;
+    }
+
 
 }

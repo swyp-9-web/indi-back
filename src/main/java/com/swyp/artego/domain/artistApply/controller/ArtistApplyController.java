@@ -4,6 +4,7 @@ import com.swyp.artego.domain.artistApply.dto.request.ArtistApplyCreateRequest;
 import com.swyp.artego.domain.artistApply.dto.request.ConvertToArtistRequest;
 import com.swyp.artego.domain.artistApply.dto.response.ArtistApplyCreateResponse;
 import com.swyp.artego.domain.artistApply.dto.response.ArtistApplyFindAllResponse;
+import com.swyp.artego.domain.artistApply.dto.response.ArtistApplyListResponse;
 import com.swyp.artego.domain.artistApply.service.ArtistApplyService;
 import com.swyp.artego.global.auth.oauth.model.AuthUser;
 import com.swyp.artego.global.common.code.SuccessCode;
@@ -43,13 +44,15 @@ public class ArtistApplyController {
     }
 
     @GetMapping("/admin")
-    @Operation(summary = "작가 신청 전체 조회")
-    public ResponseEntity<ApiResponse<List<ArtistApplyFindAllResponse>>> getArtistApplies() {
+    @Operation(summary = "작가 신청 목록 조회 (페이징)")
+    public ResponseEntity<ApiResponse<ArtistApplyListResponse>> getArtistAppliesPaged(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "5") int size) {
 
-        List<ArtistApplyFindAllResponse> res = artistApplyService.getArtistApplies();
+        ArtistApplyListResponse res = artistApplyService.getArtistApplies(page, size);
 
         return ResponseEntity.status(SuccessCode.SELECT_SUCCESS.getStatus())
-                .body(ApiResponse.<List<ArtistApplyFindAllResponse>>builder()
+                .body(ApiResponse.<ArtistApplyListResponse>builder()
                         .result(res)
                         .resultCode(Integer.parseInt(SuccessCode.SELECT_SUCCESS.getCode()))
                         .resultMessage(SuccessCode.SELECT_SUCCESS.getMessage())
@@ -68,6 +71,23 @@ public class ArtistApplyController {
         return ResponseEntity.status(SuccessCode.UPDATE_SUCCESS.getStatus())
                 .body(ApiResponse.<String>builder()
                         .result("작가 권한이 부여되었습니다.")
+                        .resultCode(Integer.parseInt(SuccessCode.UPDATE_SUCCESS.getCode()))
+                        .resultMessage(SuccessCode.UPDATE_SUCCESS.getMessage())
+                        .build());
+    }
+
+
+    @PostMapping("/reject")
+    @Operation(summary = "어드민이 작가 신청 거절")
+    public ResponseEntity<ApiResponse<String>> rejectArtistApply(
+            @AuthenticationPrincipal AuthUser authUser,
+            @RequestBody @Valid ConvertToArtistRequest request) {
+
+        artistApplyService.rejectArtistApply(authUser, request);
+
+        return ResponseEntity.status(SuccessCode.UPDATE_SUCCESS.getStatus())
+                .body(ApiResponse.<String>builder()
+                        .result("작가 신청이 거절되었습니다.")
                         .resultCode(Integer.parseInt(SuccessCode.UPDATE_SUCCESS.getCode()))
                         .resultMessage(SuccessCode.UPDATE_SUCCESS.getMessage())
                         .build());

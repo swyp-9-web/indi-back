@@ -78,6 +78,7 @@ public class SecurityConfig {
                                 // 12. 작가 신청 API
                                 .requestMatchers("/api/v1/artist-applies").hasRole("USER")
                                 .requestMatchers("/api/v1/artist-applies/grant-artist-role").hasRole("ADMIN")
+                                .requestMatchers("/api/v1/artist-applies/reject").hasRole("ADMIN")
                                 .requestMatchers("/api/v1/artist-applies/admin").hasRole("ADMIN")
 
                                 // 13. Notification API 설정
@@ -87,8 +88,6 @@ public class SecurityConfig {
 
                                 // 기타 요청은 전부 거부
                                 .anyRequest().denyAll()
-
-                        // TODO: 그라파나,프로메테우스 모니터링 주소도 나중에 설정해줘야함!
 
                 )
 
