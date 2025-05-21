@@ -6,6 +6,7 @@ import com.swyp.artego.domain.follow.dto.response.FollowPreviewResponse;
 import com.swyp.artego.domain.follow.dto.response.FollowedArtistsResponse;
 import com.swyp.artego.domain.follow.entity.Follow;
 import com.swyp.artego.domain.follow.repository.FollowRepository;
+import com.swyp.artego.domain.notification.service.NotificationService;
 import com.swyp.artego.domain.user.entity.User;
 import com.swyp.artego.domain.user.repository.UserRepository;
 import com.swyp.artego.global.auth.oauth.model.AuthUser;
@@ -26,6 +27,8 @@ public class FollowServiceImpl implements FollowService {
 
     private final FollowRepository followRepository;
     private final UserRepository userRepository;
+
+    private final NotificationService notificationService;
 
     @Override
     @Transactional
@@ -49,6 +52,8 @@ public class FollowServiceImpl implements FollowService {
         followRepository.save(follow);
 
         userRepository.incrementFollowerCount(artist.getId(), 1);
+
+        //notificationService.sendFollowNotification(artist, user);
     }
 
 

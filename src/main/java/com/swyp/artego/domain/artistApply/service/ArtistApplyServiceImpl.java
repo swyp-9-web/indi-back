@@ -72,7 +72,7 @@ public class ArtistApplyServiceImpl implements ArtistApplyService {
         // 대상 유저 조회
         User target = userRepository.findById(request.getUserId())
                 .orElseThrow(() -> new BusinessExceptionHandler("대상 유저를 찾을 수 없습니다.", ErrorCode.NOT_FOUND_ERROR));
-
+        
         // 작가 권한 부여
         target.setRole(Role.ARTIST);
     }

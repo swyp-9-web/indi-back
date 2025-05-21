@@ -7,6 +7,7 @@ import com.swyp.artego.domain.itemEmoji.entity.ItemEmoji;
 import com.swyp.artego.domain.itemEmoji.dto.response.ItemEmojiInfoResponse;
 import com.swyp.artego.domain.itemEmoji.enums.EmojiType;
 import com.swyp.artego.domain.itemEmoji.repository.ItemEmojiRepository;
+import com.swyp.artego.domain.notification.service.NotificationService;
 import com.swyp.artego.domain.user.entity.User;
 import com.swyp.artego.domain.user.repository.UserRepository;
 import com.swyp.artego.global.auth.oauth.model.AuthUser;
@@ -27,6 +28,8 @@ public class ItemEmojiServiceImpl implements ItemEmojiService {
     private final ItemEmojiRepository itemEmojiRepository;
     private final UserRepository userRepository;
     private final ItemRepository itemRepository;
+
+    private final NotificationService notificationService;
 
     @Override
     @Transactional
@@ -63,6 +66,8 @@ public class ItemEmojiServiceImpl implements ItemEmojiService {
 
         itemRepository.incrementReactionCount(itemId, 1);
         userRepository.incrementUserReactionCount(userId, 1);
+
+        //notificationService.sendReactionNotification(item.getUser(), user, item.getId(), item.getTitle(), type);
 
         return saved.getId();
     }
