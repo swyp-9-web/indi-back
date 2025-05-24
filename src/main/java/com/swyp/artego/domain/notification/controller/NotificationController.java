@@ -15,6 +15,8 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+import java.util.concurrent.Callable;
+
 @Tag(name = "Notification", description = "알림 관련 API")
 @RestController
 @RequestMapping("/api/v1/notifications")
@@ -24,16 +26,28 @@ public class NotificationController {
     private final NotificationService notificationService;
     private final UserRepository userRepository;
 
+//    @GetMapping("/subscribe")
+//    @Operation(summary = "SSE 알림 구독")
+//    public SseEmitter subscribe(@AuthenticationPrincipal AuthUser authUser) {
+//
+//        Long userId = userRepository.findByOauthId(authUser.getOauthId())
+//                .orElseThrow(() -> new ServiceException("요청한 유저를 찾을 수 없습니다."))
+//                .getId();
+//
+//        return notificationService.subscribe(userId);
+//    }
+
     @GetMapping("/subscribe")
     @Operation(summary = "SSE 알림 구독")
-    public SseEmitter subscribe(@AuthenticationPrincipal AuthUser authUser) {
-
+    public Callable<SseEmitter> subscribe(@AuthenticationPrincipal AuthUser authUser) {
         Long userId = userRepository.findByOauthId(authUser.getOauthId())
                 .orElseThrow(() -> new ServiceException("요청한 유저를 찾을 수 없습니다."))
                 .getId();
 
-        return notificationService.subscribe(userId);
+        // CompletableFuture → Callable로 wrapping
+        return () -> notificationService.subscribe(userId).get();
     }
+
 
     @GetMapping("/unread")
     @Operation(summary = "안읽은 알림 목록 조회")
