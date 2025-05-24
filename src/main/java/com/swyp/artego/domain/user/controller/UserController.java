@@ -24,9 +24,7 @@ import org.springframework.web.multipart.MultipartFile;
 @RequestMapping("/api/v1/users")
 @RequiredArgsConstructor
 public class UserController {
-
     private final UserService userService;
-
 
     @Operation(summary = "내 유저 정보 조회", description = "로그인한 유저의 정보를 반환합니다.")
     @GetMapping("/me")
@@ -113,14 +111,5 @@ public class UserController {
                         .build()
         );
     }
-
-
-
-
-
-
-
-
-
 
 }
