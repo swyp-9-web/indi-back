@@ -10,6 +10,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 public interface NotificationService {
 
@@ -20,7 +21,8 @@ public interface NotificationService {
      * - 503 방지를 위해 연결 즉시 더미 이벤트("connect")를 전송함
      */
     //SseEmitter subscribe(AuthUser authUser);
-    SseEmitter subscribe(Long userId);
+    //SseEmitter subscribe(Long userId);
+    CompletableFuture<SseEmitter> subscribe(Long userId);
     /**
      * 2. 알림 DB 저장 및 실시간 전송
      * - 알림을 저장하고

@@ -23,7 +23,10 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 @Service
 @Slf4j
@@ -35,38 +38,59 @@ public class NotificationServiceImpl implements NotificationService {
     private final UserRepository userRepository;
     private final Map<Long, SseEmitter> emitters = new ConcurrentHashMap<>();
     private static final Long TIMEOUT = 60L * 1000 * 60; // 60분
+    private final ExecutorService executor = Executors.newCachedThreadPool();
+
+//    @Override
+//    public SseEmitter subscribe(Long userId2) {
+//
+//        Long userId = userId2;
+//
+//        SseEmitter emitter = new SseEmitter(TIMEOUT);
+//        emitters.put(userId, emitter);
+//
+////        emitter.onCompletion(() -> emitters.remove(userId));
+////        emitter.onTimeout(() -> emitters.remove(userId));
+////        emitter.onError((e) -> emitters.remove(userId));
+//
+//        emitter.onCompletion(() -> {
+//            log.info(" SSE 완료: 유저ID={}", userId);
+//            emitters.remove(userId);
+//        });
+//        emitter.onTimeout(() -> {
+//            log.warn(" SSE 타임아웃: 유저ID={}", userId);
+//            emitters.remove(userId);
+//        });
+//        emitter.onError((e) -> {
+//            log.error(" SSE 에러 발생: 유저ID={}, error={}", userId, e.getMessage());
+//            emitters.remove(userId);
+//        });
+//
+//        try {
+//            emitter.send(SseEmitter.event().name("connect").data("SSE 연결 완료"));
+//        } catch (IOException e) {
+//            emitters.remove(userId);
+//        }
+//        return emitter;
+//    }
 
     @Override
-    public SseEmitter subscribe(Long userId2) {
+    public CompletableFuture<SseEmitter> subscribe(Long userId) {
+        return CompletableFuture.supplyAsync(() -> {
+            SseEmitter emitter = new SseEmitter(TIMEOUT);
+            emitters.put(userId, emitter);
 
-        Long userId = userId2;
+            emitter.onCompletion(() -> emitters.remove(userId));
+            emitter.onTimeout(() -> emitters.remove(userId));
+            emitter.onError(e -> emitters.remove(userId));
 
-        SseEmitter emitter = new SseEmitter(TIMEOUT);
-        emitters.put(userId, emitter);
+            try {
+                emitter.send(SseEmitter.event().name("connect").data("SSE 연결 완료"));
+            } catch (IOException e) {
+                emitters.remove(userId);
+            }
 
-//        emitter.onCompletion(() -> emitters.remove(userId));
-//        emitter.onTimeout(() -> emitters.remove(userId));
-//        emitter.onError((e) -> emitters.remove(userId));
-
-        emitter.onCompletion(() -> {
-            log.info(" SSE 완료: 유저ID={}", userId);
-            emitters.remove(userId);
-        });
-        emitter.onTimeout(() -> {
-            log.warn(" SSE 타임아웃: 유저ID={}", userId);
-            emitters.remove(userId);
-        });
-        emitter.onError((e) -> {
-            log.error(" SSE 에러 발생: 유저ID={}, error={}", userId, e.getMessage());
-            emitters.remove(userId);
-        });
-
-        try {
-            emitter.send(SseEmitter.event().name("connect").data("SSE 연결 완료"));
-        } catch (IOException e) {
-            emitters.remove(userId);
-        }
-        return emitter;
+            return emitter;
+        }, executor);
     }
 
     private void sendToClient(Long receiverId, Notification notification) {
