@@ -38,11 +38,8 @@ public class ItemServiceImpl implements ItemService {
     private final UserRepository userRepository;
     private final ScrapRepository scrapRepository;
     private final FollowRepository followRepository;
-
     private final ItemEmojiRepository itemEmojiRepository;
-
     private final FileService fileService;
-
     @Value("${ncp.storage.bucket.folder.item-post}")
     private String folderName;
 

@@ -44,7 +44,7 @@ public class ArtistApplyController {
     }
 
     @GetMapping("/admin")
-    @Operation(summary = "작가 신청 목록 조회 (페이징)")
+    @Operation(summary = "작가 신청 목록 조회")
     public ResponseEntity<ApiResponse<ArtistApplyListResponse>> getArtistAppliesPaged(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "5") int size) {
