@@ -37,10 +37,9 @@ public class NotificationServiceImpl implements NotificationService {
     private static final Long TIMEOUT = 60L * 1000 * 60; // 60분
 
     @Override
-    public SseEmitter subscribe(AuthUser authUser) {
-        Long userId = userRepository.findByOauthId(authUser.getOauthId())
-                .orElseThrow(() -> new ServiceException("요청한 유저를 찾을 수 없습니다."))
-                .getId();
+    public SseEmitter subscribe(Long userId2) {
+
+        Long userId = userId2;
 
         SseEmitter emitter = new SseEmitter(TIMEOUT);
         emitters.put(userId, emitter);
