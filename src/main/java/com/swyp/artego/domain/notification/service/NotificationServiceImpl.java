@@ -38,10 +38,9 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     public SseEmitter subscribe(AuthUser authUser) {
-        User user = userRepository.findByOauthId(authUser.getOauthId())
-                .orElseThrow(() -> new ServiceException("요청한 유저를 찾을 수 없습니다."));
-
-        Long userId = user.getId();
+        Long userId = userRepository.findByOauthId(authUser.getOauthId())
+                .orElseThrow(() -> new ServiceException("요청한 유저를 찾을 수 없습니다."))
+                .getId();
 
         SseEmitter emitter = new SseEmitter(TIMEOUT);
         emitters.put(userId, emitter);
