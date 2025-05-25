@@ -83,8 +83,9 @@ public class SecurityConfig {
 
                                 // 13. Notification API 설정
                                 .requestMatchers("/api/v1/notifications/subscribe").authenticated()
+                                .requestMatchers("/api/v1/notifications/read/all").authenticated()
                                 .requestMatchers("/api/v1/notifications/unread").authenticated()
-                                .requestMatchers("/api/v1/notifications/*/read").hasRole("ARTIST")
+                                .requestMatchers("/api/v1/notifications/*/read").authenticated()
 
                                 // 기타 요청은 전부 거부
                                 .anyRequest().denyAll()

@@ -4,5 +4,6 @@ public enum NotificationType {
     COMMENT,
     REACTION,
     FOLLOW,
-    SCRAP
+    SCRAP,
+    ARTIST_APPROVED
 }

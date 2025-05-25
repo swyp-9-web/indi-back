@@ -20,9 +20,7 @@ public interface NotificationService {
      * - 서버는 SseEmitter를 생성하여 클라이언트와 연결을 유지함
      * - 503 방지를 위해 연결 즉시 더미 이벤트("connect")를 전송함
      */
-    //SseEmitter subscribe(AuthUser authUser);
-    //SseEmitter subscribe(Long userId);
-    CompletableFuture<SseEmitter> subscribe(Long userId);
+    CompletableFuture<SseEmitter> subscribe(AuthUser authUser);
     /**
      * 2. 알림 DB 저장 및 실시간 전송
      * - 알림을 저장하고
@@ -68,4 +66,11 @@ public interface NotificationService {
      * - 알림 클릭 시 읽음으로 변경
      */
     void markAsRead(Long notificationId, AuthUser authUser);
+
+
+    /**
+     * 8. 읽지 않은 알림 읽음으로 변경 [전체]
+     * - 알림 클릭 시 읽음으로 변경 [전체]
+     */
+    void markAllAsRead(AuthUser authUser);
 }
