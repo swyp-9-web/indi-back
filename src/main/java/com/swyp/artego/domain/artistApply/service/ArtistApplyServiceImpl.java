@@ -8,6 +8,8 @@ import com.swyp.artego.domain.artistApply.dto.response.ArtistApplyListResponse;
 import com.swyp.artego.domain.artistApply.entity.ArtistApply;
 import com.swyp.artego.domain.artistApply.enums.Status;
 import com.swyp.artego.domain.artistApply.repository.ArtistApplyRepository;
+import com.swyp.artego.domain.notification.enums.NotificationType;
+import com.swyp.artego.domain.notification.service.NotificationService;
 import com.swyp.artego.domain.user.entity.User;
 import com.swyp.artego.domain.user.enums.Role;
 import com.swyp.artego.domain.user.repository.UserRepository;
@@ -20,8 +22,10 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Map;
+
 
 @Service
 @RequiredArgsConstructor
@@ -30,6 +34,8 @@ public class ArtistApplyServiceImpl implements ArtistApplyService {
     private final ArtistApplyRepository artistApplyRepository;
 
     private final UserRepository userRepository;
+
+    private final NotificationService notificationService;
 
     @Transactional
     public ArtistApplyCreateResponse createArtistApply(AuthUser authUser, ArtistApplyCreateRequest request) {
@@ -103,6 +109,14 @@ public class ArtistApplyServiceImpl implements ArtistApplyService {
 
         // 작가 권한 부여
         target.setRole(Role.ARTIST);
+
+        notificationService.createNotification(
+                NotificationType.ARTIST_APPROVED,
+                target,
+                "작가 신청이 승인되었습니다.",
+                Map.of("createdAt", LocalDateTime.now().toString())
+        );
+
     }
 
     @Transactional
@@ -120,7 +134,5 @@ public class ArtistApplyServiceImpl implements ArtistApplyService {
 
         artistApply.reject();
     }
-
-
 
 }

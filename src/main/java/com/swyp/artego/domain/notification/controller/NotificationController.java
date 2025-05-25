@@ -2,14 +2,13 @@ package com.swyp.artego.domain.notification.controller;
 
 import com.swyp.artego.domain.notification.dto.response.NotificationListResponse;
 import com.swyp.artego.domain.notification.service.NotificationService;
-import com.swyp.artego.domain.user.repository.UserRepository;
 import com.swyp.artego.global.auth.oauth.model.AuthUser;
 import com.swyp.artego.global.common.code.SuccessCode;
 import com.swyp.artego.global.common.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.hibernate.service.spi.ServiceException;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -24,28 +23,11 @@ import java.util.concurrent.Callable;
 public class NotificationController {
 
     private final NotificationService notificationService;
-    private final UserRepository userRepository;
 
-//    @GetMapping("/subscribe")
-//    @Operation(summary = "SSE 알림 구독")
-//    public SseEmitter subscribe(@AuthenticationPrincipal AuthUser authUser) {
-//
-//        Long userId = userRepository.findByOauthId(authUser.getOauthId())
-//                .orElseThrow(() -> new ServiceException("요청한 유저를 찾을 수 없습니다."))
-//                .getId();
-//
-//        return notificationService.subscribe(userId);
-//    }
-
-    @GetMapping("/subscribe")
+    @GetMapping(value = "/subscribe", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     @Operation(summary = "SSE 알림 구독")
     public Callable<SseEmitter> subscribe(@AuthenticationPrincipal AuthUser authUser) {
-        Long userId = userRepository.findByOauthId(authUser.getOauthId())
-                .orElseThrow(() -> new ServiceException("요청한 유저를 찾을 수 없습니다."))
-                .getId();
-
-        // CompletableFuture → Callable로 wrapping
-        return () -> notificationService.subscribe(userId).get();
+        return () -> notificationService.subscribe(authUser).get();
     }
 
 
@@ -77,6 +59,21 @@ public class NotificationController {
         return ResponseEntity.status(SuccessCode.UPDATE_SUCCESS.getStatus())
                 .body(ApiResponse.<String>builder()
                         .result("알림이 읽음 처리되었습니다.")
+                        .resultCode(Integer.parseInt(SuccessCode.UPDATE_SUCCESS.getCode()))
+                        .resultMessage(SuccessCode.UPDATE_SUCCESS.getMessage())
+                        .build());
+    }
+
+    @PatchMapping("/read/all")
+    @Operation(summary = "모든 안읽은 알림 읽음 처리")
+    public ResponseEntity<ApiResponse<String>> markAllNotificationsAsRead(
+            @AuthenticationPrincipal AuthUser authUser) {
+
+        notificationService.markAllAsRead(authUser);
+
+        return ResponseEntity.status(SuccessCode.UPDATE_SUCCESS.getStatus())
+                .body(ApiResponse.<String>builder()
+                        .result("모든 알림이 읽음 처리되었습니다.")
                         .resultCode(Integer.parseInt(SuccessCode.UPDATE_SUCCESS.getCode()))
                         .resultMessage(SuccessCode.UPDATE_SUCCESS.getMessage())
                         .build());

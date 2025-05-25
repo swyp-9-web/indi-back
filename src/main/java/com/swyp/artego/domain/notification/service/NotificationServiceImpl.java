@@ -17,7 +17,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
-
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -37,55 +36,37 @@ public class NotificationServiceImpl implements NotificationService {
 
     private final UserRepository userRepository;
     private final Map<Long, SseEmitter> emitters = new ConcurrentHashMap<>();
-    private static final Long TIMEOUT = 60L * 1000 * 60; // 60분
+    private static final Long TIMEOUT = 30 * 60 * 1000L; // 30분
     private final ExecutorService executor = Executors.newCachedThreadPool();
 
-//    @Override
-//    public SseEmitter subscribe(Long userId2) {
-//
-//        Long userId = userId2;
-//
-//        SseEmitter emitter = new SseEmitter(TIMEOUT);
-//        emitters.put(userId, emitter);
-//
-////        emitter.onCompletion(() -> emitters.remove(userId));
-////        emitter.onTimeout(() -> emitters.remove(userId));
-////        emitter.onError((e) -> emitters.remove(userId));
-//
-//        emitter.onCompletion(() -> {
-//            log.info(" SSE 완료: 유저ID={}", userId);
-//            emitters.remove(userId);
-//        });
-//        emitter.onTimeout(() -> {
-//            log.warn(" SSE 타임아웃: 유저ID={}", userId);
-//            emitters.remove(userId);
-//        });
-//        emitter.onError((e) -> {
-//            log.error(" SSE 에러 발생: 유저ID={}, error={}", userId, e.getMessage());
-//            emitters.remove(userId);
-//        });
-//
-//        try {
-//            emitter.send(SseEmitter.event().name("connect").data("SSE 연결 완료"));
-//        } catch (IOException e) {
-//            emitters.remove(userId);
-//        }
-//        return emitter;
-//    }
-
     @Override
-    public CompletableFuture<SseEmitter> subscribe(Long userId) {
+    public CompletableFuture<SseEmitter> subscribe(AuthUser authUser) {
         return CompletableFuture.supplyAsync(() -> {
+
+            User user = userRepository.findByOauthId(authUser.getOauthId())
+                    .orElseThrow(() -> new ServiceException("요청한 유저를 찾을 수 없습니다."));
+            Long userId = user.getId();
+
             SseEmitter emitter = new SseEmitter(TIMEOUT);
             emitters.put(userId, emitter);
 
-            emitter.onCompletion(() -> emitters.remove(userId));
-            emitter.onTimeout(() -> emitters.remove(userId));
-            emitter.onError(e -> emitters.remove(userId));
+            emitter.onCompletion(() -> {
+            log.info(" SSE 완료: 유저ID={}", userId);
+            emitters.remove(userId);
+            });
+            emitter.onTimeout(() -> {
+            log.warn(" SSE 타임아웃: 유저ID={}", userId);
+            emitters.remove(userId);
+            });
+            emitter.onError((e) -> {
+            log.error(" SSE 에러 발생: 유저ID={}, error={}", userId, e.getMessage());
+            emitters.remove(userId);
+            });
 
             try {
                 emitter.send(SseEmitter.event().name("connect").data("SSE 연결 완료"));
             } catch (IOException e) {
+                log.info(" SSE 연결 해제: 유저ID={}", userId);
                 emitters.remove(userId);
             }
 
@@ -145,11 +126,11 @@ public class NotificationServiceImpl implements NotificationService {
         String timestamp = nowAsString();
         String content = String.format("[%s]님이 [%s] 작품에 댓글을 남겼습니다. 일시: %s", sender.getNickname(), itemTitle, timestamp);
         Map<String, Object> data = Map.of(
-                "sender", sender.getNickname(),
+                "senderNickname", sender.getNickname(),
                 "itemId", itemId,
                 "itemTitle", itemTitle,
                 "commentId", commentId,
-                "timestamp", timestamp
+                "createdAt", timestamp
         );
         createNotification(NotificationType.COMMENT, receiver, content, data);
     }
@@ -226,6 +207,15 @@ public class NotificationServiceImpl implements NotificationService {
         }
 
         notification.markAsRead();
+    }
+
+    @Override
+    @Transactional
+    public void markAllAsRead(AuthUser authUser) {
+        User user = userRepository.findByOauthId(authUser.getOauthId())
+                .orElseThrow(() -> new ServiceException("요청한 유저를 찾을 수 없습니다."));
+
+        notificationRepository.markAllAsReadByReceiverId(user.getId());
     }
 
 
