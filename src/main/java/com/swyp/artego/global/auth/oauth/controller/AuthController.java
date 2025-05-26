@@ -16,7 +16,6 @@ import org.springframework.web.bind.annotation.*;
 
 @Controller // 이 부분은 리다이렉트용으로 유지
 @RequiredArgsConstructor
-@RequestMapping("/auth")
 @Tag(name = "Auth", description = "OAuth 인증 및 권한 관련 API")
 public class AuthController {
     private final AuthService authService;
@@ -28,7 +27,7 @@ public class AuthController {
         request.getSession().setAttribute("redirect_uri", redirectUri);
         return "redirect:/oauth2/authorization/naver";
     }
-    @PatchMapping("/refresh-role")
+    @PatchMapping("/api/v1/auth/refresh-role")
     @ResponseBody
     @Operation(summary = "세션 내 권한 정보 갱신")
     public ResponseEntity<ApiResponse<String>> refreshRole(Authentication currentAuth) {
@@ -43,7 +42,7 @@ public class AuthController {
     }
 
     @GetMapping("/")
-    @Operation(summary = "홈 진입 테스트 API")
+    @Operation(summary = "홈 진입 API [에러 방지용]")
     public String home() {
         return "home";
     }
