@@ -9,9 +9,10 @@ import com.swyp.artego.domain.notification.repository.NotificationRepository;
 import com.swyp.artego.domain.user.entity.User;
 import com.swyp.artego.domain.user.repository.UserRepository;
 import com.swyp.artego.global.auth.oauth.model.AuthUser;
+import com.swyp.artego.global.common.code.ErrorCode;
+import com.swyp.artego.global.excpetion.BusinessExceptionHandler;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.service.spi.ServiceException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -44,7 +45,7 @@ public class NotificationServiceImpl implements NotificationService {
         return CompletableFuture.supplyAsync(() -> {
 
             User user = userRepository.findByOauthId(authUser.getOauthId())
-                    .orElseThrow(() -> new ServiceException("요청한 유저를 찾을 수 없습니다."));
+                    .orElseThrow(() -> new BusinessExceptionHandler("유저가 존재하지 않습니다.", ErrorCode.NOT_FOUND_ERROR));
             Long userId = user.getId();
 
             SseEmitter emitter = new SseEmitter(TIMEOUT);
@@ -164,7 +165,7 @@ public class NotificationServiceImpl implements NotificationService {
     @Override
     public NotificationListResponse getUnreadNotifications(AuthUser authUser, int page, int size) {
         User user = userRepository.findByOauthId(authUser.getOauthId())
-                .orElseThrow(() -> new ServiceException("요청한 유저를 찾을 수 없습니다."));
+                .orElseThrow(() -> new BusinessExceptionHandler("유저가 존재하지 않습니다.", ErrorCode.NOT_FOUND_ERROR));
 
         // 프론트는 page=1부터 시작하므로, 내부에서는 0부터 시작하게 조정
         int internalPage = Math.max(page - 1, 0);
@@ -197,13 +198,13 @@ public class NotificationServiceImpl implements NotificationService {
     @Transactional
     public void markAsRead(Long notificationId, AuthUser authUser) {
         User user = userRepository.findByOauthId(authUser.getOauthId())
-                .orElseThrow(() -> new ServiceException("요청한 유저를 찾을 수 없습니다."));
+                .orElseThrow(() -> new BusinessExceptionHandler("유저가 존재하지 않습니다.", ErrorCode.NOT_FOUND_ERROR));
 
         Notification notification = notificationRepository.findById(notificationId)
-                .orElseThrow(() -> new ServiceException("해당 알림을 찾을 수 없습니다."));
+                .orElseThrow(() -> new BusinessExceptionHandler("해당 알림이 존재하지 않습니다.", ErrorCode.NOT_FOUND_ERROR));
 
         if (!notification.getReceiver().getId().equals(user.getId())) {
-            throw new ServiceException("본인의 알림만 읽음 처리할 수 있습니다.");
+            throw new BusinessExceptionHandler("본인의 알림만 읽음 처리 가능합니다.", ErrorCode.FORBIDDEN_ERROR);
         }
 
         notification.markAsRead();
@@ -213,7 +214,7 @@ public class NotificationServiceImpl implements NotificationService {
     @Transactional
     public void markAllAsRead(AuthUser authUser) {
         User user = userRepository.findByOauthId(authUser.getOauthId())
-                .orElseThrow(() -> new ServiceException("요청한 유저를 찾을 수 없습니다."));
+                .orElseThrow(() -> new BusinessExceptionHandler("유저가 존재하지 않습니다.", ErrorCode.NOT_FOUND_ERROR));
 
         notificationRepository.markAllAsReadByReceiverId(user.getId());
     }

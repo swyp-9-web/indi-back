@@ -1,6 +1,8 @@
 package com.swyp.artego.global.auth.oauth.model;
 
+import com.swyp.artego.domain.user.entity.User;
 import com.swyp.artego.global.auth.oauth.dto.response.OAuth2Response;
+import com.swyp.artego.global.auth.oauth.dto.response.SimpleOAuth2Response;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.oauth2.core.user.OAuth2User;
@@ -14,10 +16,22 @@ public class AuthUser implements OAuth2User, UserDetails {
     private final OAuth2Response oAuth2Response;
     private final String role;
 
+
+    /**
+     * 이 생성자는 OAuth 로그인용
+     */
     public AuthUser(OAuth2Response oAuth2Response, String role) {
 
         this.oAuth2Response = oAuth2Response;
         this.role = role;
+    }
+
+    /**
+     * 이 생성자는 권한 갱신 API용
+     */
+    public AuthUser(User user) {
+        this.oAuth2Response = new SimpleOAuth2Response(user); // User → OAuth2Response로 감싸줌
+        this.role = "ROLE_" + user.getRole().name(); // DB에서 최신 권한 사용
     }
 
     @Override
