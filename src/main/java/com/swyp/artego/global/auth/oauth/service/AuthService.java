@@ -6,9 +6,16 @@ import com.swyp.artego.domain.user.repository.UserRepository;
 import com.swyp.artego.global.auth.oauth.dto.response.NaverOAuth2Response;
 import com.swyp.artego.global.auth.oauth.dto.response.OAuth2Response;
 import com.swyp.artego.global.auth.oauth.model.AuthUser;
+import com.swyp.artego.global.common.code.ErrorCode;
+import com.swyp.artego.global.excpetion.BusinessExceptionHandler;
 import lombok.RequiredArgsConstructor;
-import org.hibernate.service.spi.ServiceException;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
@@ -22,13 +29,23 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-public class AuthService extends DefaultOAuth2UserService {
+public class AuthService extends DefaultOAuth2UserService implements UserDetailsService {
 
     private final UserRepository userRepository;
 
     private static final int MAX_NICKNAME_RETRY = 2;
 
     //  loadUser() 메서드는 Spring Security 내부에서 자동으로 호출되는 메서드입니다.
+
+    @Override
+    public UserDetails loadUserByUsername(String oauthId) throws UsernameNotFoundException {
+        User user = userRepository.findByOauthId(oauthId)
+                .orElseThrow(() -> new BusinessExceptionHandler("유저가 존재하지 않습니다.", ErrorCode.NOT_FOUND_ERROR));
+
+        return new AuthUser(user); // 아래에서 AuthUser 생성자 수정할 예정
+    }
+
+
     @Override
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
         OAuth2User oAuth2User = super.loadUser(userRequest);
@@ -60,6 +77,21 @@ public class AuthService extends DefaultOAuth2UserService {
         }
 
         return new AuthUser(oAuth2Response, role);
+    }
+
+    public void refreshAuthentication(Authentication currentAuth) {
+        AuthUser authUser = (AuthUser) currentAuth.getPrincipal();
+        String oauthId = authUser.getOauthId();
+
+        UserDetails updatedUser = this.loadUserByUsername(oauthId);
+
+        UsernamePasswordAuthenticationToken newAuth = new UsernamePasswordAuthenticationToken(
+                updatedUser,
+                currentAuth.getCredentials(),
+                updatedUser.getAuthorities()
+        );
+
+        SecurityContextHolder.getContext().setAuthentication(newAuth);
     }
 
 
@@ -94,7 +126,7 @@ public class AuthService extends DefaultOAuth2UserService {
             }
         }
 
-        throw new ServiceException("닉네임 생성 실패: 중복 또는 저장 실패로 인해 생성 불가");
+        throw new BusinessExceptionHandler("닉네임 생성 실패: 중복 또는 저장 실패로 인해 생성 불가", ErrorCode.DUPLICATE_RESOURCE);
     }
 
 

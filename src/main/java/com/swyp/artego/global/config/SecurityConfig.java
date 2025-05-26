@@ -87,7 +87,11 @@ public class SecurityConfig {
                                 .requestMatchers("/api/v1/notifications/unread").authenticated()
                                 .requestMatchers("/api/v1/notifications/*/read").authenticated()
 
-                                // 기타 요청은 전부 거부
+                                // 14. Auth 관련 API
+                                .requestMatchers("/auth/refresh-role").authenticated()
+
+
+                        // 기타 요청은 전부 거부
                                 .anyRequest().denyAll()
 
                 )
