@@ -4,6 +4,7 @@ import com.swyp.artego.domain.item.enums.CategoryType;
 import com.swyp.artego.domain.item.enums.SizeType;
 import com.swyp.artego.domain.item.enums.StatusType;
 import com.swyp.artego.domain.itemEmoji.enums.EmojiType;
+import com.swyp.artego.domain.user.enums.Role;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -149,8 +150,8 @@ public class DummyItemService {
             oauth_id, name, email, nickname, tel_number, img_url, banned, deleted,
             item_count, scrap_count, reaction_count, follower_count,
             artist_home_sns_info, artist_sns_info, artist_about_me,
-            created_at, updated_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            created_at, updated_at, role
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     """;
 
         Random random = new Random();
@@ -207,7 +208,8 @@ public class DummyItemService {
                 artistSnsInfo,
                 artistAboutMe,
                 now,
-                now
+                now,
+                Role.ARTIST.name()
         );
 
         return jdbcTemplate.queryForObject(
