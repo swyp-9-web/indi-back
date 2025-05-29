@@ -57,10 +57,12 @@ public class NotificationServiceImpl implements NotificationService {
             });
             emitter.onTimeout(() -> {
             log.warn(" SSE 타임아웃: 유저ID={}", userId);
+            emitter.complete();
             emitters.remove(userId);
             });
             emitter.onError((e) -> {
             log.error(" SSE 에러 발생: 유저ID={}, error={}", userId, e.getMessage());
+            emitter.complete();
             emitters.remove(userId);
             });
 
@@ -68,6 +70,7 @@ public class NotificationServiceImpl implements NotificationService {
                 emitter.send(SseEmitter.event().name("connect").data("SSE 연결 완료"));
             } catch (IOException e) {
                 log.info(" SSE 연결 해제: 유저ID={}", userId);
+                emitter.complete();
                 emitters.remove(userId);
             }
 
