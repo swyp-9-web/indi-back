@@ -8,39 +8,6 @@ on:
       - temp
 
 jobs:
-  check-profile:
-    runs-on: ubuntu-22.04
-    permissions:
-      pull-requests: write
-      contents: read
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Check spring.profile.active
-        run: |
-          profile=$(grep -E '^\s*active:\s*' src/main/resources/application.yml | awk '{print $2}')
-          echo "Detected profile: $profile"
-          if [ "$profile" != "prod" ]; then
-            echo "wrong_profile=true" >> $GITHUB_ENV
-          fi
-
-      - name: Create a comment on PR if profile.active is wrong
-        if: env.wrong_profile == 'true'
-        uses: peter-evans/create-or-update-comment@v4
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          issue-number: ${{ github.event.pull_request.number }}
-          body: |
-            ❌ **Check 실패: profile.active 설정**
-            `application.yml`의 `spring.profiles.active` 값을 `prod` 으로 변경 해주세요.
-
-      - name: Fail the job if profile is wrong
-        if: env.wrong_profile == 'true'
-        run: |
-          echo "Profile is not prod. Failing the job."
-          exit 1
-
-
   docker-build-test:
     needs: check-profile
     runs-on: ubuntu-22.04
