@@ -37,48 +37,62 @@ public class SecurityConfig {
                 )
 
                 .authorizeHttpRequests(auth -> auth
-                        // 1. 파일 API - 모두 허용
-                        .requestMatchers("/api/test/file/**").permitAll()
+                                // 1. 파일 API - 모두 허용
+                                .requestMatchers("/api/test/file/**").permitAll()
 
-                        // 2. 작품 API
-                        .requestMatchers("/api/v1/items/search", "/api/v1/items/{itemId}").permitAll() // 검색/세부조회
-                        .requestMatchers("/api/v1/items").hasRole("ARTIST") // 등록
-                        .requestMatchers("/api/v1/items/{itemId}").hasRole("ARTIST") // 삭제/수정
+                                // 2. 작품 API
+                                .requestMatchers("/api/v1/items/search", "/api/v1/items/{itemId}").permitAll() // 검색/세부조회
+                                .requestMatchers("/api/v1/items").hasRole("ARTIST") // 등록
+                                .requestMatchers("/api/v1/items/{itemId}").hasRole("ARTIST") // 삭제/수정
 
-                        // 3. 댓글 API
-                        .requestMatchers("/api/v1/comments/item/**").permitAll() // 작품별 댓글 전체 조회
-                        .requestMatchers("/api/v1/comments/**").authenticated() // 나머지 전부 로그인 필요
+                                // 3. 댓글 API
+                                .requestMatchers("/api/v1/comments/item/**").permitAll() // 작품별 댓글 전체 조회
+                                .requestMatchers("/api/v1/comments/**").authenticated() // 나머지 전부 로그인 필요
 
-                        // 4. 유저 API
-                        .requestMatchers("/api/v1/users/me", "/api/v1/users/profile/**").authenticated() // 프로필 수정, 내 정보 조회
-                        .requestMatchers("/api/v1/users/check-nickname", "/api/v1/users/artists/**").permitAll() // 닉네임 중복, 작가 정보 조회
+                                // 4. 유저 API
+                                .requestMatchers("/api/v1/users/me", "/api/v1/users/profile/**").authenticated() // 프로필 수정, 내 정보 조회
+                                .requestMatchers("/api/v1/users/check-nickname", "/api/v1/users/artists/**").permitAll() // 닉네임 중복, 작가 정보 조회
 
-                        // 5. 스크랩 API - 로그인 필요
-                        .requestMatchers("/api/v1/scraps/**").authenticated()
+                                // 5. 스크랩 API - 로그인 필요
+                                .requestMatchers("/api/v1/scraps/**").authenticated()
 
-                        // 6. 팔로우 API - 로그인 필요
-                        .requestMatchers("/api/v1/follows/**").authenticated()
+                                // 6. 팔로우 API - 로그인 필요
+                                .requestMatchers("/api/v1/follows/**").authenticated()
 
-                        // 7. 이모지 API - 로그인 필요
-                        .requestMatchers("/api/v1/item-emojis/**").authenticated()
+                                // 7. 이모지 API - 로그인 필요
+                                .requestMatchers("/api/v1/item-emojis/**").authenticated()
 
-                        // 8. 더미 API - 모두 허용
-                        .requestMatchers("/api/dev/**").permitAll()
+                                // 8. 더미 API - 모두 허용
+                                .requestMatchers("/api/dev/**").permitAll()
 
-                        // 9. swagger - 모두 허용
-                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-resources/**", "/webjars/**").permitAll()
+                                // 9. swagger - 모두 허용
+                                .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-resources/**", "/webjars/**").permitAll()
 
-                        // 10. 로그인
-                        .requestMatchers("/login/**", "/oauth2/**").permitAll()
-                        .requestMatchers("/login/naver").permitAll()
+                                // 10. 로그인
+                                .requestMatchers("/login/**", "/oauth2/**").permitAll()
+                                .requestMatchers("/login/naver").permitAll()
 
-                        // 11. Prometheus actuator 메트릭 경로 허용
-                        .requestMatchers("/actuator/prometheus").permitAll()
+                                // 11. Prometheus actuator 메트릭 경로 허용
+                                .requestMatchers("/actuator/prometheus").permitAll()
+
+                                // 12. 작가 신청 API
+                                .requestMatchers("/api/v1/artist-applies").hasRole("USER")
+                                .requestMatchers("/api/v1/artist-applies/grant-artist-role").hasRole("ADMIN")
+                                .requestMatchers("/api/v1/artist-applies/reject").hasRole("ADMIN")
+                                .requestMatchers("/api/v1/artist-applies/admin").hasRole("ADMIN")
+
+                                // 13. Notification API 설정
+                                .requestMatchers("/api/v1/notifications/subscribe").authenticated()
+                                .requestMatchers("/api/v1/notifications/read/all").authenticated()
+                                .requestMatchers("/api/v1/notifications/unread").authenticated()
+                                .requestMatchers("/api/v1/notifications/*/read").authenticated()
+
+                                // 14. Auth 관련 API
+                                .requestMatchers("/api/v1/auth/refresh-role").authenticated()
+
 
                         // 기타 요청은 전부 거부
-                        .anyRequest().denyAll()
-
-                        // TODO: 그라파나,프로메테우스 모니터링 주소도 나중에 설정해줘야함!
+                                .anyRequest().denyAll()
 
                 )
 

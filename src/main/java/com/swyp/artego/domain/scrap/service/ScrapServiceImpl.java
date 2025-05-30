@@ -2,6 +2,7 @@ package com.swyp.artego.domain.scrap.service;
 
 import com.swyp.artego.domain.item.entity.Item;
 import com.swyp.artego.domain.item.repository.ItemRepository;
+import com.swyp.artego.domain.notification.service.NotificationService;
 import com.swyp.artego.domain.scrap.entity.Scrap;
 import com.swyp.artego.domain.scrap.repository.ScrapRepository;
 import com.swyp.artego.domain.user.entity.User;
@@ -20,6 +21,8 @@ public class ScrapServiceImpl implements ScrapService {
     private final ScrapRepository scrapRepository;
     private final UserRepository userRepository;
     private final ItemRepository itemRepository;
+
+    private final NotificationService notificationService;
 
     @Override
     @Transactional
@@ -44,6 +47,8 @@ public class ScrapServiceImpl implements ScrapService {
 
         itemRepository.incrementScrapCount(item.getId(), 1); // count
         userRepository.incrementUserScrapCount(item.getUser().getId(), 1); //count
+
+        //notificationService.sendScrapNotification(item.getUser(), user, item.getId(), item.getTitle());
     }
 
     @Override

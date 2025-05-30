@@ -12,6 +12,15 @@ spring:
     password: ${PROD_DB_PASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
 
+    # 테스트
+    hikari:
+      maximum-pool-size: 30       # 여기를 늘리면 됨 (기본 10)
+      minimum-idle: 10
+      idle-timeout: 30000
+      max-lifetime: 600000
+      connection-timeout: 10000
+      leak-detection-threshold: 5000  #  커넥션 점유 10초 이상이면 로그 출력
+
   jpa:
     hibernate:
       ddl-auto: update

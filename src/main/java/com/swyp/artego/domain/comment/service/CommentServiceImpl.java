@@ -7,6 +7,7 @@ import com.swyp.artego.domain.comment.entity.Comment;
 import com.swyp.artego.domain.comment.repository.CommentRepository;
 import com.swyp.artego.domain.item.entity.Item;
 import com.swyp.artego.domain.item.repository.ItemRepository;
+import com.swyp.artego.domain.notification.service.NotificationService;
 import com.swyp.artego.domain.user.entity.User;
 import com.swyp.artego.domain.user.repository.UserRepository;
 import com.swyp.artego.global.auth.oauth.model.AuthUser;
@@ -31,6 +32,7 @@ public class CommentServiceImpl implements CommentService {
     private final CommentRepository commentRepository;
     private final UserRepository userRepository;
     private final ItemRepository itemRepository;
+    private final NotificationService notificationService;
 
     @Override
     @Transactional
@@ -52,9 +54,21 @@ public class CommentServiceImpl implements CommentService {
             validateReplyCommentPermission(user, rootComment, item);
         }
 
-        return CommentCreateResponse.fromEntity(
-                commentRepository.save(request.toEntity(user, item, rootComment))
-        );
+        Comment savedComment = commentRepository.save(request.toEntity(user, item, rootComment));
+
+        // 작가와 댓글 작성자가 다를 경우 알림 생성
+        if (!user.getId().equals(item.getUser().getId())) {
+            notificationService.sendCommentNotification(
+                    item.getUser(), // 작가
+                    user,           // 댓글 작성자
+                    item.getId(),
+                    item.getTitle(),
+                    savedComment.getId()
+            );
+        }
+
+        return CommentCreateResponse.fromEntity(savedComment);
+
     }
 
     @Override
