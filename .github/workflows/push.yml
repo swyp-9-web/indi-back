@@ -1,0 +1,57 @@
+name: Push Workflow (deploy)
+
+on:
+  push:
+    branches:
+      - main
+      - dev
+      - temp
+
+jobs:
+  docker-build-deploy:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      # Docker Tag 정책: 커밋 SHA 해시의 앞 7자리
+      - name: Set Short Commit SHA for Docker Tag
+        run: echo "DOCKER_TAG=${GITHUB_SHA::7}" >> $GITHUB_ENV
+
+      - name: Docker Hub Login
+        run: |
+          docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build Docker Image
+        run: |
+          docker build -t ${{ secrets.DOCKER_REPO }}:$DOCKER_TAG .
+          docker tag ${{ secrets.DOCKER_REPO }}:$DOCKER_TAG ${{ secrets.DOCKER_REPO }}:latest
+
+      - name: Push Docker Images
+        run: |
+          docker push ${{ secrets.DOCKER_REPO }}:$DOCKER_TAG
+          docker push ${{ secrets.DOCKER_REPO }}:latest
+
+      - name: Deploy to server
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          password: ${{ secrets.SSH_PWD }}
+          script: |
+            DOCKER_TAG=${{ env.DOCKER_TAG }}
+            
+            set -e
+            docker pull ${{ secrets.DOCKER_REPO }}:$DOCKER_TAG
+            docker rm -f artego || true
+            
+            cd artego-server
+            echo "${{ secrets.SPRING_ENV }}" > .env
+            
+            docker run -d \
+              --name artego \
+              -p ${{ secrets.APP_PORT_EXTERNAL_INTERNAL }} \
+              --env-file .env \
+              -e SPRING_PROFILES_ACTIVE=prod \
+              ${{ secrets.DOCKER_REPO }}:$DOCKER_TAG
+
+            docker image prune -a -f --filter "until=48h"
