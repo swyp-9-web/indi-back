@@ -9,6 +9,7 @@ import com.swyp.artego.domain.item.entity.Item;
 import com.swyp.artego.domain.item.enums.SizeType;
 import com.swyp.artego.domain.item.enums.StatusType;
 import com.swyp.artego.domain.item.repository.ItemRepository;
+import com.swyp.artego.domain.item.service.utils.SizeTypeUtils;
 import com.swyp.artego.domain.itemEmoji.entity.ItemEmoji;
 import com.swyp.artego.domain.itemEmoji.repository.ItemEmojiRepository;
 import com.swyp.artego.domain.scrap.repository.ScrapRepository;
@@ -39,12 +40,16 @@ public class ItemServiceImpl implements ItemService {
     private final ScrapRepository scrapRepository;
     private final FollowRepository followRepository;
     private final ItemEmojiRepository itemEmojiRepository;
+
+    private final ItemPersistenceService itemPersistenceService;
     private final FileService fileService;
+
     @Value("${ncp.storage.bucket.folder.item-post}")
     private String folderName;
 
+    private final SizeTypeUtils sizeTypeUtils;
+
     @Override
-    @Transactional
     public ItemCreateResponse createItem(AuthUser authUser, ItemCreateRequest request, List<MultipartFile> multipartFiles) {
         User user = userRepository.findByOauthId(authUser.getOauthId())
                 .orElseThrow(() -> new BusinessExceptionHandler("유저가 존재하지 않습니다.", ErrorCode.NOT_FOUND_ERROR));
@@ -57,15 +62,7 @@ public class ItemServiceImpl implements ItemService {
         validateFileSizeAndNameMatch(multipartFiles, imageOrder);
         List<String> imgUrls = fileService.uploadNewFilesInOrder(multipartFiles, imageOrder, folderName);
 
-        ItemCreateRequest.ItemSize requestSize = request.getSize();
-        SizeType sizeType = calculateSizeType(requestSize.getWidth(), requestSize.getHeight(), requestSize.getDepth());
-
-        userRepository.incrementItemCount(user.getId(), 1);
-
-        return ItemCreateResponse.fromEntity(
-                itemRepository.save(request.toEntity(user, imgUrls, sizeType))
-        );
-
+        return itemPersistenceService.saveItemWithTransaction(user, request, imgUrls);
     }
 
     @Override
@@ -179,7 +176,7 @@ public class ItemServiceImpl implements ItemService {
 
         // 이미지 외 나머지 요소 수정
         ItemCreateRequest.ItemSize requestSize = request.getSize();
-        SizeType sizeType = calculateSizeType(requestSize.getWidth(), requestSize.getHeight(), requestSize.getDepth());
+        SizeType sizeType = sizeTypeUtils.calculateSizeType(requestSize.getWidth(), requestSize.getHeight(), requestSize.getDepth());
         request.applyToEntity(item, updateImgUrls, sizeType);
 
         return ItemUpdateResponse.fromEntity(item);
@@ -216,23 +213,6 @@ public class ItemServiceImpl implements ItemService {
     @Transactional(readOnly = true)
     public ItemSearchResultResponse searchItems(AuthUser authUser, ItemSearchRequest request) {
         return itemRepository.searchItems(authUser, request);
-    }
-
-    /**
-     * 제품의 가로, 세로, 높이를 토대로 제품의 사이즈(S,M,L 혹은 X)를 구한다.
-     *
-     * @param width  가로
-     * @param height 세로
-     * @param depth  폭
-     * @return SizeType S, M, L 사이즈. X는 실측이 불가능한 작품을 의미합니다.
-     */
-    private SizeType calculateSizeType(int width, int height, int depth) {
-        int sum = width + height + depth;
-
-        if (sum == 0) return SizeType.X;
-        else if (sum <= 100) return SizeType.S;
-        else if (sum <= 160) return SizeType.M;
-        else return SizeType.L;
     }
 
     /**
