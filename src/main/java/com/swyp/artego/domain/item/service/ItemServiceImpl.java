@@ -6,7 +6,6 @@ import com.swyp.artego.domain.item.dto.request.ItemSearchRequest;
 import com.swyp.artego.domain.item.dto.request.ItemUpdateRequest;
 import com.swyp.artego.domain.item.dto.response.*;
 import com.swyp.artego.domain.item.entity.Item;
-import com.swyp.artego.domain.item.enums.SizeType;
 import com.swyp.artego.domain.item.enums.StatusType;
 import com.swyp.artego.domain.item.repository.ItemRepository;
 import com.swyp.artego.domain.item.service.utils.SizeTypeUtils;
@@ -169,24 +168,30 @@ public class ItemServiceImpl implements ItemService {
 
         List<String> imageOrder = request.getImageOrder();
 
+        // S3 호출
+        List<String> previousImgUrls = item.getImgUrls();
         List<String> updateImgUrls;
         if (multipartFiles != null) {
             validateFileSizeAndNameMatch(multipartFiles, imageOrder);
             updateImgUrls = fileService.uploadNewFilesInOrder(multipartFiles, imageOrder, folderName);
+
+            // 롤백 이벤트 등록. DB 롤백 시 S3에 새로 업로드했던 이미지를 삭제한다.
+            List<String> newImgUrls = updateImgUrls.stream()
+                    .filter(url -> !previousImgUrls.contains(url))
+                    .toList();
+            applicationEventPublisher.publishEvent(new UploadRollbackEvent(newImgUrls));
         } else {
             updateImgUrls = imageOrder;
         }
 
-        if (!item.getImgUrls().equals(updateImgUrls)) {
-            deleteRemovedImages(item.getImgUrls(), updateImgUrls);
+        // DB 업데이트
+        ItemUpdateResponse res = itemPersistenceService.updateItemWithTransaction(request, item, updateImgUrls);
+
+        if (!previousImgUrls.equals(updateImgUrls)) {
+            deleteRemovedImages(previousImgUrls, updateImgUrls);
         }
 
-        // 이미지 외 나머지 요소 수정
-        ItemCreateRequest.ItemSize requestSize = request.getSize();
-        SizeType sizeType = sizeTypeUtils.calculateSizeType(requestSize.getWidth(), requestSize.getHeight(), requestSize.getDepth());
-        request.applyToEntity(item, updateImgUrls, sizeType);
-
-        return ItemUpdateResponse.fromEntity(item);
+        return res;
     }
 
     @Override

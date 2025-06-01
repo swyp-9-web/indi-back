@@ -1,7 +1,10 @@
 package com.swyp.artego.domain.item.service;
 
 import com.swyp.artego.domain.item.dto.request.ItemCreateRequest;
+import com.swyp.artego.domain.item.dto.request.ItemUpdateRequest;
 import com.swyp.artego.domain.item.dto.response.ItemCreateResponse;
+import com.swyp.artego.domain.item.dto.response.ItemUpdateResponse;
+import com.swyp.artego.domain.item.entity.Item;
 import com.swyp.artego.domain.item.enums.SizeType;
 import com.swyp.artego.domain.item.repository.ItemRepository;
 import com.swyp.artego.domain.item.service.utils.SizeTypeUtils;
@@ -38,5 +41,15 @@ public class ItemPersistenceService {
         return ItemCreateResponse.fromEntity(
                 itemRepository.save(request.toEntity(user, imgUrls, sizeType))
         );
+    }
+
+    @Transactional
+    public ItemUpdateResponse updateItemWithTransaction(ItemUpdateRequest request, Item item, List<String> updateImgUrls) {
+
+        ItemCreateRequest.ItemSize requestSize = request.getSize();
+        SizeType sizeType = sizeTypeUtils.calculateSizeType(requestSize.getWidth(), requestSize.getHeight(), requestSize.getDepth());
+        request.applyToEntity(item, updateImgUrls, sizeType);
+
+        return ItemUpdateResponse.fromEntity(item);
     }
 }
