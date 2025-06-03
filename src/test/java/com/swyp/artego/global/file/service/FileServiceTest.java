@@ -2,10 +2,7 @@ package com.swyp.artego.global.file.service;
 
 import com.amazonaws.SdkClientException;
 import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.model.DeleteObjectsRequest;
-import com.amazonaws.services.s3.model.DeleteObjectsResult;
-import com.amazonaws.services.s3.model.ObjectMetadata;
-import com.amazonaws.services.s3.model.PutObjectResult;
+import com.amazonaws.services.s3.model.*;
 import com.swyp.artego.global.common.code.ErrorCode;
 import com.swyp.artego.global.excpetion.BusinessExceptionHandler;
 import com.swyp.artego.global.file.dto.response.FileUploadResponseExample;
@@ -116,7 +113,7 @@ class FileServiceTest {
         String key = response.getUploadFilePath() + "/" + response.getUploadFileName();
 
         verify(amazonS3, times(1))
-                .putObject(anyString(), eq(key), any(InputStream.class), any(ObjectMetadata.class));
+                .putObject(any(PutObjectRequest.class));
 
         verify(amazonS3, times(1))
                 .deleteObject(anyString(), eq(key));
@@ -137,7 +134,7 @@ class FileServiceTest {
         assertEquals(2, fileUrls.size(), "업로드된 파일 개수가 예상과 다릅니다.");
 
         verify(amazonS3, times(2))
-                .putObject(anyString(), anyString(), any(InputStream.class), any(ObjectMetadata.class));
+                .putObject(any(PutObjectRequest.class));
     }
 
     /**
@@ -233,12 +230,7 @@ class FileServiceTest {
         mockMultipartFiles.add(new MockMultipartFile(
                 "files", "test-image-fail.jpg", "image/jpeg", "Dummy Content".getBytes()));
 
-        when(amazonS3.putObject(
-                anyString(),
-                anyString(),
-                any(InputStream.class),
-                any(ObjectMetadata.class))
-        ).thenThrow(new SdkClientException("강제 발생 테스트용 SdkClientException"));
+        when(amazonS3.putObject(any(PutObjectRequest.class))).thenThrow(new SdkClientException("강제 발생 테스트용 SdkClientException"));
 
         // when + then
         BusinessExceptionHandler exception = assertThrows(
