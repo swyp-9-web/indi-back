@@ -8,13 +8,13 @@ import com.swyp.artego.domain.item.dto.response.*;
 import com.swyp.artego.domain.item.entity.Item;
 import com.swyp.artego.domain.item.enums.StatusType;
 import com.swyp.artego.domain.item.repository.ItemRepository;
-import com.swyp.artego.domain.item.service.utils.SizeTypeUtils;
 import com.swyp.artego.domain.itemEmoji.entity.ItemEmoji;
 import com.swyp.artego.domain.itemEmoji.repository.ItemEmojiRepository;
 import com.swyp.artego.domain.scrap.repository.ScrapRepository;
 import com.swyp.artego.domain.user.entity.User;
 import com.swyp.artego.domain.user.enums.Role;
 import com.swyp.artego.domain.user.repository.UserRepository;
+import com.swyp.artego.domain.user.service.UserPersistenceService;
 import com.swyp.artego.global.auth.oauth.model.AuthUser;
 import com.swyp.artego.global.common.code.ErrorCode;
 import com.swyp.artego.global.excpetion.BusinessExceptionHandler;
@@ -43,12 +43,11 @@ public class ItemServiceImpl implements ItemService {
     private final ItemEmojiRepository itemEmojiRepository;
 
     private final ItemPersistenceService itemPersistenceService;
+    private final UserPersistenceService userPersistenceService;
     private final FileService fileService;
 
     @Value("${ncp.storage.bucket.folder.item-post}")
     private String folderName;
-
-    private final SizeTypeUtils sizeTypeUtils;
 
     private final ApplicationEventPublisher applicationEventPublisher;
 
@@ -154,44 +153,26 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    @Transactional
     public ItemUpdateResponse updateItem(AuthUser authUser, Long itemId, ItemUpdateRequest request, List<MultipartFile> multipartFiles) {
-        User user = userRepository.findByOauthId(authUser.getOauthId())
-                .orElseThrow(() -> new BusinessExceptionHandler("유저가 존재하지 않습니다.", ErrorCode.NOT_FOUND_ERROR));
+        Item item = itemPersistenceService.loadAndValidateItem(itemId);
 
-        Item item = itemRepository.findById(itemId)
-                .orElseThrow(() -> new BusinessExceptionHandler("작품이 존재하지 않습니다.", ErrorCode.NOT_FOUND_ERROR));
-
+        User user = userPersistenceService.loadAndValidateUser(authUser.getOauthId());
         if (!item.getUser().getId().equals(user.getId())) {
             throw new BusinessExceptionHandler("작품을 수정할 권한이 없습니다.", ErrorCode.FORBIDDEN_ERROR);
         }
 
-        List<String> imageOrder = request.getImageOrder();
-
         // S3 호출
-        List<String> previousImgUrls = item.getImgUrls();
+        List<String> imageOrder = request.getImageOrder();
         List<String> updateImgUrls;
         if (multipartFiles != null) {
             validateFileSizeAndNameMatch(multipartFiles, imageOrder);
             updateImgUrls = fileService.uploadNewFilesInOrder(multipartFiles, imageOrder, folderName);
-
-            // 롤백 이벤트 등록. DB 롤백 시 S3에 새로 업로드했던 이미지를 삭제한다.
-            List<String> newImgUrls = updateImgUrls.stream()
-                    .filter(url -> !previousImgUrls.contains(url))
-                    .toList();
-            applicationEventPublisher.publishEvent(new UploadRollbackEvent(newImgUrls));
         } else {
             updateImgUrls = imageOrder;
         }
 
         // DB 업데이트
-        ItemUpdateResponse res = itemPersistenceService.updateItemWithTransaction(request, item, updateImgUrls);
-
-        if (!previousImgUrls.equals(updateImgUrls)) {
-            deleteRemovedImages(previousImgUrls, updateImgUrls);
-        }
-
-        return res;
+        return itemPersistenceService.updateItemWithTransaction(request, item, updateImgUrls);
     }
 
     @Override
@@ -257,28 +238,6 @@ public class ItemServiceImpl implements ItemService {
                             "누락되었거나 불필요한 파일이 존재할 수 있습니다.",
                     ErrorCode.BAD_REQUEST_ERROR
             );
-        }
-    }
-
-    /**
-     * [수정 API] DB에 저장되어있는 이전 이미지 url 리스트에서 더이상 등록하지 않을 이미지를 추출하고, S3에서 삭제 실행
-     *
-     * @param previousImgUrls 기존 게시글의 이미지 URLs
-     * @param updateImgUrls   수정한 결과 이미지 Urls
-     */
-    private void deleteRemovedImages(List<String> previousImgUrls, List<String> updateImgUrls) {
-
-        List<String> deletedUrls = previousImgUrls.stream()
-                .filter(url -> !updateImgUrls.contains(url))
-                .toList();
-
-        List<String> deletedKeys = deletedUrls.stream()
-                .map(fileService::extractKeyFromImgUrl)
-                .toList();
-
-        if (!deletedKeys.isEmpty()) {
-            log.info("[ItemService] 수정 API: #### 게시글에서 내린 사진을 S3에서 삭제 ####");
-            fileService.deleteFiles(deletedKeys);
         }
     }
 }
