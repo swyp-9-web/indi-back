@@ -10,7 +10,8 @@ ncp:
       secret-key: ${NCP_STORAGE_SECRET_KEY}
     bucket:
       name: ${NCP_STORAGE_BUCKET_NAME}
-
+    filename:
+      default-profile: b3db25fe-5e0e-485e-b342-91ee1239950d.jpg
 
 spring:
   application:

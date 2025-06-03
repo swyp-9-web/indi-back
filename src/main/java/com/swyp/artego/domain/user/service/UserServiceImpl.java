@@ -1,7 +1,6 @@
 package com.swyp.artego.domain.user.service;
 
 import com.swyp.artego.domain.follow.repository.FollowRepository;
-
 import com.swyp.artego.domain.user.dto.request.ArtistUpdateRequest;
 import com.swyp.artego.domain.user.dto.request.UserCreateRequest;
 import com.swyp.artego.domain.user.dto.request.UserUpdateRequest;
@@ -22,12 +21,13 @@ import org.springframework.web.multipart.MultipartFile;
 
 @Service
 @RequiredArgsConstructor
-public class UserServiceImpl implements UserService{
+public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final FollowRepository followRepository;
 
     private final FileService fileService;
+    private final UserPersistenceService userPersistenceService;
 
     @Value("${ncp.storage.bucket.folder.user-profile}")
     private String folderName;
@@ -37,8 +37,6 @@ public class UserServiceImpl implements UserService{
     public void createUser(UserCreateRequest request) {
         userRepository.save(request.toEntity());
     }
-
-
 
     @Override
     @Transactional(readOnly = true)
@@ -62,10 +60,10 @@ public class UserServiceImpl implements UserService{
         Boolean isFollowing = false;
 
         //로그인 상태면
-        if(authUser != null){
+        if (authUser != null) {
             User viewer = userRepository.findByOauthId(authUser.getOauthId())
                     .orElseThrow(() -> new BusinessExceptionHandler("유저가 존재하지 않습니다.", ErrorCode.NOT_FOUND_ERROR));
-           isFollowing = followRepository.findByUserAndUserArtist(viewer, artist).isPresent();
+            isFollowing = followRepository.findByUserAndUserArtist(viewer, artist).isPresent();
         }
 
         return ArtistDetailInfoResponse.from(artist, isFollowing);
@@ -77,40 +75,19 @@ public class UserServiceImpl implements UserService{
         return userRepository.existsByNickname(nickname);
     }
 
-
     @Override
-    @Transactional
     public ArtistDetailInfoResponse updateArtistProfile(AuthUser authUser, ArtistUpdateRequest artistRequest, MultipartFile profileImage) {
-        User artist = userRepository.findByOauthId(authUser.getOauthId())
-                .orElseThrow(() -> new BusinessExceptionHandler("해당작가가 존재하지 않습니다.", ErrorCode.NOT_FOUND_ERROR));
-
-        // 아티스트 권한 체크
-        if (!artist.getRole().isArtist()) {
-            throw new BusinessExceptionHandler("아티스트만 프로필을 수정할 수 있습니다.", ErrorCode.FORBIDDEN_ERROR);
-        }
-
-        // 닉네임이 현재 닉네임과 다를 경우에만 중복 체크
-        String newNickname = artistRequest.getNickname();
-        if (newNickname != null && !newNickname.equals(artist.getNickname())) {
-            if (userRepository.existsByNickname(newNickname)) {
-                throw new BusinessExceptionHandler("이미 사용 중인 닉네임입니다.", ErrorCode.DUPLICATE_RESOURCE);
-            }
-            artist.changeNickname(newNickname);
-        }
+        User artist = userPersistenceService.loadAndValidateArtist(authUser.getOauthId());
+        boolean isNicknameChanged = userPersistenceService.isNicknameChangedAndAvailable(artist.getNickname(), artistRequest.getNickname());
 
         // 프로필 이미지 처리
+        String newImgUrl = null;
         if (profileImage != null && !profileImage.isEmpty()) {
-            fileService.deleteFile(artist.getImgUrl());
-            String newImgUrl = fileService.uploadFile(profileImage, folderName).getUploadFileUrl();
-            artist.changeImgUrl(newImgUrl);
+            newImgUrl = fileService.uploadFile(profileImage, folderName).getUploadFileUrl();
         }
 
-        // 나머지 필드는 무조건 업데이트 (값이 null일 수 없다는 전제)
-        artist.changeAboutMe(artistRequest.getAboutMe());
-        artist.changeHomeLink(artistRequest.getHomeLink());
-        artist.changeSnsLinks(artistRequest.getSnsLinks());
-
-        return ArtistDetailInfoResponse.from(artist, false);
+        // 이미지를 제외한 필드는 무조건 업데이트 (값이 null일 수 없다는 전제)
+        return userPersistenceService.updateArtistDetailWithTransaction(artist, artistRequest, newImgUrl, isNicknameChanged);
     }
 
     @Override
@@ -137,6 +114,4 @@ public class UserServiceImpl implements UserService{
 
         return UserInfoSimpleResponse.fromEntity(user);
     }
-
-
 }
