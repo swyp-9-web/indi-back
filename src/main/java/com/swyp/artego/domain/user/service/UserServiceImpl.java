@@ -80,38 +80,25 @@ public class UserServiceImpl implements UserService {
         User artist = userPersistenceService.loadAndValidateArtist(authUser.getOauthId());
         boolean isNicknameChanged = userPersistenceService.isNicknameChangedAndAvailable(artist.getNickname(), artistRequest.getNickname());
 
-        // 프로필 이미지 처리
         String newImgUrl = null;
         if (profileImage != null && !profileImage.isEmpty()) {
             newImgUrl = fileService.uploadFile(profileImage, folderName).getUploadFileUrl();
         }
 
-        // 이미지를 제외한 필드는 무조건 업데이트 (값이 null일 수 없다는 전제)
+        // 필드 업데이트 (값이 null일 수 없다는 전제)
         return userPersistenceService.updateArtistDetailWithTransaction(artist, artistRequest, newImgUrl, isNicknameChanged);
     }
 
     @Override
-    @Transactional
     public UserInfoSimpleResponse updateUserProfile(AuthUser authUser, UserUpdateRequest request, MultipartFile profileImage) {
-        User user = userRepository.findByOauthId(authUser.getOauthId())
-                .orElseThrow(() -> new BusinessExceptionHandler("유저가 존재하지 않습니다.", ErrorCode.NOT_FOUND_ERROR));
+        User user = userPersistenceService.loadAndValidateUser(authUser.getOauthId());
+        boolean isNicknameChanged = userPersistenceService.isNicknameChangedAndAvailable(user.getNickname(), request.getNickname());
 
-        // 닉네임 변경
-        String newNickname = request.getNickname();
-        if (newNickname != null && !newNickname.equals(user.getNickname())) {
-            if (userRepository.existsByNickname(newNickname)) {
-                throw new BusinessExceptionHandler("이미 사용 중인 닉네임입니다.", ErrorCode.DUPLICATE_RESOURCE);
-            }
-            user.changeNickname(newNickname);
-        }
-
-        // 프로필 이미지 변경
+        String newImgUrl = null;
         if (profileImage != null && !profileImage.isEmpty()) {
-            fileService.deleteFile(user.getImgUrl());
-            String newImgUrl = fileService.uploadFile(profileImage, folderName).getUploadFileUrl();
-            user.changeImgUrl(newImgUrl);
+            newImgUrl = fileService.uploadFile(profileImage, folderName).getUploadFileUrl();
         }
 
-        return UserInfoSimpleResponse.fromEntity(user);
+        return userPersistenceService.updateUserDetailWithTransaction(user, request, newImgUrl, isNicknameChanged);
     }
 }

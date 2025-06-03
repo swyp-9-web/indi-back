@@ -1,7 +1,9 @@
 package com.swyp.artego.domain.user.service;
 
 import com.swyp.artego.domain.user.dto.request.ArtistUpdateRequest;
+import com.swyp.artego.domain.user.dto.request.UserUpdateRequest;
 import com.swyp.artego.domain.user.dto.response.ArtistDetailInfoResponse;
+import com.swyp.artego.domain.user.dto.response.UserInfoSimpleResponse;
 import com.swyp.artego.domain.user.entity.User;
 import com.swyp.artego.domain.user.repository.UserRepository;
 import com.swyp.artego.global.common.code.ErrorCode;
@@ -28,7 +30,7 @@ public class UserPersistenceService {
     private String defaultProfileFileName;
 
     /**
-     * 유저 조회 및 유효성 검사
+     * 작가 조회 및 유효성 검사
      * <p>
      * 1. 존재하는 userId 인지
      * 2. 해당 User가 작가 권한을 가지고 있는지
@@ -93,5 +95,43 @@ public class UserPersistenceService {
         artist.changeSnsLinks(artistRequest.getSnsLinks());
 
         return ArtistDetailInfoResponse.from(artist, false);
+    }
+
+    /**
+     * 유저 조회 및 유효성 검사
+     */
+    @Transactional(readOnly = true)
+    public User loadAndValidateUser(String oauthId) {
+        User user = userRepository.findByOauthId(oauthId)
+                .orElseThrow(() -> new BusinessExceptionHandler("해당 유저가 존재하지 않습니다.", ErrorCode.NOT_FOUND_ERROR));
+
+        return user;
+    }
+
+    @Transactional
+    public UserInfoSimpleResponse updateUserDetailWithTransaction(User user, UserUpdateRequest request, String newImgUrl, boolean isNicknameChanged) {
+
+        // 프로필 이미지 변경
+        if (newImgUrl != null) {
+
+            // 롤백 이벤트 등록. DB 롤백 시 S3에 새로 업로드했던 프로필 이미지를 삭제한다.
+            applicationEventPublisher.publishEvent(new UploadRollbackEvent(newImgUrl));
+
+            // 커밋 이벤트 등록. DB 커밋 시 기존 프로필 이미지를 삭제한다.
+            String previousImgUrl = user.getImgUrl();
+            if (!previousImgUrl.contains(defaultProfileFileName)) {
+                log.debug("[updateUserDetailWithTransaction] 기존 프로필 이미지가 기본 프로필 이미지가 아니므로 기존 이미지를 삭제합니다.");
+                applicationEventPublisher.publishEvent(new ImageDeleteEvent(previousImgUrl));
+            }
+
+            user.changeImgUrl(newImgUrl);
+        }
+
+        // 닉네임
+        if (isNicknameChanged) {
+            user.changeNickname(request.getNickname());
+        }
+
+        return UserInfoSimpleResponse.fromEntity(user);
     }
 }
