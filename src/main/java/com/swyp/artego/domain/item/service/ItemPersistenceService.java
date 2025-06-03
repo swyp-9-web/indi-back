@@ -47,6 +47,8 @@ public class ItemPersistenceService {
 
     @Transactional
     public ItemCreateResponse saveItemWithTransaction(User user, ItemCreateRequest request, List<String> imgUrls) {
+        // 롤백 이벤트 등록. DB 롤백 시 S3에 업로드한 이미지를 삭제한다.
+        applicationEventPublisher.publishEvent(new UploadRollbackEvent(imgUrls));
 
         SizeType sizeType = sizeTypeUtils.calculateSizeType(
                 request.getSize().getWidth(),

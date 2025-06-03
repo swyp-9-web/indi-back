@@ -18,12 +18,10 @@ import com.swyp.artego.domain.user.service.UserPersistenceService;
 import com.swyp.artego.global.auth.oauth.model.AuthUser;
 import com.swyp.artego.global.common.code.ErrorCode;
 import com.swyp.artego.global.excpetion.BusinessExceptionHandler;
-import com.swyp.artego.global.file.event.UploadRollbackEvent;
 import com.swyp.artego.global.file.service.FileService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -49,13 +47,9 @@ public class ItemServiceImpl implements ItemService {
     @Value("${ncp.storage.bucket.folder.item-post}")
     private String folderName;
 
-    private final ApplicationEventPublisher applicationEventPublisher;
-
     @Override
     public ItemCreateResponse createItem(AuthUser authUser, ItemCreateRequest request, List<MultipartFile> multipartFiles) {
-        User user = userRepository.findByOauthId(authUser.getOauthId())
-                .orElseThrow(() -> new BusinessExceptionHandler("유저가 존재하지 않습니다.", ErrorCode.NOT_FOUND_ERROR));
-
+        User user = userPersistenceService.loadAndValidateUser(authUser.getOauthId());
         if (user.getRole() != Role.ARTIST) {
             throw new BusinessExceptionHandler("작품을 등록할 권한이 없습니다.", ErrorCode.FORBIDDEN_ERROR);
         }
@@ -63,9 +57,6 @@ public class ItemServiceImpl implements ItemService {
         List<String> imageOrder = request.getImageOrder();
         validateFileSizeAndNameMatch(multipartFiles, imageOrder);
         List<String> imgUrls = fileService.uploadNewFilesInOrder(multipartFiles, imageOrder, folderName);
-
-        // 롤백 이벤트 등록. DB 롤백 시 S3에 업로드한 이미지를 삭제한다.
-        applicationEventPublisher.publishEvent(new UploadRollbackEvent(imgUrls));
 
         return itemPersistenceService.saveItemWithTransaction(user, request, imgUrls);
     }
