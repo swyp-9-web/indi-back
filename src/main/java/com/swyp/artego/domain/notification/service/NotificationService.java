@@ -39,7 +39,7 @@ public interface NotificationService {
      * 4. 댓글 알림 생성
      * - 어떤 유저가 어떤 작품에 댓글을 남겼는지 알림
      */
-    void sendCommentNotification(User receiver, User sender, Long itemId, String itemTitle, Long commentId);
+    //void sendCommentNotification(User receiver, User sender, Long itemId, String itemTitle, Long commentId);
 
     /**
      * 5. 이모지 반응 알림 생성
