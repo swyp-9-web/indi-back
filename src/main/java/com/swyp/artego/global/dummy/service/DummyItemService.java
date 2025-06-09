@@ -31,8 +31,7 @@ public class DummyItemService {
             "https://kr.object.ncloudstorage.com/artego-bucket/file_domain/2018d16d-4883-4836-a8e5-79146aba84bf.png",
             "https://kr.object.ncloudstorage.com/artego-bucket/file_domain/5700638a-19d4-4f8a-a2ba-d353bbf492e2.jpg",
             "https://kr.object.ncloudstorage.com/artego-bucket/file_domain/34a4cd95-27d0-4d2c-8429-e3174b579d20.jpg",
-            "https://kr.object.ncloudstorage.com/artego-bucket/file_domain/f643bf41-ea45-44cf-8ef0-2cb2f6e07a24.png",
-            "https://kr.object.ncloudstorage.com/artego-bucket/file_domain/b3db25fe-5e0e-485e-b342-91ee1239950d.jpg"
+            "https://kr.object.ncloudstorage.com/artego-bucket/file_domain/f643bf41-ea45-44cf-8ef0-2cb2f6e07a24.png"
     );
 
     private static final List<String> MATERIALS = List.of("캔버스", "종이", "나무", "아크릴");
@@ -58,9 +57,9 @@ public class DummyItemService {
         LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
 
         String insertItemSql = """
-            INSERT INTO item (user_id, title, description, img_urls, price, size, size_width, size_heigth, size_depth, material, status, category_type, scrap_count, like_count, want_count, revisit_count, total_reaction_score, created_at, updated_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """;
+                    INSERT INTO item (user_id, title, description, img_urls, price, size, size_width, size_heigth, size_depth, material, status, category_type, scrap_count, like_count, want_count, revisit_count, total_reaction_score, created_at, updated_at)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """;
 
         for (int i = 0; i < count; i++) {
             Long userId = userIds.get(random.nextInt(userIds.size()));
@@ -146,13 +145,13 @@ public class DummyItemService {
 
     private Long insertDummyUser() {
         String sql = """
-        INSERT INTO `user` (
-            oauth_id, name, email, nickname, tel_number, img_url, banned, deleted,
-            item_count, scrap_count, reaction_count, follower_count,
-            artist_home_sns_info, artist_sns_info, artist_about_me,
-            created_at, updated_at, role
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    """;
+                    INSERT INTO `user` (
+                        oauth_id, name, email, nickname, tel_number, img_url, banned, deleted,
+                        item_count, scrap_count, reaction_count, follower_count,
+                        artist_home_sns_info, artist_sns_info, artist_about_me,
+                        created_at, updated_at, role
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """;
 
         Random random = new Random();
         LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Seoul"));

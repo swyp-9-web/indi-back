@@ -5,6 +5,7 @@ import com.swyp.artego.domain.notification.dto.response.NotificationListResponse
 import com.swyp.artego.domain.notification.dto.response.NotificationResponse;
 import com.swyp.artego.domain.notification.entity.Notification;
 import com.swyp.artego.domain.notification.enums.NotificationType;
+import com.swyp.artego.domain.notification.event.NotificationSentEvent;
 import com.swyp.artego.domain.notification.repository.NotificationRepository;
 import com.swyp.artego.domain.user.entity.User;
 import com.swyp.artego.domain.user.repository.UserRepository;
@@ -13,6 +14,7 @@ import com.swyp.artego.global.common.code.ErrorCode;
 import com.swyp.artego.global.excpetion.BusinessExceptionHandler;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -34,7 +36,6 @@ import java.util.concurrent.Executors;
 public class NotificationServiceImpl implements NotificationService {
 
     private final NotificationRepository notificationRepository;
-
     private final UserRepository userRepository;
     private final Map<Long, SseEmitter> emitters = new ConcurrentHashMap<>();
     private static final Long TIMEOUT = 30 * 60 * 1000L; // 30분
@@ -78,7 +79,7 @@ public class NotificationServiceImpl implements NotificationService {
         }, executor);
     }
 
-    private void sendToClient(Long receiverId, Notification notification) {
+    public void sendToClient(Long receiverId, Notification notification) {
         SseEmitter emitter = emitters.get(receiverId);
         if (emitter != null) {
             synchronized (emitter) {
@@ -87,6 +88,7 @@ public class NotificationServiceImpl implements NotificationService {
                             .name("new-notification")
                             .data(NotificationResponse.from(notification)));
                 } catch (IOException e) {
+                    log.warn("SSE 전송 실패");
                     emitters.remove(receiverId);
                 }
             }
@@ -103,9 +105,7 @@ public class NotificationServiceImpl implements NotificationService {
                 .read(false)
                 .build();
 
-        Notification saved = notificationRepository.save(notification);
-        sendToClient(receiver.getId(), saved);
-        return saved;
+        return notificationRepository.save(notification);
     }
 
     private String nowAsString() {
@@ -125,19 +125,6 @@ public class NotificationServiceImpl implements NotificationService {
         createNotification(NotificationType.SCRAP, receiver, content, data);
     }
 
-    @Override
-    public void sendCommentNotification(User receiver, User sender, Long itemId, String itemTitle, Long commentId) {
-        String timestamp = nowAsString();
-        String content = String.format("[%s]님이 [%s] 작품에 댓글을 남겼습니다. 일시: %s", sender.getNickname(), itemTitle, timestamp);
-        Map<String, Object> data = Map.of(
-                "senderNickname", sender.getNickname(),
-                "itemId", itemId,
-                "itemTitle", itemTitle,
-                "commentId", commentId,
-                "createdAt", timestamp
-        );
-        createNotification(NotificationType.COMMENT, receiver, content, data);
-    }
 
     @Override
     public void sendReactionNotification(User receiver, User sender, Long itemId, String itemTitle, EmojiType reactionType) {
