@@ -7,6 +7,9 @@ import com.swyp.artego.domain.comment.entity.Comment;
 import com.swyp.artego.domain.comment.repository.CommentRepository;
 import com.swyp.artego.domain.item.entity.Item;
 import com.swyp.artego.domain.item.repository.ItemRepository;
+import com.swyp.artego.domain.notification.entity.Notification;
+import com.swyp.artego.domain.notification.enums.NotificationType;
+import com.swyp.artego.domain.notification.event.NotificationSentEvent;
 import com.swyp.artego.domain.notification.service.NotificationService;
 import com.swyp.artego.domain.user.entity.User;
 import com.swyp.artego.domain.user.repository.UserRepository;
@@ -15,6 +18,7 @@ import com.swyp.artego.global.common.code.ErrorCode;
 import com.swyp.artego.global.common.dto.response.MetaResponse;
 import com.swyp.artego.global.excpetion.BusinessExceptionHandler;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -23,6 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 @Service
@@ -32,7 +37,9 @@ public class CommentServiceImpl implements CommentService {
     private final CommentRepository commentRepository;
     private final UserRepository userRepository;
     private final ItemRepository itemRepository;
+    private final ApplicationEventPublisher applicationEventPublisher;
     private final NotificationService notificationService;
+
 
     @Override
     @Transactional
@@ -56,16 +63,20 @@ public class CommentServiceImpl implements CommentService {
 
         Comment savedComment = commentRepository.save(request.toEntity(user, item, rootComment));
 
-        // 작가와 댓글 작성자가 다를 경우 알림 생성
-        if (!user.getId().equals(item.getUser().getId())) {
-            notificationService.sendCommentNotification(
-                    item.getUser(), // 작가
-                    user,           // 댓글 작성자
-                    item.getId(),
-                    item.getTitle(),
-                    savedComment.getId()
-            );
-        }
+        Notification savedNotification = notificationService.createNotification(
+                NotificationType.COMMENT,
+                item.getUser(),
+                String.format("[%s]님이 [%s] 작품에 댓글을 남겼습니다. 일시: %s", user.getNickname(), item.getTitle(), savedComment.getCreatedAt().toString()),
+                Map.of(
+                        "senderNickname", user.getNickname(),
+                        "itemId", item.getId(),
+                        "itemTitle", item.getTitle(),
+                        "commentId", savedComment.getId(),
+                        "createdAt", savedComment.getCreatedAt().toString()
+                )
+        );
+
+        applicationEventPublisher.publishEvent(new NotificationSentEvent(savedNotification));
 
         return CommentCreateResponse.fromEntity(savedComment);
 
