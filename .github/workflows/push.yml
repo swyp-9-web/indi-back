@@ -49,6 +49,7 @@ jobs:
             
             docker run -d \
               --name artego \
+              --network artego \
               -p ${{ secrets.APP_PORT_EXTERNAL_INTERNAL }} \
               --env-file .env \
               -e SPRING_PROFILES_ACTIVE=prod \
