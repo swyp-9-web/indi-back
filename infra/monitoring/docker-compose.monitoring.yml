@@ -1,0 +1,36 @@
+#실행 명령어: docker compose -f docker-compose.monitoring.yml up --build -d
+version: '3.7'
+
+services:
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
+    volumes:
+      - ~/prometheus/prometheus-config/:/etc/prometheus/
+      - ~/prometheus/prometheus-volume:/prometheus
+    ports:
+      - 9090:9090
+    command: # web.enalbe-lifecycle은 api 재시작없이 설정파일들을 reload 할 수 있게 해줌
+      - '--web.enable-lifecycle'
+      - '--config.file=/etc/prometheus/prometheus.yml'
+    #    restart: always
+    networks:
+      - artego
+
+  grafana:
+    image: grafana/grafana
+    container_name: grafana
+    # user: "$GRA_UID:$GRA_GID"
+    depends_on:
+      - prometheus
+    ports:
+      - 3000:3000
+    volumes:
+      - ~/prometheus/grafana-volume:/var/lib/grafana
+    #    restart: always
+    networks:
+      - artego
+
+networks:
+  artego:
+    external: true # 사전에 만들어진 네트워크를 사용한다는 뜻
