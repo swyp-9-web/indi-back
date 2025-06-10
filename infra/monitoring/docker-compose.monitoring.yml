@@ -1,3 +1,4 @@
+#실행 명령어: docker compose -f docker-compose.monitoring.yml up --build -d
 version: '3.7'
 
 services:
