@@ -39,3 +39,4 @@ out/
 ### ENV ###
 .env
 env
+/infra/monitoring/.env.monitoring

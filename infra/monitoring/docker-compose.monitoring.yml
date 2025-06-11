@@ -1,4 +1,4 @@
-#실행 명령어: docker compose -f docker-compose.monitoring.yml up --build -d
+#실행 명령어: docker compose --env-file .env.monitoring -f docker-compose.monitoring.yml up --build -d
 version: '3.7'
 
 services:
@@ -28,6 +28,18 @@ services:
     volumes:
       - ~/prometheus/grafana-volume:/var/lib/grafana
     #    restart: always
+    networks:
+      - artego
+
+  mysql_exporter:
+    image: prom/mysqld-exporter:latest
+    container_name: mysql-exporter
+    #    restart: always
+    ports:
+      - 9104:9104 # MySQL Exporter의 기본 포트는 9104이다.
+    command:
+      - "--mysqld.username=${MYSQL_EXPORTER_USER}:${MYSQL_EXPORTER_PASSWORD}"
+      - "--mysqld.address=${MYSQL_EXPORTER_MYSQL_HOST}:${MYSQL_PORT}"
     networks:
       - artego
 
