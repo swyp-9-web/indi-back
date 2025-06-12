@@ -1,0 +1,46 @@
+name: Deploy for SSE Code Impact Monitoring
+
+on:
+  push:
+    branches:
+      - test/#160
+
+jobs:
+  docker-build-deploy:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Docker Hub Login
+        run: |
+          docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build Docker Image
+        run: |
+          docker build -t ${{ secrets.DOCKER_REPO }}:sse-test .
+
+      - name: Push Docker Images
+        run: |
+          docker push ${{ secrets.DOCKER_REPO }}:sse-test
+
+      - name: Deploy to server
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          password: ${{ secrets.SSH_PWD }}
+          script: |
+            set -e
+            docker pull ${{ secrets.DOCKER_REPO }}:sse-test
+            docker rm -f artego || true
+            
+            cd artego-server
+            echo "${{ secrets.SPRING_ENV }}" > .env
+            
+            docker run -d \
+              --name artego \
+              --network artego \
+              -p ${{ secrets.APP_PORT_EXTERNAL_INTERNAL }} \
+              --env-file .env \
+              -e SPRING_PROFILES_ACTIVE=prod \
+              ${{ secrets.DOCKER_REPO }}:sse-test
