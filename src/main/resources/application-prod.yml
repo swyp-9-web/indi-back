@@ -40,6 +40,9 @@ server:
   servlet:
     session:
       timeout: 120m  # 세션 유지 시간 설정 (추후)
+  tomcat:
+    mbeanregistry:
+      enabled: true # Tomcat Thread 메트릭 수집 허용
 
 logging:
   level:
