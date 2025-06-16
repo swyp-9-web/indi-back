@@ -63,7 +63,9 @@ public class NotificationServiceImpl implements NotificationService {
         });
 
         try {
+            log.debug("[NotificationServiceImpl] subscribe, send 전");
             emitter.send(SseEmitter.event().name("connect").data("SSE 연결 완료"));
+            log.debug("[NotificationServiceImpl] subscribe, send 후");
         } catch (IOException e) {
             log.info(" SSE 연결 해제: 유저ID={}", userId);
             emitter.complete();
@@ -77,9 +79,11 @@ public class NotificationServiceImpl implements NotificationService {
         if (emitter != null) {
             synchronized (emitter) {
                 try {
+                    log.debug("[NotificationServiceImpl] sendToClient, send 전");
                     emitter.send(SseEmitter.event()
                             .name("new-notification")
                             .data(NotificationResponse.from(notification)));
+                    log.debug("[NotificationServiceImpl] sendToClient, send 후");
                 } catch (IOException e) {
                     log.warn("SSE 전송 실패");
                     emitters.remove(receiverId);
