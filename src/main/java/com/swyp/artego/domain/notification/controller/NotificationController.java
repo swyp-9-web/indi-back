@@ -14,8 +14,6 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
-import java.util.concurrent.Callable;
-
 @Tag(name = "Notification", description = "알림 관련 API")
 @RestController
 @RequestMapping("/api/v1/notifications")
@@ -26,8 +24,8 @@ public class NotificationController {
 
     @GetMapping(value = "/subscribe", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     @Operation(summary = "SSE 알림 구독")
-    public Callable<SseEmitter> subscribe(@AuthenticationPrincipal AuthUser authUser) {
-        return () -> notificationService.subscribe(authUser).get();
+    public SseEmitter subscribe(@AuthenticationPrincipal AuthUser authUser) {
+        return notificationService.subscribe(authUser);
     }
 
 

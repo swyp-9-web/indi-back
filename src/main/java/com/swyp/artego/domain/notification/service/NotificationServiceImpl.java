@@ -5,7 +5,6 @@ import com.swyp.artego.domain.notification.dto.response.NotificationListResponse
 import com.swyp.artego.domain.notification.dto.response.NotificationResponse;
 import com.swyp.artego.domain.notification.entity.Notification;
 import com.swyp.artego.domain.notification.enums.NotificationType;
-import com.swyp.artego.domain.notification.event.NotificationSentEvent;
 import com.swyp.artego.domain.notification.repository.NotificationRepository;
 import com.swyp.artego.domain.user.entity.User;
 import com.swyp.artego.domain.user.repository.UserRepository;
@@ -14,18 +13,17 @@ import com.swyp.artego.global.common.code.ErrorCode;
 import com.swyp.artego.global.excpetion.BusinessExceptionHandler;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
+
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -41,42 +39,37 @@ public class NotificationServiceImpl implements NotificationService {
     private static final Long TIMEOUT = 30 * 60 * 1000L; // 30분
     private final ExecutorService executor = Executors.newCachedThreadPool();
 
-    @Override
-    public CompletableFuture<SseEmitter> subscribe(AuthUser authUser) {
-        return CompletableFuture.supplyAsync(() -> {
+    public SseEmitter subscribe(AuthUser authUser) {
+        Long userId = userRepository.findByOauthId(authUser.getOauthId())
+                .orElseThrow(() -> new BusinessExceptionHandler("유저가 존재하지 않습니다.", ErrorCode.NOT_FOUND_ERROR))
+                .getId();
 
-            User user = userRepository.findByOauthId(authUser.getOauthId())
-                    .orElseThrow(() -> new BusinessExceptionHandler("유저가 존재하지 않습니다.", ErrorCode.NOT_FOUND_ERROR));
-            Long userId = user.getId();
+        SseEmitter emitter = new SseEmitter(TIMEOUT);
+        emitters.put(userId, emitter);
 
-            SseEmitter emitter = new SseEmitter(TIMEOUT);
-            emitters.put(userId, emitter);
-
-            emitter.onCompletion(() -> {
+        emitter.onCompletion(() -> {
             log.info(" SSE 완료: 유저ID={}", userId);
             emitters.remove(userId);
-            });
-            emitter.onTimeout(() -> {
+        });
+        emitter.onTimeout(() -> {
             log.warn(" SSE 타임아웃: 유저ID={}", userId);
             emitter.complete();
             emitters.remove(userId);
-            });
-            emitter.onError((e) -> {
+        });
+        emitter.onError((e) -> {
             log.error(" SSE 에러 발생: 유저ID={}, error={}", userId, e.getMessage());
             emitter.complete();
             emitters.remove(userId);
-            });
+        });
 
-            try {
-                emitter.send(SseEmitter.event().name("connect").data("SSE 연결 완료"));
-            } catch (IOException e) {
-                log.info(" SSE 연결 해제: 유저ID={}", userId);
-                emitter.complete();
-                emitters.remove(userId);
-            }
-
-            return emitter;
-        }, executor);
+        try {
+            emitter.send(SseEmitter.event().name("connect").data("SSE 연결 완료"));
+        } catch (IOException e) {
+            log.info(" SSE 연결 해제: 유저ID={}", userId);
+            emitter.complete();
+            emitters.remove(userId);
+        }
+        return emitter;
     }
 
     public void sendToClient(Long receiverId, Notification notification) {
