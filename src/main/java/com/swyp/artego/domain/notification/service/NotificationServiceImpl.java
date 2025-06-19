@@ -24,6 +24,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -39,39 +40,42 @@ public class NotificationServiceImpl implements NotificationService {
     private static final Long TIMEOUT = 30 * 60 * 1000L; // 30분
     private final ExecutorService executor = Executors.newCachedThreadPool();
 
-    public SseEmitter subscribe(AuthUser authUser) {
-        Long userId = userRepository.findByOauthId(authUser.getOauthId())
-                .orElseThrow(() -> new BusinessExceptionHandler("유저가 존재하지 않습니다.", ErrorCode.NOT_FOUND_ERROR))
-                .getId();
+    @Override
+    public CompletableFuture<SseEmitter> subscribe(AuthUser authUser) {
+        return CompletableFuture.supplyAsync(() -> {
 
-        SseEmitter emitter = new SseEmitter(TIMEOUT);
-        emitters.put(userId, emitter);
+            User user = userRepository.findByOauthId(authUser.getOauthId())
+                    .orElseThrow(() -> new BusinessExceptionHandler("유저가 존재하지 않습니다.", ErrorCode.NOT_FOUND_ERROR));
+            Long userId = user.getId();
 
-        emitter.onCompletion(() -> {
-            log.info(" SSE 완료: 유저ID={}", userId);
-            emitters.remove(userId);
-        });
-        emitter.onTimeout(() -> {
-            log.warn(" SSE 타임아웃: 유저ID={}", userId);
-            emitter.complete();
-            emitters.remove(userId);
-        });
-        emitter.onError((e) -> {
-            log.error(" SSE 에러 발생: 유저ID={}, error={}", userId, e.getMessage());
-            emitter.complete();
-            emitters.remove(userId);
-        });
+            SseEmitter emitter = new SseEmitter(TIMEOUT);
+            emitters.put(userId, emitter);
 
-        try {
-            log.debug("[NotificationServiceImpl] subscribe, send 전");
-            emitter.send(SseEmitter.event().name("connect").data("SSE 연결 완료"));
-            log.debug("[NotificationServiceImpl] subscribe, send 후");
-        } catch (IOException e) {
-            log.info(" SSE 연결 해제: 유저ID={}", userId);
-            emitter.complete();
-            emitters.remove(userId);
-        }
-        return emitter;
+            emitter.onCompletion(() -> {
+                log.info(" SSE 완료: 유저ID={}", userId);
+                emitters.remove(userId);
+            });
+            emitter.onTimeout(() -> {
+                log.warn(" SSE 타임아웃: 유저ID={}", userId);
+                emitter.complete();
+                emitters.remove(userId);
+            });
+            emitter.onError((e) -> {
+                log.error(" SSE 에러 발생: 유저ID={}, error={}", userId, e.getMessage());
+                emitter.complete();
+                emitters.remove(userId);
+            });
+
+            try {
+                emitter.send(SseEmitter.event().name("connect").data("SSE 연결 완료"));
+            } catch (IOException e) {
+                log.info(" SSE 연결 해제: 유저ID={}", userId);
+                emitter.complete();
+                emitters.remove(userId);
+            }
+
+            return emitter;
+        }, executor);
     }
 
     public void sendToClient(Long receiverId, Notification notification) {

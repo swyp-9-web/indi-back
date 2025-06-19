@@ -9,6 +9,7 @@ import com.swyp.artego.global.auth.oauth.model.AuthUser;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 public interface NotificationService {
 
@@ -18,7 +19,7 @@ public interface NotificationService {
      * - 서버는 SseEmitter를 생성하여 클라이언트와 연결을 유지함
      * - 503 방지를 위해 연결 즉시 더미 이벤트("connect")를 전송함
      */
-    SseEmitter subscribe(AuthUser authUser);
+    CompletableFuture<SseEmitter> subscribe(AuthUser authUser);
 
     /**
      * 2. 알림 DB 저장 및 실시간 전송

@@ -19,9 +19,7 @@ public class NotificationEventListener {
     public void handle(NotificationSentEvent event) {
         Notification notification = event.getNotification();
         try {
-            log.debug("[NotificationEventListener] AFTER_COMMIT 이벤트 후, SSE 전송 전");
             notificationService.sendToClient(notification.getReceiver().getId(), notification);
-            log.debug("[NotificationEventListener] AFTER_COMMIT 이벤트 후, SSE 전송 후");
         } catch (Exception e) {
             log.warn("[NotificationEventListener] SSE 전송 실패: id={}, reason={}", notification.getId(), e.getMessage(), e);
         }
